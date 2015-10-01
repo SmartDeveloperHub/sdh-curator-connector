@@ -36,30 +36,22 @@ final class ImmutableDeliveryChannel implements DeliveryChannel {
 	private final String exchangeName;
 	private final String routingKey;
 	private final Broker broker;
-	private final String virtualHost;
 	private final String queueName;
 
 	ImmutableDeliveryChannel(
 			Broker broker,
-			String virtualHost,
 			String exchangeName,
 			String queueName,
 			String routingKey) {
 		this.exchangeName = exchangeName;
 		this.routingKey = routingKey;
 		this.broker = broker;
-		this.virtualHost = virtualHost;
 		this.queueName = queueName;
 	}
 
 	@Override
 	public Broker broker() {
 		return this.broker;
-	}
-
-	@Override
-	public String virtualHost() {
-		return this.virtualHost;
 	}
 
 	@Override
@@ -84,7 +76,6 @@ final class ImmutableDeliveryChannel implements DeliveryChannel {
 				toStringHelper(getClass()).
 					omitNullValues().
 					add("broker",this.broker).
-					add("virtualHost",this.virtualHost).
 					add("exchangeName",this.exchangeName).
 					add("queueName",this.queueName).
 					add("routingKey",this.routingKey).

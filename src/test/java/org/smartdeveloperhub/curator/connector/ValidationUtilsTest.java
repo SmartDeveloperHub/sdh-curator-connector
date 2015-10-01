@@ -34,6 +34,8 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import com.rabbitmq.client.ConnectionFactory;
+
 public class ValidationUtilsTest {
 
 	private void assertInvalidHostName(String hostname, String failure) {
@@ -233,6 +235,30 @@ public class ValidationUtilsTest {
 	@Test
 	public void testValidateHostname$domainName$innerDots() throws Exception {
 		assertInvalidHostName("invalid...hostname", "Should not accept a domain name with inner dots");
+	}
+
+	@Test
+	public void testValidatePort$valid() {
+		ValidationUtils.validatePort(ConnectionFactory.DEFAULT_AMQP_PORT);
+	}
+
+	@Test
+	public void testValidatePort$invalid$lowerThatZero() {
+		try {
+			ValidationUtils.validatePort(-1);
+			fail("Should not accept a negative port");
+		} catch (Exception e) {
+			assertThat(e.getMessage(),equalTo("Invalid port number (-1 is lower than 0)"));
+		}
+	}
+
+	@Test
+	public void testValidatePort$invalid$greaterThanMaxPort() {
+		try {
+			ValidationUtils.validatePort(65536);
+		} catch (Exception e) {
+			assertThat(e.getMessage(),equalTo("Invalid port number (65536 is greater than 65535)"));
+		}
 	}
 
 }

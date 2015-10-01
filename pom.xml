@@ -63,6 +63,7 @@
 	<properties>
 		<sesame.version>2.7.9</sesame.version>
 		<jena.version>2.13.0</jena.version>
+		<ldp4j.version>0.2.0-SNAPSHOT</ldp4j.version>
 		<rabbitmq.version>3.5.5</rabbitmq.version>
 	</properties>
 
@@ -93,14 +94,37 @@
 				<artifactId>jena-arq</artifactId>
 				<version>${jena.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.ldp4j.framework</groupId>
+				<artifactId>ldp4j-application-api</artifactId>
+				<version>${ldp4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ldp4j.framework</groupId>
+				<artifactId>ldp4j-application-data</artifactId>
+				<version>${ldp4j.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
+
 		<dependency>
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
 			<version>${rabbitmq.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.ldp4j.framework</groupId>
+			<artifactId>ldp4j-application-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.ldp4j.framework</groupId>
+			<artifactId>ldp4j-application-data</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<dependency>

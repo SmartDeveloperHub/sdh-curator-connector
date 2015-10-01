@@ -34,10 +34,12 @@ final class ImmutableBroker implements Broker {
 
 	private final int port;
 	private final String host;
+	private String virtualHost;
 
-	ImmutableBroker(int _port, String _host) {
-		this.port = _port;
-		this.host = _host;
+	ImmutableBroker(String host, int port, String virtualHost) {
+		this.host = host;
+		this.port = port;
+		this.virtualHost = virtualHost;
 	}
 
 	@Override
@@ -51,12 +53,18 @@ final class ImmutableBroker implements Broker {
 	}
 
 	@Override
+	public String virtualHost() {
+		return this.virtualHost;
+	}
+
+	@Override
 	public String toString() {
 		return
 			MoreObjects.
 				toStringHelper(getClass()).
 					add("host",this.host).
 					add("port",this.port).
+					add("virtualHost",this.virtualHost).
 					toString();
 	}
 

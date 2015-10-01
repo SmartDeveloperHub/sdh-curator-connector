@@ -97,4 +97,9 @@ final class ValidationUtils {
 		}
 	}
 
+	static void validatePort(int port) {
+		Preconditions.checkArgument(port>=0,"Invalid port number (%s is lower than 0)",port);
+		Preconditions.checkArgument(port<65536,"Invalid port number (%s is greater than 65535)",port);
+	}
+
 }

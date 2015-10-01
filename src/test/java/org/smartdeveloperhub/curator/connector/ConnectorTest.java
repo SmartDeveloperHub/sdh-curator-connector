@@ -24,14 +24,59 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
-public interface Broker {
+import java.net.URI;
 
-	String host();
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-	int port();
+public class ConnectorTest {
 
-	String virtualHost();
+
+	private CuratorController controller;
+
+	@Before
+	public void setUp() throws Exception {
+		this.controller = new CuratorController(CuratorConfiguration.newInstance());
+		this.controller.connect();
+		this.controller.handleRequests(
+			new MessageHandler() {
+				@Override
+				public void handleCancel() {
+					System.out.println("Received cancel request");
+				}
+				@Override
+				public void handlePayload(String payload) {
+					System.out.println("Received request: "+payload);
+				}
+			}
+		);
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		this.controller.disconnect();
+	}
+
+	@Test
+	public void testRequestEnrichment() throws Exception {
+		Connector connector =
+			Connector.
+				builder().
+					withConnectorChannel(
+						ProtocolFactory.
+							newDeliveryChannel().
+								withQueueName("connector").
+								build()).
+					build();
+		connector.connect();
+		try {
+			connector.requestEnrichment(URI.create("urn:message"));
+		} finally {
+			connector.disconnect();
+		}
+	}
 
 }

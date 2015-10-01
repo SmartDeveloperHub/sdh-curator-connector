@@ -24,14 +24,11 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
-public interface Broker {
+public interface MessageHandler {
 
-	String host();
-
-	int port();
-
-	String virtualHost();
+	void handleCancel();
+	void handlePayload(String payload);
 
 }

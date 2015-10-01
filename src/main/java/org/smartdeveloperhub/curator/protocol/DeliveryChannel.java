@@ -30,8 +30,6 @@ public interface DeliveryChannel {
 
 	Broker broker();
 
-	String virtualHost();
-
 	String exchangeName();
 
 	String queueName();

@@ -24,14 +24,32 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
-public interface Broker {
+import java.io.IOException;
 
-	String host();
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.AMQP.BasicProperties;
 
-	int port();
+final class MessageHandlerConsumer extends DefaultConsumer {
 
-	String virtualHost();
+	private final MessageHandler handler;
 
+	MessageHandlerConsumer(Channel channel, MessageHandler handler) {
+		super(channel);
+		this.handler = handler;
+	}
+
+	@Override
+	public void handleCancel(String consumerTag) throws IOException {
+		this.handler.handleCancel();
+	}
+
+	@Override
+	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
+		String payload=new String(body, "UTF-8");
+		this.handler.handlePayload(payload);
+	}
 }

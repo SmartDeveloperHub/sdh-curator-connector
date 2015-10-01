@@ -97,12 +97,6 @@ public final class ProtocolFactory {
 			return withBroker(builder.build());
 		}
 
-		public DeliveryChannelBuilder withVirtualHost(String virtualHost) {
-			ValidationUtils.validatePath(virtualHost);
-			this.virtualHost = virtualHost;
-			return this;
-		}
-
 		public DeliveryChannelBuilder withExchangeName(String exchangeName) {
 			ValidationUtils.validateName(virtualHost);
 			this.exchangeName = exchangeName;
@@ -125,7 +119,6 @@ public final class ProtocolFactory {
 			return
 				new ImmutableDeliveryChannel(
 					this.broker,
-					this.virtualHost,
 					this.exchangeName,
 					this.queueName,
 					this.routingKey);
@@ -409,6 +402,10 @@ public final class ProtocolFactory {
 
 	public static AgentBuilder newAgent() {
 		return new AgentBuilder();
+	}
+
+	public static DeliveryChannelBuilder newDeliveryChannel() {
+		return new DeliveryChannelBuilder();
 	}
 
 	public static EnrichmentRequestBuilder newEnrichmentRequest() {

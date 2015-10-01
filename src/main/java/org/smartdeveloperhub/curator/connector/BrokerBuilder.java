@@ -29,13 +29,13 @@ package org.smartdeveloperhub.curator.connector;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
-import com.google.common.base.Preconditions;
 import com.rabbitmq.client.ConnectionFactory;
 
 public final class BrokerBuilder implements Builder<Broker> {
 
 	private String host;
 	private Integer port;
+	private String virtualHost;
 
 	BrokerBuilder() {
 	}
@@ -47,21 +47,23 @@ public final class BrokerBuilder implements Builder<Broker> {
 	}
 
 	public BrokerBuilder withPort(int port) {
-		validatePort(port);
+		ValidationUtils.validatePort(port);
 		this.port=port;
 		return this;
 	}
 
-	static void validatePort(int port) {
-		Preconditions.checkArgument(port>=0,"Invalid port (%s is lower than 0)");
-		Preconditions.checkArgument(port<65536,"Invalid port (%s is greater than 65535)");
+	public BrokerBuilder withVirtualHost(String virtualHost) {
+		ValidationUtils.validatePath(virtualHost);
+		this.virtualHost = virtualHost;
+		return this;
 	}
 
 	public Broker build() {
 		return
 			new ImmutableBroker(
+				this.host!=null?this.host:ConnectionFactory.DEFAULT_HOST,
 				this.port!=null?this.port:ConnectionFactory.DEFAULT_AMQP_PORT,
-				this.host!=null?this.host:"localhost");
+				this.virtualHost!=null?this.virtualHost:ConnectionFactory.DEFAULT_VHOST);
 	}
 
 }
