@@ -91,6 +91,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.jena</groupId>
+				<artifactId>jena-core</artifactId>
+				<version>${jena.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jena</groupId>
 				<artifactId>jena-arq</artifactId>
 				<version>${jena.version}</version>
 			</dependency>
@@ -179,12 +184,26 @@
 
 		<dependency>
 			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-arq</artifactId>
-			<scope>test</scope>
+			<artifactId>jena-core</artifactId>
 			<exclusions>
 				<exclusion>
 					<groupId>log4j</groupId>
 					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>httpclient</artifactId>
+					<groupId>org.apache.httpcomponents</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>

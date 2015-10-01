@@ -24,62 +24,18 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+public class MessageConversionException extends Exception {
 
-import com.google.common.base.MoreObjects;
+	private static final long serialVersionUID = -4215317480078419208L;
 
-final class ImmutableDeliveryChannel implements DeliveryChannel {
-
-	private final String exchangeName;
-	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
-
-	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
-		this.broker = broker;
-		this.exchangeName = exchangeName;
-		this.queueName = queueName;
-		this.routingKey = routingKey;
+	public MessageConversionException(String message) {
+		this(message,null);
 	}
 
-	@Override
-	public Broker broker() {
-		return this.broker;
-	}
-
-	@Override
-	public String exchangeName() {
-		return this.exchangeName;
-	}
-
-	@Override
-	public String queueName() {
-		return this.queueName;
-	}
-
-	@Override
-	public String routingKey() {
-		return this.routingKey;
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("broker",this.broker).
-					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
-					add("routingKey",this.routingKey).
-					toString();
+	public MessageConversionException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 }

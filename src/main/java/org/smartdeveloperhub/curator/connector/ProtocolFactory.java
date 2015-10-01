@@ -44,12 +44,51 @@ import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.Response;
 
 import com.google.common.base.Preconditions;
+import com.rabbitmq.client.ConnectionFactory;
 
 public final class ProtocolFactory {
 
 	public interface Builder<T> {
 
 		T build();
+
+	}
+
+	public static final class BrokerBuilder implements Builder<Broker> {
+
+		private String host;
+		private Integer port;
+		private String virtualHost;
+
+		private BrokerBuilder() {
+		}
+
+		public BrokerBuilder withHost(String host) {
+			ValidationUtils.validateHostname(host);
+			this.host=host;
+			return this;
+		}
+
+		public BrokerBuilder withPort(int port) {
+			ValidationUtils.validatePort(port);
+			this.port=port;
+			return this;
+		}
+
+		public BrokerBuilder withVirtualHost(String virtualHost) {
+			ValidationUtils.validatePath(virtualHost);
+			this.virtualHost = virtualHost;
+			return this;
+		}
+
+		@Override
+		public Broker build() {
+			return
+				new ImmutableBroker(
+					this.host!=null?this.host:ConnectionFactory.DEFAULT_HOST,
+					this.port!=null?this.port:ConnectionFactory.DEFAULT_AMQP_PORT,
+					this.virtualHost!=null?this.virtualHost:ConnectionFactory.DEFAULT_VHOST);
+		}
 
 	}
 
@@ -69,6 +108,7 @@ public final class ProtocolFactory {
 			return withAgentId(UUID.fromString(agentId));
 		}
 
+		@Override
 		public Agent build() {
 			return
 				new ImmutableAgent(
@@ -80,7 +120,6 @@ public final class ProtocolFactory {
 	public static final class DeliveryChannelBuilder implements Builder<DeliveryChannel> {
 
 		private Broker broker;
-		private String virtualHost;
 		private String exchangeName;
 		private String queueName;
 		private String routingKey;
@@ -98,23 +137,24 @@ public final class ProtocolFactory {
 		}
 
 		public DeliveryChannelBuilder withExchangeName(String exchangeName) {
-			ValidationUtils.validateName(virtualHost);
+			ValidationUtils.validateName(exchangeName);
 			this.exchangeName = exchangeName;
 			return this;
 		}
 
 		public DeliveryChannelBuilder withQueueName(String queueName) {
-			ValidationUtils.validateName(virtualHost);
+			ValidationUtils.validateName(queueName);
 			this.queueName = queueName;
 			return this;
 		}
 
 		public DeliveryChannelBuilder withRoutingKey(String routingKey) {
-			ValidationUtils.validateRoutingKey(virtualHost);
+			ValidationUtils.validateRoutingKey(routingKey);
 			this.routingKey = routingKey;
 			return this;
 		}
 
+		@Override
 		public DeliveryChannel build() {
 			return
 				new ImmutableDeliveryChannel(
@@ -126,7 +166,7 @@ public final class ProtocolFactory {
 
 	}
 
-	public static abstract class MessageBuilder<T extends Message, B extends MessageBuilder<T,B>> implements Builder<T> {
+	public abstract static class MessageBuilder<T extends Message, B extends MessageBuilder<T,B>> implements Builder<T> {
 
 		private final B builder;
 
@@ -219,7 +259,7 @@ public final class ProtocolFactory {
 					id(),
 					submissionDate(),
 					agent(),
-					deliveryChannel(),
+					Objects.requireNonNull(deliveryChannel(),"Reply delivery channel cannot be null"),
 					Objects.requireNonNull(this.targetResource,"Target resource cannot be null"));
 		}
 
@@ -242,7 +282,7 @@ public final class ProtocolFactory {
 
 	}
 
-	public static abstract class ResponseBuilder<T extends Response, B extends ResponseBuilder<T,B>> extends MessageBuilder<T,B> {
+	public abstract static class ResponseBuilder<T extends Response, B extends ResponseBuilder<T,B>> extends MessageBuilder<T,B> {
 
 		private UUID responseTo;
 		private Long responseNumber;
@@ -371,7 +411,7 @@ public final class ProtocolFactory {
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withRemovalResource(URI removalTarget) {
+		public EnrichmentResponseBuilder withRemovalTarget(URI removalTarget) {
 			this.removalTarget = removalTarget;
 			return this;
 		}

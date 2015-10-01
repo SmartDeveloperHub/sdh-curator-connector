@@ -24,62 +24,25 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import java.net.URI;
+import java.net.URL;
 
-import com.google.common.base.MoreObjects;
+interface PropertyHelper {
 
-final class ImmutableDeliveryChannel implements DeliveryChannel {
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withLiteral(Object value);
 
-	private final String exchangeName;
-	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withLanguageLiteral(Object value, String lang);
 
-	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
-		this.broker = broker;
-		this.exchangeName = exchangeName;
-		this.queueName = queueName;
-		this.routingKey = routingKey;
-	}
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, String type);
 
-	@Override
-	public Broker broker() {
-		return this.broker;
-	}
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(String value);
 
-	@Override
-	public String exchangeName() {
-		return this.exchangeName;
-	}
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(URI value);
 
-	@Override
-	public String queueName() {
-		return this.queueName;
-	}
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(URL value);
 
-	@Override
-	public String routingKey() {
-		return this.routingKey;
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("broker",this.broker).
-					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
-					add("routingKey",this.routingKey).
-					toString();
-	}
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withBlankNode(String value);
 
 }

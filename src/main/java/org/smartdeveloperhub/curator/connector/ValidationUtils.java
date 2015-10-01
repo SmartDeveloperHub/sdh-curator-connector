@@ -90,11 +90,7 @@ final class ValidationUtils {
 	}
 
 	static void validateHostname(String hostname) {
-		if(!InetAddresses.isInetAddress(hostname)) {
-			if(!isValidDomainName(hostname)) {
-				throw new IllegalArgumentException("Host name '"+hostname+"' is not valid");
-			}
-		}
+		Preconditions.checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),"Host name '%s' is not valid",hostname);
 	}
 
 	static void validatePort(int port) {

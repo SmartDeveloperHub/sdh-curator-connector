@@ -24,62 +24,17 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import com.hp.hpl.jena.rdf.model.Model;
 
-import com.google.common.base.MoreObjects;
+final class ModelUtil {
 
-final class ImmutableDeliveryChannel implements DeliveryChannel {
-
-	private final String exchangeName;
-	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
-
-	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
-		this.broker = broker;
-		this.exchangeName = exchangeName;
-		this.queueName = queueName;
-		this.routingKey = routingKey;
+	private ModelUtil() {
 	}
 
-	@Override
-	public Broker broker() {
-		return this.broker;
-	}
-
-	@Override
-	public String exchangeName() {
-		return this.exchangeName;
-	}
-
-	@Override
-	public String queueName() {
-		return this.queueName;
-	}
-
-	@Override
-	public String routingKey() {
-		return this.routingKey;
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("broker",this.broker).
-					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
-					add("routingKey",this.routingKey).
-					toString();
+	static ModelHelper createHelper(Model model) {
+		return new ImmutableModelHelper(model);
 	}
 
 }

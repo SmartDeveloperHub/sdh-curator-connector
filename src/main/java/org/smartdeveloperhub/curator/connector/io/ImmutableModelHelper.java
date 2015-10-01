@@ -24,62 +24,44 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import java.net.URI;
+import java.net.URL;
 
-import com.google.common.base.MoreObjects;
+import com.hp.hpl.jena.rdf.model.AnonId;
+import com.hp.hpl.jena.rdf.model.Model;
 
-final class ImmutableDeliveryChannel implements DeliveryChannel {
+final class ImmutableModelHelper implements ModelHelper {
 
-	private final String exchangeName;
-	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
+	final Model model;
 
-	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
-		this.broker = broker;
-		this.exchangeName = exchangeName;
-		this.queueName = queueName;
-		this.routingKey = routingKey;
+	ImmutableModelHelper(Model model) {
+		this.model = model;
+	}
+
+	Model model() {
+		return this.model;
 	}
 
 	@Override
-	public Broker broker() {
-		return this.broker;
+	public ResourceHelper resource(String resourceId) {
+		return new ImmutableResourceHelper(this,this.model().createResource(resourceId));
 	}
 
 	@Override
-	public String exchangeName() {
-		return this.exchangeName;
+	public ResourceHelper blankNode(String bnode) {
+		return new ImmutableResourceHelper(this,this.model().createResource(AnonId.create(bnode)));
 	}
 
 	@Override
-	public String queueName() {
-		return this.queueName;
+	public ResourceHelper resource(URI resourceId) {
+		return resource(resourceId.toString());
 	}
 
 	@Override
-	public String routingKey() {
-		return this.routingKey;
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("broker",this.broker).
-					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
-					add("routingKey",this.routingKey).
-					toString();
+	public ResourceHelper resource(URL resourceId) {
+		return resource(resourceId.toString());
 	}
 
 }

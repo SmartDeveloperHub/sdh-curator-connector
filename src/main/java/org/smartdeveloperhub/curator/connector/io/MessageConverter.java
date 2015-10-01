@@ -24,46 +24,14 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.Message;
 
-import com.rabbitmq.client.ConnectionFactory;
+public interface MessageConverter<T extends Message> {
 
-public final class BrokerBuilder implements Builder<Broker> {
+	T fromString(String body) throws MessageConversionException;
 
-	private String host;
-	private Integer port;
-	private String virtualHost;
-
-	BrokerBuilder() {
-	}
-
-	public BrokerBuilder withHost(String host) {
-		ValidationUtils.validateHostname(host);
-		this.host=host;
-		return this;
-	}
-
-	public BrokerBuilder withPort(int port) {
-		ValidationUtils.validatePort(port);
-		this.port=port;
-		return this;
-	}
-
-	public BrokerBuilder withVirtualHost(String virtualHost) {
-		ValidationUtils.validatePath(virtualHost);
-		this.virtualHost = virtualHost;
-		return this;
-	}
-
-	public Broker build() {
-		return
-			new ImmutableBroker(
-				this.host!=null?this.host:ConnectionFactory.DEFAULT_HOST,
-				this.port!=null?this.port:ConnectionFactory.DEFAULT_AMQP_PORT,
-				this.virtualHost!=null?this.virtualHost:ConnectionFactory.DEFAULT_VHOST);
-	}
+	String toString(T message) throws MessageConversionException;
 
 }
