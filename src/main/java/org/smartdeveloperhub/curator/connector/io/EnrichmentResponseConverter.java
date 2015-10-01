@@ -26,11 +26,6 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.curator;
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.foaf;
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.types;
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.xsd;
-
 import java.net.URI;
 
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
@@ -41,32 +36,32 @@ final class EnrichmentResponseConverter extends ModelMessageConverter<Enrichment
 	protected void toString(EnrichmentResponse message, ModelHelper helper) {
 		helper.
 			blankNode("response").
-				type(curator("EnrichmentResponse")).
-				property(curator("messageId")).
-					withTypedLiteral(message.messageId(), types("UUID")).
-				property(curator("submittedBy")).
+				type(CURATOR.ENRICHMENT_RESPONSE_TYPE).
+				property(CURATOR.MESSAGE_ID).
+					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
+				property(CURATOR.SUBMITTED_BY).
 					withBlankNode("agent").
-				property(curator("submittedOn")).
-					withTypedLiteral(message.submittedOn(), xsd("dateTimeStamp")).
-				property(curator("responseTo")).
-					withTypedLiteral(message.responseTo(), types("UUID")).
-				property(curator("responseNumber")).
-					withTypedLiteral(message.responseNumber(), xsd("unsignedLong")).
-				property(curator("targetResource")).
+				property(CURATOR.SUBMITTED_ON).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_STAMP).
+				property(CURATOR.RESPONSE_TO).
+					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
+				property(CURATOR.RESPONSE_NUMBER).
+					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG).
+				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
 			blankNode("agent").
-				type(foaf("Agent")).
-				property(curator("agentId")).
-					withTypedLiteral(message.submittedBy().agentId(), types("UUID"));
-		target(helper,"additionTarget",message.additionTarget());
-		target(helper,"removalTarget",message.removalTarget());
+				type(FOAF.AGENT_TYPE).
+				property(CURATOR.AGENT_ID).
+					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
+		target(helper,CURATOR.ADDITION_TARGET,message.additionTarget());
+		target(helper,CURATOR.REMOVAL_TARGET,message.removalTarget());
 	}
 
 	private void target(ModelHelper helper, String property, URI value) {
 		if(value!=null) {
 			helper.
 				blankNode("response").
-					property(curator(property)).
+					property(property).
 						withResource(value);
 		}
 	}

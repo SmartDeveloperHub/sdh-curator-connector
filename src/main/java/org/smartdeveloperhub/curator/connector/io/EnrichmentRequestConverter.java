@@ -26,8 +26,6 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.*;
-
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
@@ -38,51 +36,51 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 	protected void toString(EnrichmentRequest message, ModelHelper helper) {
 		helper.
 			blankNode("request").
-				type(curator("EnrichmentRequest")).
-				property(curator("messageId")).
-					withTypedLiteral(message.messageId(), types("UUID")).
-				property(curator("submittedBy")).
+				type(CURATOR.ENRICHMENT_REQUEST_TYPE).
+				property(CURATOR.MESSAGE_ID).
+					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
+				property(CURATOR.SUBMITTED_BY).
 					withBlankNode("agent").
-				property(curator("submittedOn")).
-					withTypedLiteral(message.submittedOn(), xsd("dateTimeStamp")).
-				property(curator("replyTo")).
+				property(CURATOR.SUBMITTED_ON).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_STAMP).
+				property(CURATOR.REPLY_TO).
 					withBlankNode("deliveryChannel").
-				property(curator("targetResource")).
+				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
 			blankNode("agent").
-				type(foaf("Agent")).
-				property(curator("agentId")).
-					withTypedLiteral(message.submittedBy().agentId(), types("UUID")).
+				type(FOAF.AGENT_TYPE).
+				property(CURATOR.AGENT_ID).
+					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE).
 			blankNode("deliveryChannel").
-				type(curator("DeliveryChannel"));
+				type(CURATOR.DELIVERY_CHANNEL_TYPE);
 
 		DeliveryChannel deliveryChannel = message.replyTo();
 		Broker broker = deliveryChannel.broker();
 		if(broker!=null) {
 			helper.
 				blankNode("deliveryChannel").
-					property(amqp("broker")).
+					property(AMQP.BROKER).
 						withBlankNode("broker").
 				blankNode("broker").
-					type(amqp("Broker")).
-					property(amqp("host")).
-						withTypedLiteral(broker.host(),types("Hostname")).
-					property(amqp("port")).
-						withTypedLiteral(broker.port(),types("Port")).
-					property(amqp("virtualHost")).
-						withTypedLiteral(broker.virtualHost(),amqp("Path"));
+					type(AMQP.BROKER_TYPE).
+					property(AMQP.HOST).
+						withTypedLiteral(broker.host(),TYPES.HOSTNAME_TYPE).
+					property(AMQP.PORT).
+						withTypedLiteral(broker.port(),TYPES.PORT_TYPE).
+					property(AMQP.VIRTUAL_HOST).
+						withTypedLiteral(broker.virtualHost(),AMQP.PATH_TYPE);
 		}
-		deliveryChannelProperty(helper, "exchangeName", deliveryChannel.exchangeName(),"Name");
-		deliveryChannelProperty(helper, "queueName", deliveryChannel.queueName(), "Name");
-		deliveryChannelProperty(helper, "routingKey", deliveryChannel.routingKey(), "Path");
+		deliveryChannelProperty(helper, AMQP.EXCHANGE_NAME, deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
+		deliveryChannelProperty(helper, AMQP.QUEUE_NAME, deliveryChannel.queueName(), AMQP.NAME_TYPE);
+		deliveryChannelProperty(helper, AMQP.ROUTING_KEY, deliveryChannel.routingKey(), AMQP.PATH_TYPE);
 	}
 
 	private void deliveryChannelProperty(ModelHelper helper, String property, String value, String type) {
 		if(value!=null) {
 			helper.
 				blankNode("deliveryChannel").
-					property(amqp(property)).
-						withTypedLiteral(value,amqp(type));
+					property(property).
+						withTypedLiteral(value,type);
 		}
 	}
 

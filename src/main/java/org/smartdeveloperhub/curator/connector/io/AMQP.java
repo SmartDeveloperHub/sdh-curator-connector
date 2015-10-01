@@ -26,32 +26,27 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import com.hp.hpl.jena.rdf.model.Model;
+final class AMQP {
 
-final class Namespaces {
+	static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/amqp#";
+	static final String PREFIX    = "amqp";
 
-	private static final String RDF_NAMESPACE        = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE       = "http://www.w3.org/2000/01/rdf-schema#";
+	static final String PATH_TYPE = term("Path");
+	static final String NAME_TYPE = term("Name");
+	static final String BROKER_TYPE = term("Broker");
+	static final String ROUTING_KEY = term("routingKey");
+	static final String QUEUE_NAME = term("queueName");
+	static final String EXCHANGE_NAME = term("exchangeName");
+	static final String VIRTUAL_HOST = term("virtualHost");
+	static final String PORT = term("port");
+	static final String HOST = term("host");
+	static final String BROKER = term("broker");
 
-	private Namespaces() {
+	private AMQP() {
 	}
 
-	static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
-	}
-
-	static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
-	}
-
-	static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
-		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
-		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
-		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
-		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
+	static String term(String localName) {
+		return NAMESPACE+localName;
 	}
 
 }

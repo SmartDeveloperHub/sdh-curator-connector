@@ -26,32 +26,42 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+import java.io.StringReader;
+
+import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.Broker;
+
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.ResIterator;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-final class Namespaces {
+public class BrokerParserTest {
 
-	private static final String RDF_NAMESPACE        = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE       = "http://www.w3.org/2000/01/rdf-schema#";
-
-	private Namespaces() {
+	@Test
+	public void testFromModel() {
+		Model model = loadData("data/brokers.ttl");
+		ResIterator iterator=
+			model.
+				listSubjectsWithProperty(
+					model.createProperty(Namespaces.rdf("type")),
+					model.createResource(AMQP.BROKER_TYPE));
+		while(iterator.hasNext()) {
+			Resource resource = iterator.next();
+			try {
+				Broker broker=BrokerParser.fromModel(model, resource);
+				System.out.println(resource+" --> "+broker);
+			} catch (Exception e) {
+				System.out.println(resource+" --> "+e.getMessage());
+			}
+		}
 	}
 
-	static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
-	}
-
-	static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
-	}
-
-	static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
-		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
-		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
-		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
-		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
+	private Model loadData(String data) {
+		Model model=ModelFactory.createDefaultModel();
+		StringReader in = new StringReader(ResourceUtil.loadResource(data));
+		model.read(in, "http://www.smartdeveloperhub.org/base#","TURTLE");
+		return model;
 	}
 
 }

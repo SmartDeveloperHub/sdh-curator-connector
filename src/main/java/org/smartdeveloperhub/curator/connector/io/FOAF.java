@@ -26,32 +26,19 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import com.hp.hpl.jena.rdf.model.Model;
 
-final class Namespaces {
+final class FOAF {
 
-	private static final String RDF_NAMESPACE        = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE       = "http://www.w3.org/2000/01/rdf-schema#";
+	static final String NAMESPACE = "http://xmlns.com/foaf/0.1/";
+	static final String PREFIX    = "foaf";
 
-	private Namespaces() {
+	static final String AGENT_TYPE = term("Agent");
+
+	private FOAF() {
 	}
 
-	static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
-	}
-
-	static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
-	}
-
-	static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
-		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
-		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
-		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
-		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
+	static String term(String localName) {
+		return NAMESPACE+localName;
 	}
 
 }

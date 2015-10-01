@@ -26,32 +26,31 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import com.hp.hpl.jena.rdf.model.Model;
 
-final class Namespaces {
+final class CURATOR {
 
-	private static final String RDF_NAMESPACE        = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE       = "http://www.w3.org/2000/01/rdf-schema#";
+	static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/curator#";
+	static final String PREFIX    = "curator";
 
-	private Namespaces() {
+	static final String DELIVERY_CHANNEL_TYPE = term("DeliveryChannel");
+	static final String AGENT_ID = term("agentId");
+	static final String TARGET_RESOURCE = term("targetResource");
+	static final String REPLY_TO = term("replyTo");
+	static final String SUBMITTED_ON = term("submittedOn");
+	static final String SUBMITTED_BY = term("submittedBy");
+	static final String MESSAGE_ID = term("messageId");
+	static final String ENRICHMENT_REQUEST_TYPE = term("EnrichmentRequest");
+	static final String ENRICHMENT_RESPONSE_TYPE = term("EnrichmentResponse");
+	static final String RESPONSE_TO = term("responseTo");
+	static final String RESPONSE_NUMBER = term("responseNumber");
+	static final String ADDITION_TARGET = term("additionTarget");
+	static final String REMOVAL_TARGET = term("removalTarget");
+
+	private CURATOR() {
 	}
 
-	static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
-	}
-
-	static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
-	}
-
-	static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
-		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
-		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
-		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
-		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
+	static String term(String localName) {
+		return NAMESPACE+localName;
 	}
 
 }

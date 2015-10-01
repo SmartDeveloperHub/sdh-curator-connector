@@ -26,32 +26,34 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
-final class Namespaces {
+import org.apache.commons.io.IOUtils;
 
-	private static final String RDF_NAMESPACE        = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE       = "http://www.w3.org/2000/01/rdf-schema#";
+public final class ResourceUtil {
 
-	private Namespaces() {
+	private ResourceUtil() {
 	}
 
-	static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
+	public static String loadResource(String resourceName) {
+		return load(resourceName, Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName));
 	}
 
-	static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
+	public static String loadResource(Class<?> clazz, String resourceName) {
+		return load(resourceName, clazz.getResourceAsStream(resourceName));
 	}
 
-	static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
-		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
-		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
-		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
-		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
+	private static String load(String resourceName, InputStream resource) throws AssertionError {
+		try {
+			if(resource==null) {
+				throw new AssertionError("Could not find resource '"+resourceName+"'");
+			}
+			return IOUtils.toString(resource, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			throw new AssertionError("Could not load resource '"+resourceName+"'");
+		}
 	}
 
 }
