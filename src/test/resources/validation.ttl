@@ -25,25 +25,31 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-@prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
-@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
+@prefix ex: <http://www.w3.org/2012/12/rdf-val/SOTA-ex#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-[ a                       curator:EnrichmentResponse ;
-  curator:additionTarget  <urn:add> ;
-  curator:messageId       "d2244b7b-c677-40b5-bab2-9b46fd299537"^^types:UUID ;
-  curator:removalTarget   <urn:remove> ;
-  curator:responseNumber  "2"^^xsd:unsignedLong ;
-  curator:responseTo      "f9bfd4d6-7249-4845-b042-7436a44af198"^^types:UUID ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "f998008c-5829-4f03-a3e2-fe61f5b043e7"^^types:UUID
-                          ] ;
-  curator:submittedOn     "2015-10-01T19:34:11.470+02:00"^^xsd:dateTimeStamp ;
-  curator:targetResource  <urn:example>
-] .
+<issue7> a ex:Issue , ex:SecurityIssue ;
+    ex:state ex:unassigned ;
+    ex:reportedBy <user6> , <user2> ; # only one reportedBy permitted
+    ex:reportedOn "2012-12-31T23:57:00Z"^^xsd:dateTime ;
+    ex:reproducedBy <user2>, <user1> ;
+    ex:reproducedOn "2012-11-31T23:57:00Z"^^xsd:dateTime ; # reproduced before being reported
+    ex:related <issue4>, <issue3>, <issue2> . # referenced issues not included
 
+<issue4> # a ??? - missing type arc
+    ex:state ex:unsinged ; # misspelled term in value set.
+  # ex:reportedBy ??? - missing required property
+    ex:reportedOn "2012-12-31T23:57:00Z"^^xsd:dateTime .
 
+<user2> a foaf:Person ;
+    foaf:givenName "Alice" ;
+    foaf:familyName "Smith" ;
+    foaf:phone <tel:+1.555.222.2222> ;
+    foaf:mbox <mailto:alice@example.com> .
+
+<user6> a foaf:Agent ; # should be foaf:Person
+    foaf:givenName "Bob" ; 
+  # foaf:familyName "???" - missing required property
+    foaf:phone <tel:+.555.222.2222> ; # malformed tel: URL
+    foaf:mbox <mailto:alice@example.com> .

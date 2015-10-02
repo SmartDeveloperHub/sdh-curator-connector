@@ -46,6 +46,9 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.ResIterator;
 import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.sparql.expr.NodeValue;
+import com.hp.hpl.jena.sparql.function.FunctionBase2;
+import com.hp.hpl.jena.sparql.function.FunctionRegistry;
 
 public class QueryTester {
 
@@ -64,7 +67,7 @@ public class QueryTester {
 	private Model loadData(String data) {
 		Model model=ModelFactory.createDefaultModel();
 		StringReader in = new StringReader(loadResource(data));
-		model.read(in, "http://www.smartdeveloperhub.org/base#","TURTLE");
+		model.read(in, "urn:","TURTLE");
 		return model;
 	}
 
@@ -103,6 +106,51 @@ public class QueryTester {
 				if (queryExecution != null) {
 					queryExecution.close();
 				}
+			}
+		}
+	}
+
+	public static class GreaterThanFunction extends FunctionBase2 {
+		@Override
+		public NodeValue exec(NodeValue v1, NodeValue v2) {
+			if(!v1.isDateTime()) {
+				return NodeValue.makeBoolean(false);
+			}
+			if(!v2.isDateTime()) {
+				return NodeValue.makeBoolean(false);
+			}
+			return NodeValue.makeBoolean(v1.getDateTime().compare(v2.getDateTime())>0);
+		}
+	}
+
+	@Test
+	public void testValidation() {
+		FunctionRegistry.
+			get().
+				put(
+					"http://example.org/dataTime#gt",
+					GreaterThanFunction.class) ;
+		Model model = loadData("/validation.ttl");
+		Query query =
+			QueryFactory.
+				create(
+					loadResource("/validation.sparql"));
+		QueryExecution queryExecution = null;
+		try {
+			queryExecution = QueryExecutionFactory.create(query, model);
+			ResultSet results = queryExecution.execSelect();
+			for(; results.hasNext();) {
+				System.out.println("Solution found: ");
+				QuerySolution solution = results.nextSolution();
+				Iterator<String> varNames = solution.varNames();
+				while(varNames.hasNext()) {
+					String var=varNames.next();
+					System.out.println(" - "+var+" : "+solution.get(var));
+				}
+			}
+		} finally {
+			if (queryExecution != null) {
+				queryExecution.close();
 			}
 		}
 	}

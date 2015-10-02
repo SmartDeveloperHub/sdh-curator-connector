@@ -25,25 +25,20 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-@prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
-@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
+PREFIX amqp: <http://www.smartdeveloperhub.org/vocabulary/amqp#>
+PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
 
-[ a                       curator:EnrichmentResponse ;
-  curator:additionTarget  <urn:add> ;
-  curator:messageId       "d2244b7b-c677-40b5-bab2-9b46fd299537"^^types:UUID ;
-  curator:removalTarget   <urn:remove> ;
-  curator:responseNumber  "2"^^xsd:unsignedLong ;
-  curator:responseTo      "f9bfd4d6-7249-4845-b042-7436a44af198"^^types:UUID ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "f998008c-5829-4f03-a3e2-fe61f5b043e7"^^types:UUID
-                          ] ;
-  curator:submittedOn     "2015-10-01T19:34:11.470+02:00"^^xsd:dateTimeStamp ;
-  curator:targetResource  <urn:example>
-] .
-
-
+SELECT ?deliveryChannel ?broker ?exchangeName ?queueName ?routingKey
+WHERE {
+  ?deliveryChannel a curator:DeliveryChannel .
+  OPTIONAL { ?deliveryChannel amqp:broker ?broker . }
+  OPTIONAL { ?deliveryChannel amqp:exchangeName ?exchangeName . }
+  OPTIONAL { ?deliveryChannel amqp:queueName ?queueName . }
+  OPTIONAL { ?deliveryChannel amqp:routingKey ?routingKey . }
+  FILTER (
+    IF(bound(?broker), !isLiteral(?broker) , true) &&
+    IF(bound(?exchangeName), datatype(?exchangeName) = amqp:Name , true) &&
+    IF(bound(?queueName), datatype(?queueName) = amqp:Name , true) &&
+    IF(bound(?routingKey), datatype(?routingKey) = amqp:Path , true)
+  )
+}
