@@ -26,9 +26,9 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.util.UUID;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Preconditions;
 import com.google.common.net.InetAddresses;
 
 final class ValidationUtils {
@@ -65,17 +65,17 @@ final class ValidationUtils {
 	}
 
 	static void validatePath(String path) {
-		Preconditions.checkArgument(path!=null,"Path cannot be null");
-		Preconditions.checkArgument(path.length()>0,"Path cannot be empty");
-		Preconditions.checkArgument(path.length()<=MAX_SEMI_SHORT_STR_LENGTH,"Path cannot be larger than 127 octets ("+path.length()+")");
+		checkArgument(path!=null,"amqp:Path",path,"Path cannot be null");
+		checkArgument(path.length()>0,"amqp:Path",path,"Path cannot be empty");
+		checkArgument(path.length()<=MAX_SEMI_SHORT_STR_LENGTH,"amqp:Path",path,"Path cannot be larger than 127 octets ("+path.length()+")");
 	}
 
 	static void validateName(String name) {
 		if(name==null) {
 			return;
 		}
-		Preconditions.checkArgument(name.length()<=MAX_SEMI_SHORT_STR_LENGTH,"Name cannot be larger than 127 octets ("+name.length()+")");
-		Preconditions.checkArgument(AMQP_NAME.matcher(name).matches(),"Invalid name syntax");
+		checkArgument(name.length()<=MAX_SEMI_SHORT_STR_LENGTH,"amqp:Name",name,"Name cannot be larger than 127 octets ("+name.length()+")");
+		checkArgument(AMQP_NAME.matcher(name).matches(),"amqp:Name",name,"Invalid name syntax");
 	}
 
 	static void validateRoutingKey(String routingKey) {
@@ -85,17 +85,31 @@ final class ValidationUtils {
 		if(routingKey.isEmpty()) {
 			return;
 		}
-		Preconditions.checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
-		Preconditions.checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),"Invalid routing key syntax");
+		checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,"amqp:Path",routingKey,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
+		checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),"amqp:Path",routingKey,"Invalid routing key syntax");
 	}
 
 	static void validateHostname(String hostname) {
-		Preconditions.checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),"Host name '%s' is not valid",hostname);
+		checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),"types:Hostname",hostname,"Host name '%s' is not valid");
 	}
 
 	static void validatePort(int port) {
-		Preconditions.checkArgument(port>=0,"Invalid port number (%s is lower than 0)",port);
-		Preconditions.checkArgument(port<65536,"Invalid port number (%s is greater than 65535)",port);
+		checkArgument(port>=0,"types:Port",port,"Invalid port number (%s is lower than 0)");
+		checkArgument(port<65536,"types:Port",port,"Invalid port number (%s is greater than 65535)");
+	}
+
+	private static void checkArgument(boolean passes, String type, Object value, String message) {
+		if(!passes) {
+			throw new ValidationException(value,type,String.format(message,value));
+		}
+	}
+
+	static UUID toUUID(String agentId) {
+		try {
+			return UUID.fromString(agentId);
+		} catch (IllegalArgumentException e) {
+			throw new ValidationException(agentId,"types:UUID",e);
+		}
 	}
 
 }

@@ -42,17 +42,21 @@ public class ValidationUtilsTest {
 		try {
 			ValidationUtils.validateHostname(hostname);
 			fail(failure);
-		} catch (Exception e) {
-			assertThat(e.getMessage(),equalTo("Host name '"+hostname+"' is not valid"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(hostname));
+			assertThat(e.getType(),equalTo("types:Hostname"));
+			assertThat(e.getDescription(),equalTo("Host name '"+hostname+"' is not valid"));
 		}
 	}
 
-	private void assertInvalidRoutingKey(String routingKey, String failure) {
+	private void assertInvalidRoutingKey(String routingKey, String failure,String description) {
 		try {
 			ValidationUtils.validateRoutingKey(routingKey);
 			fail(failure);
-		} catch (Exception e) {
-			assertThat(e.getMessage(),equalTo("Invalid routing key syntax"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(routingKey));
+			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getDescription(),equalTo(description));
 		}
 	}
 
@@ -66,8 +70,10 @@ public class ValidationUtilsTest {
 		try {
 			ValidationUtils.validatePath(null);
 			fail("Should not accept a null path");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Path cannot be null"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),nullValue());
+			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getDescription(),equalTo("Path cannot be null"));
 		}
 	}
 
@@ -76,8 +82,10 @@ public class ValidationUtilsTest {
 		try {
 			ValidationUtils.validatePath("");
 			fail("Should not accept an empty path");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Path cannot be empty"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(""));
+			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getDescription(),equalTo("Path cannot be empty"));
 		}
 	}
 
@@ -85,11 +93,14 @@ public class ValidationUtilsTest {
 	public void testValidatePath$invalid$tooLong() throws Exception {
 		char[] chars=new char[128];
 		Arrays.fill(chars, 'A');
+		String path = new String(chars);
 		try {
-			ValidationUtils.validatePath(new String(chars));
+			ValidationUtils.validatePath(path);
 			fail("Should not accept a long string");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Path cannot be larger than 127 octets (128)"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(path));
+			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getDescription(),equalTo("Path cannot be larger than 127 octets (128)"));
 		}
 	}
 
@@ -112,11 +123,14 @@ public class ValidationUtilsTest {
 	public void testValidateName$invalid$tooLong() throws Exception {
 		char[] chars=new char[128];
 		Arrays.fill(chars, 'A');
+		String name = new String(chars);
 		try {
-			ValidationUtils.validateName(new String(chars));
+			ValidationUtils.validateName(name);
 			fail("Should not accept a long string");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Name cannot be larger than 127 octets (128)"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(name));
+			assertThat(e.getType(),equalTo("amqp:Name"));
+			assertThat(e.getDescription(),equalTo("Name cannot be larger than 127 octets (128)"));
 		}
 	}
 
@@ -125,8 +139,10 @@ public class ValidationUtilsTest {
 		try {
 			ValidationUtils.validateName("white spaces not allowed");
 			fail("Should not accept string with invalid characters");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Invalid name syntax"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo("white spaces not allowed"));
+			assertThat(e.getType(),equalTo("amqp:Name"));
+			assertThat(e.getDescription(),equalTo("Invalid name syntax"));
 		}
 	}
 
@@ -149,32 +165,28 @@ public class ValidationUtilsTest {
 	public void testValidateRoutingKey$invalid$tooLong() throws Exception {
 		char[] chars=new char[256];
 		Arrays.fill(chars, 'A');
-		try {
-			ValidationUtils.validateRoutingKey(new String(chars));
-			fail("Should not accept a long string");
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage(),equalTo("Routing key cannot be larger than 255 octets (256)"));
-		}
+		String name = new String(chars);
+		assertInvalidRoutingKey(name,"Should not accept a long string","Routing key cannot be larger than 255 octets (256)");
 	}
 
 	@Test
 	public void testValidateRoutingKey$invalid$badSyntax() throws Exception {
-		assertInvalidRoutingKey("valid.host-name.with-lots-of-labels","Should not accept routing key with bad chars");
+		assertInvalidRoutingKey("valid.host-name.with-lots-of-labels","Should not accept routing key with bad chars","Invalid routing key syntax");
 	}
 
 	@Test
 	public void testValidateRoutingKey$invalid$trailingDots() throws Exception {
-		assertInvalidRoutingKey("invalid.hostname.", "Should not accept a routing key with trailing dots");
+		assertInvalidRoutingKey("invalid.hostname.", "Should not accept a routing key with trailing dots","Invalid routing key syntax");
 	}
 
 	@Test
 	public void testValidateRoutingKey$invalid$prefixDots() throws Exception {
-		assertInvalidRoutingKey(".invalid.hostname", "Should not accept a routing key with prefix dots");
+		assertInvalidRoutingKey(".invalid.hostname", "Should not accept a routing key with prefix dots","Invalid routing key syntax");
 	}
 
 	@Test
 	public void testValidateRoutingKey$invalid$innerDots() throws Exception {
-		assertInvalidRoutingKey("invalid...hostname", "Should not accept a routing key with inner dots");
+		assertInvalidRoutingKey("invalid...hostname", "Should not accept a routing key with inner dots","Invalid routing key syntax");
 	}
 
 	@Test
@@ -247,8 +259,10 @@ public class ValidationUtilsTest {
 		try {
 			ValidationUtils.validatePort(-1);
 			fail("Should not accept a negative port");
-		} catch (Exception e) {
-			assertThat(e.getMessage(),equalTo("Invalid port number (-1 is lower than 0)"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo("-1"));
+			assertThat(e.getType(),equalTo("types:Port"));
+			assertThat(e.getDescription(),equalTo("Invalid port number (-1 is lower than 0)"));
 		}
 	}
 
@@ -256,8 +270,10 @@ public class ValidationUtilsTest {
 	public void testValidatePort$invalid$greaterThanMaxPort() {
 		try {
 			ValidationUtils.validatePort(65536);
-		} catch (Exception e) {
-			assertThat(e.getMessage(),equalTo("Invalid port number (65536 is greater than 65535)"));
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo("65536"));
+			assertThat(e.getType(),equalTo("types:Port"));
+			assertThat(e.getDescription(),equalTo("Invalid port number (65536 is greater than 65535)"));
 		}
 	}
 

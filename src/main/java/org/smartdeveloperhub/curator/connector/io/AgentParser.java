@@ -28,9 +28,13 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
+
+
+
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.BrokerBuilder;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
+import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.protocol.Agent;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
@@ -44,75 +48,59 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public final class BrokerParser {
+public final class AgentParser {
 
 	private static final Query QUERY=
 		QueryFactory.create(
-			ResourceUtil.loadResource(BrokerParser.class,"broker.sparql"));
+			ResourceUtil.loadResource(AgentParser.class,"agent.sparql"));
 
-	public static Broker fromModel(Model model, Resource resource) {
+	private AgentParser() {
+	}
+
+	public static Agent fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("broker", resource);
+		parameters.add("agent", resource);
 		QueryExecution queryExecution = null;
 		try {
 			queryExecution=QueryExecutionFactory.create(QUERY, model);
 			queryExecution.setInitialBinding(parameters);
 			ResultSet results = queryExecution.execSelect();
-			List<Broker> result=processResult(results);
+			List<Agent> result=processResult(results);
 			return selectResult(result,resource);
 		} finally {
-			if (queryExecution != null) {
+			if (queryExecution!=null) {
 				queryExecution.close();
 			}
 		}
 	}
 
-	private static Broker selectResult(List<Broker> result, Resource resource) {
+	private static Agent selectResult(List<Agent> result, Resource resource) {
 		if(result.isEmpty()) {
 			return null;
 		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many Broker definitions for resource '"+resource+"'");
+			throw new ConversionException("Too many Agent definitions for resource '"+resource+"'");
 		} else {
 			return result.get(0);
 		}
 	}
 
-	private static List<Broker> processResult(ResultSet results) {
-		List<Broker> result=Lists.newArrayList();
+	private static List<Agent> processResult(ResultSet results) {
+		List<Agent> result=Lists.newArrayList();
 		for(; results.hasNext();) {
 			QuerySolution solution = results.nextSolution();
-			BrokerBuilder builder = ProtocolFactory.newBroker();
-			updateHost(solution, builder);
-			updatePort(solution, builder);
-			updateVirtualHost(solution, builder);
+			AgentBuilder builder = ProtocolFactory.newAgent();
+			updateAgentId(solution, builder, solution.getResource("agent"));
 			result.add(builder.build());
 		}
 		return result;
 	}
 
-	private static void updateVirtualHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal virtualHost=solution.getLiteral("virtualHost");
-		if(virtualHost!=null) {
-			builder.withVirtualHost(virtualHost.getLexicalForm());
-		}
-	}
-
-	private static void updatePort(QuerySolution solution, BrokerBuilder builder) {
-		Literal port=solution.getLiteral("port");
-		if(port!=null) {
-			String rawPort = port.getLexicalForm();
-			try {
-				builder.withPort(Integer.parseInt(rawPort));
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(rawPort+" is not a valid integer");
-			}
-		}
-	}
-
-	private static void updateHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal host=solution.getLiteral("host");
-		if(host!=null) {
-			builder.withHost(host.getLexicalForm());
+	private static void updateAgentId(QuerySolution solution, AgentBuilder builder, Resource resource) {
+		try {
+			Literal host=solution.getLiteral("agentId");
+			builder.withAgentId(host.getLexicalForm());
+		} catch (ValidationException e) {
+			throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
 		}
 	}
 

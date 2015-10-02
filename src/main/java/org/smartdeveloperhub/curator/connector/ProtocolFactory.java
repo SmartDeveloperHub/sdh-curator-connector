@@ -105,7 +105,8 @@ public final class ProtocolFactory {
 		}
 
 		public AgentBuilder withAgentId(String agentId) {
-			return withAgentId(UUID.fromString(agentId));
+			UUID id=ValidationUtils.toUUID(agentId);
+			return withAgentId(id);
 		}
 
 		@Override
