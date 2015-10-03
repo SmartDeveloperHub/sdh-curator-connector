@@ -105,8 +105,10 @@ public final class ProtocolFactory {
 		}
 
 		public AgentBuilder withAgentId(String agentId) {
-			UUID id=ValidationUtils.toUUID(agentId);
-			return withAgentId(id);
+			if(agentId!=null) {
+				this.agentId=ValidationUtils.toUUID(agentId);
+			}
+			return this;
 		}
 
 		@Override
@@ -207,7 +209,10 @@ public final class ProtocolFactory {
 		}
 
 		public B withMessageId(String messageId) {
-			return withMessageId(UUID.fromString(messageId));
+			if(messageId!=null) {
+				this.messageId=ValidationUtils.toUUID(messageId);
+			}
+			return this.builder;
 		}
 
 		public B withSubmittedOn(DateTime submittedOn) {
@@ -216,7 +221,16 @@ public final class ProtocolFactory {
 		}
 
 		public B withSubmittedOn(Date submittedOn) {
-			this.submittedOn = new DateTime(submittedOn);
+			if(submittedOn!=null) {
+				this.submittedOn = new DateTime(submittedOn);
+			}
+			return this.builder;
+		}
+
+		public B withSubmittedOn(String submittedOn) {
+			if(submittedOn!=null) {
+				this.submittedOn = ValidationUtils.toDateTime(submittedOn);
+			}
 			return this.builder;
 		}
 
@@ -235,7 +249,10 @@ public final class ProtocolFactory {
 		}
 
 		public B withReplyTo(Builder<DeliveryChannel> builder) {
-			return withReplyTo(builder.build());
+			if(builder!=null) {
+				this.deliveryChannel=builder.build();
+			}
+			return this.builder;
 		}
 
 	}
@@ -248,6 +265,13 @@ public final class ProtocolFactory {
 			super(EnrichmentRequestBuilder.class);
 		}
 
+		public EnrichmentRequestBuilder withTargetResource(String targetResource) {
+			if(targetResource!=null) {
+				this.targetResource = ValidationUtils.toURI(targetResource);
+			}
+			return this;
+		}
+
 		public EnrichmentRequestBuilder withTargetResource(URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
@@ -256,7 +280,7 @@ public final class ProtocolFactory {
 		@Override
 		public EnrichmentRequest build() {
 			return
-				new ImmutableEnrichnmentRequest(
+				new ImmutableEnrichmentRequest(
 					id(),
 					submissionDate(),
 					agent(),
@@ -302,13 +326,16 @@ public final class ProtocolFactory {
 			return this.responseNumber;
 		}
 
-		public final B withResponseTo(UUID messageId) {
-			this.responseTo = messageId;
+		public final B withResponseTo(String messageId) {
+			if(messageId!=null) {
+				this.responseTo=ValidationUtils.toUUID(messageId);
+			}
 			return builder();
 		}
 
-		public final B withMessageId(String messageId) {
-			return withMessageId(UUID.fromString(messageId));
+		public final B withResponseTo(UUID messageId) {
+			this.responseTo = messageId;
+			return builder();
 		}
 
 		public final B withResponseNumber(long responseNumber) {
@@ -402,13 +429,34 @@ public final class ProtocolFactory {
 			super(EnrichmentResponseBuilder.class);
 		}
 
+		public EnrichmentResponseBuilder withTargetResource(String targetResource) {
+			if(targetResource!=null) {
+				this.targetResource = ValidationUtils.toURI(targetResource);
+			}
+			return this;
+		}
+
 		public EnrichmentResponseBuilder withTargetResource(URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
+		public EnrichmentResponseBuilder withAdditionTarget(String additionTarget) {
+			if(additionTarget!=null) {
+				this.additionTarget = ValidationUtils.toURI(additionTarget);
+			}
+			return this;
+		}
+
 		public EnrichmentResponseBuilder withAdditionTarget(URI additionTarget) {
 			this.additionTarget = additionTarget;
+			return this;
+		}
+
+		public EnrichmentResponseBuilder withRemovalTarget(String removalTarget) {
+			if(removalTarget!=null) {
+				this.removalTarget = ValidationUtils.toURI(removalTarget);
+			}
 			return this;
 		}
 

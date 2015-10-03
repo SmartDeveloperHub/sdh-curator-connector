@@ -28,7 +28,15 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.net.URI;
 
+import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentResponseConverter extends ModelMessageConverter<EnrichmentResponse> {
 
@@ -42,11 +50,11 @@ final class EnrichmentResponseConverter extends ModelMessageConverter<Enrichment
 				property(CURATOR.SUBMITTED_BY).
 					withBlankNode("agent").
 				property(CURATOR.SUBMITTED_ON).
-					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_STAMP).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 				property(CURATOR.RESPONSE_TO).
 					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
 				property(CURATOR.RESPONSE_NUMBER).
-					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG).
+					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG_TYPE).
 				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
 			blankNode("agent").
@@ -64,6 +72,16 @@ final class EnrichmentResponseConverter extends ModelMessageConverter<Enrichment
 					property(property).
 						withResource(value);
 		}
+	}
+
+	@Override
+	protected EnrichmentResponse parse(Model model, Resource resource) {
+		return EnrichmentResponseParser.fromModel(model, resource);
+	}
+
+	@Override
+	protected String messageType() {
+		return CURATOR.ENRICHMENT_RESPONSE_TYPE;
 	}
 
 }

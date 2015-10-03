@@ -37,11 +37,11 @@ import org.smartdeveloperhub.curator.protocol.Policy;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
 
-final class ImmutableEnrichnmentRequest extends ImmutableMessage implements EnrichmentRequest {
+final class ImmutableEnrichmentRequest extends ImmutableMessage implements EnrichmentRequest {
 
 	private final URI targetResource;
 
-	ImmutableEnrichnmentRequest(
+	ImmutableEnrichmentRequest(
 			UUID messageId,
 			DateTime submittedOn,
 			Agent agent,

@@ -26,66 +26,51 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.net.URI;
-import java.net.URL;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseBuilder;
+import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.protocol.Response;
 
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class ImmutableResourceHelper implements ResourceHelper, ModelHelper  {
+abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>> extends MessageParser<T,B> {
 
-	private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+	protected class ResponseWorker extends MessageWorker {
 
-	private final ImmutableModelHelper delegate;
-	private final Resource resource;
+		@Override
+		public void parse() {
+			super.parse();
+			updateResponseTo();
+			updateResponseNumber();
+		}
 
-	ImmutableResourceHelper(ImmutableModelHelper delegate, Resource resource) {
-		this.delegate = delegate;
-		this.resource = resource;
+		private void updateResponseTo() {
+			Literal responseTo = literal("responseTo", "curator:responseTo",false);
+			try {
+				this.builder.withResponseTo(responseTo.getLexicalForm());
+			} catch (ValidationException e) {
+				failConversion("curator:responseTo",e);
+			}
+		}
+
+		private void updateResponseNumber() {
+			Literal responseTo = literal("responseNumber", "curator:responseNumber",false);
+			try {
+				this.builder.withResponseNumber(responseTo.getLong());
+			} catch (NumberFormatException e) {
+				failConversion("curator:responseTo",e);
+			} catch (ValidationException e) {
+				failConversion("curator:responseTo",e);
+			}
+		}
 	}
 
-	Model model() {
-		return this.delegate.model;
-	}
-
-	@Override
-	public ImmutablePropertyHelper property(String property) {
-		return new ImmutablePropertyHelper(this,resource,this.delegate.model().createProperty(property));
-	}
-
-	@Override
-	public PropertyHelper property(URI property) {
-		return property(property.toString());
-	}
-
-	@Override
-	public <T extends ResourceHelper & ModelHelper> T type(String type) {
-		return property(RDF_TYPE).withResource(type);
-	}
-
-	@Override
-	public <T extends ResourceHelper & ModelHelper> T type(URI type) {
-		return type(type.toString());
-	}
-
-	@Override
-	public ResourceHelper resource(String resourceId) {
-		return this.delegate.resource(resourceId);
+	ResponseParser(Model model, Resource resource) {
+		super(model,resource);
 	}
 
 	@Override
-	public ResourceHelper resource(URI resourceId) {
-		return this.delegate.resource(resourceId);
-	}
-
-	@Override
-	public ResourceHelper resource(URL resourceId) {
-		return this.delegate.resource(resourceId);
-	}
-
-	@Override
-	public ResourceHelper blankNode(String bnode) {
-		return this.delegate.blankNode(bnode);
-	}
+	protected abstract ResponseWorker createWorker();
 
 }

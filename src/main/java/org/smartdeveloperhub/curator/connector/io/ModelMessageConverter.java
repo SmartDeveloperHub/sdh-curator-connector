@@ -26,24 +26,53 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import static org.smartdeveloperhub.curator.connector.io.Namespaces.setUpNamespacePrefixes;
-
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
+import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
 import org.smartdeveloperhub.curator.protocol.Message;
 
+import com.google.common.collect.Lists;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.ResIterator;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 abstract class ModelMessageConverter<T extends Message> implements MessageConverter<T> {
 
+	private Resource getTargetResource(Model model) throws MessageConversionException {
+		ResIterator iterator=
+			model.
+				listSubjectsWithProperty(
+					model.createProperty(Namespaces.rdf("type")),
+					model.createResource(messageType()));
+		List<Resource> resources = Lists.newArrayList(iterator);
+		if(resources.isEmpty()) {
+			throw new MessageConversionException("No "+messageType()+" definition found");
+		} else if(resources.size()>1) {
+			throw new MessageConversionException("Too many "+messageType()+" definitions found");
+		}
+		Resource target = resources.get(0);
+		return target;
+	}
+
 	@Override
 	public final T fromString(String body) throws MessageConversionException {
-		throw new MessageConversionException("String parsing not supported");
+		Model model=
+			ModelFactory.
+				createDefaultModel().
+					read(
+						new StringReader(body),
+						"http://www.smartdeveloperhub.org/base#",
+						"TURTLE");
+		return parse(model,getTargetResource(model));
 	}
 
 	@Override
@@ -51,28 +80,22 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 		StringWriter out = new StringWriter();
 		try {
 			Model model=ModelFactory.createDefaultModel();
-			setUpNamespacePrefixes(model);
+			Namespaces.setUpNamespacePrefixes(model);
 			ModelHelper helper=ModelUtil.createHelper(model);
 			toString(message,helper);
 			RDFDataMgr.write(out,model,RDFFormat.TURTLE);
 			out.close();
 			return out.toString();
 		} catch (IOException e) {
-			closeQuietly(out);
+			IOUtils.closeQuietly(out);
 			throw new MessageConversionException("Could not serialize message",e);
 		}
 	}
 
-	private static void closeQuietly(Closeable closeable) {
-		try {
-			if(closeable!=null) {
-				closeable.close();
-			}
-		} catch (IOException ioe) {
-			// ignore
-		}
-	}
-
 	protected abstract void toString(T message, ModelHelper helper);
+
+	protected abstract T parse(Model model, Resource resource);
+
+	protected abstract String messageType();
 
 }

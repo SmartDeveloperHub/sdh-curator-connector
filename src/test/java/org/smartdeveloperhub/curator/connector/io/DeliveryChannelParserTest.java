@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;

@@ -24,22 +24,28 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.protocol.vocabulary;
 
+public final class AMQP {
 
-final class TYPES {
+	public static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/amqp#";
+	public static final String PREFIX    = "amqp";
 
-	static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/types#";
-	static final String PREFIX    = "types";
+	public static final String PATH_TYPE = term("Path");
+	public static final String NAME_TYPE = term("Name");
+	public static final String BROKER_TYPE = term("Broker");
+	public static final String ROUTING_KEY = term("routingKey");
+	public static final String QUEUE_NAME = term("queueName");
+	public static final String EXCHANGE_NAME = term("exchangeName");
+	public static final String VIRTUAL_HOST = term("virtualHost");
+	public static final String PORT = term("port");
+	public static final String HOST = term("host");
+	public static final String BROKER = term("broker");
 
-	static final String UUID_TYPE = term("UUID");
-	static final String PORT_TYPE = term("Port");
-	static final String HOSTNAME_TYPE = term("Hostname");
-
-	private TYPES() {
+	private AMQP() {
 	}
 
-	static String term(String localName) {
+	private static String term(String localName) {
 		return NAMESPACE+localName;
 	}
 

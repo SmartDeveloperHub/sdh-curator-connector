@@ -24,25 +24,19 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.connector.rdf;
 
 import java.net.URI;
-import java.net.URL;
 
-interface PropertyHelper {
 
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withLiteral(Object value);
+public interface ResourceHelper {
 
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withLanguageLiteral(Object value, String lang);
+	PropertyHelper property(String property);
 
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, String type);
+	PropertyHelper property(URI property);
 
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(String value);
+	<T extends ResourceHelper & ModelHelper> T type(String type);
 
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(URI value);
-
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(URL value);
-
-	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withBlankNode(String value);
+	<T extends ResourceHelper & ModelHelper> T type(URI type);
 
 }

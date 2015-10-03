@@ -41,7 +41,7 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 	private final URI additionTarget;
 	private final URI removalTarget;
 
-	ImmutableEnrichmentResponse(
+	ImmutableEnrichmentResponse( // NOSONAR
 		UUID messageId,
 		DateTime submittedOn,
 		Agent agent,

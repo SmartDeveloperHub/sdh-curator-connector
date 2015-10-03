@@ -24,29 +24,17 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-final class AMQP {
+import com.hp.hpl.jena.rdf.model.Model;
 
-	static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/amqp#";
-	static final String PREFIX    = "amqp";
+public final class ModelUtil {
 
-	static final String PATH_TYPE = term("Path");
-	static final String NAME_TYPE = term("Name");
-	static final String BROKER_TYPE = term("Broker");
-	static final String ROUTING_KEY = term("routingKey");
-	static final String QUEUE_NAME = term("queueName");
-	static final String EXCHANGE_NAME = term("exchangeName");
-	static final String VIRTUAL_HOST = term("virtualHost");
-	static final String PORT = term("port");
-	static final String HOST = term("host");
-	static final String BROKER = term("broker");
-
-	private AMQP() {
+	private ModelUtil() {
 	}
 
-	static String term(String localName) {
-		return NAMESPACE+localName;
+	public static ModelHelper createHelper(Model model) {
+		return new ImmutableModelHelper(model);
 	}
 
 }

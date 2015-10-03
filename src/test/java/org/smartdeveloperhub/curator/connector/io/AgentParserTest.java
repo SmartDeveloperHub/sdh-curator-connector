@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;

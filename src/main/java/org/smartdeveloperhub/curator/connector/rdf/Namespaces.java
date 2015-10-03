@@ -24,44 +24,40 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-import java.net.URI;
-import java.net.URL;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
-import com.hp.hpl.jena.rdf.model.AnonId;
 import com.hp.hpl.jena.rdf.model.Model;
 
-final class ImmutableModelHelper implements ModelHelper {
+public final class Namespaces {
 
-	final Model model;
+	private static final String RDF_NAMESPACE  = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+	private static final String RDFS_NAMESPACE = "http://www.w3.org/2000/01/rdf-schema#";
 
-	ImmutableModelHelper(Model model) {
-		this.model = model;
+	private Namespaces() {
 	}
 
-	Model model() {
-		return this.model;
+	public static String rdf(String localName) {
+		return RDF_NAMESPACE+localName;
 	}
 
-	@Override
-	public ResourceHelper resource(String resourceId) {
-		return new ImmutableResourceHelper(this,this.model().createResource(resourceId));
+	public static String rdfs(String localName) {
+		return RDFS_NAMESPACE+localName;
 	}
 
-	@Override
-	public ResourceHelper blankNode(String bnode) {
-		return new ImmutableResourceHelper(this,this.model().createResource(AnonId.create(bnode)));
-	}
-
-	@Override
-	public ResourceHelper resource(URI resourceId) {
-		return resource(resourceId.toString());
-	}
-
-	@Override
-	public ResourceHelper resource(URL resourceId) {
-		return resource(resourceId.toString());
+	public static void setUpNamespacePrefixes(Model model) {
+		model.setNsPrefix("rdf",RDF_NAMESPACE);
+		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
+		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
+		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
+		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
+		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
+		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
 	}
 
 }

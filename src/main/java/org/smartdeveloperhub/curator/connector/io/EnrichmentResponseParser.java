@@ -29,9 +29,11 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.BrokerBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
+import org.smartdeveloperhub.curator.connector.rdf.SparqlFunctions;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
@@ -41,28 +43,81 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class BrokerParser {
+final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, EnrichmentResponseBuilder> {
 
 	private static final Query QUERY=
 		QueryFactory.create(
-			ResourceUtil.loadResource(BrokerParser.class,"broker.sparql"));
+			ResourceUtil.
+				loadResource(
+					EnrichmentResponseParser.class,
+					"enrichmentResponse.sparql"));
 
-	private BrokerParser() {
+	static {
+		SparqlFunctions.enable();
 	}
 
-	static Broker fromModel(Model model, Resource resource) {
+	EnrichmentResponseParser(Model model, Resource resource) {
+		super(model, resource);
+	}
+
+	@Override
+	protected ResponseWorker createWorker() {
+		return new ResponseWorker() {
+
+			@Override
+			public void parse() {
+				super.parse();
+				updateTargetResource();
+				updateAdditionTarget();
+				updateRemovalTarget();
+			}
+
+			private void updateTargetResource() {
+				Resource targetResource = resource("targetResource", "curator:targetResource",false);
+				try {
+					this.builder.withTargetResource(targetResource.getURI());
+				} catch (ValidationException e) {
+					failConversion("curator:targetResource",e);
+				}
+			}
+
+			private void updateAdditionTarget() {
+				Resource additionTarget = resource("additionTarget", "curator:additionTarget",true);
+				if(additionTarget!=null) {
+					try {
+						this.builder.withAdditionTarget(additionTarget.getURI());
+					} catch (ValidationException e) {
+						failConversion("curator:additionTarget",e);
+					}
+				}
+			}
+
+			private void updateRemovalTarget() {
+				Resource removalTarget = resource("removalTarget", "curator:removalTarget",true);
+				if(removalTarget!=null) {
+					try {
+						this.builder.withRemovalTarget(removalTarget.getURI());
+					} catch (ValidationException e) {
+						failConversion("curator:removalTarget",e);
+					}
+				}
+			}
+
+		};
+	}
+
+	static EnrichmentResponse fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("broker", resource);
+		parameters.add("enrichmentResponse", resource);
 		QueryExecution queryExecution = null;
 		try {
 			queryExecution=QueryExecutionFactory.create(QUERY, model);
 			queryExecution.setInitialBinding(parameters);
 			ResultSet results = queryExecution.execSelect();
-			List<Broker> result=processResult(results);
+			List<EnrichmentResponse> result=processResult(new EnrichmentResponseParser(model, resource),results);
 			return selectResult(result,resource);
 		} finally {
 			if (queryExecution != null) {
@@ -71,53 +126,25 @@ final class BrokerParser {
 		}
 	}
 
-	private static Broker selectResult(List<Broker> result, Resource resource) {
+	private static EnrichmentResponse selectResult(List<EnrichmentResponse> result, Resource resource) {
 		if(result.isEmpty()) {
 			return null;
 		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many Broker definitions for resource '"+resource+"'");
+			throw new IllegalArgumentException("Too many EnrichmentResponse definitions for resource '"+resource+"'");
 		} else {
 			return result.get(0);
 		}
 	}
 
-	private static List<Broker> processResult(ResultSet results) {
-		List<Broker> result=Lists.newArrayList();
+	private static List<EnrichmentResponse> processResult(EnrichmentResponseParser parser,ResultSet results) {
+		List<EnrichmentResponse> result=Lists.newArrayList();
 		for(; results.hasNext();) {
 			QuerySolution solution = results.nextSolution();
-			BrokerBuilder builder = ProtocolFactory.newBroker();
-			updateHost(solution, builder);
-			updatePort(solution, builder);
-			updateVirtualHost(solution, builder);
+			EnrichmentResponseBuilder builder = ProtocolFactory.newEnrichmentResponse();
+			parser.parse(solution, builder);
 			result.add(builder.build());
 		}
 		return result;
-	}
-
-	private static void updateVirtualHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal virtualHost=solution.getLiteral("virtualHost");
-		if(virtualHost!=null) {
-			builder.withVirtualHost(virtualHost.getLexicalForm());
-		}
-	}
-
-	private static void updatePort(QuerySolution solution, BrokerBuilder builder) {
-		Literal port=solution.getLiteral("port");
-		if(port!=null) {
-			String rawPort = port.getLexicalForm();
-			try {
-				builder.withPort(Integer.parseInt(rawPort));
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(rawPort+" is not a valid integer");
-			}
-		}
-	}
-
-	private static void updateHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal host=solution.getLiteral("host");
-		if(host!=null) {
-			builder.withHost(host.getLexicalForm());
-		}
 	}
 
 }

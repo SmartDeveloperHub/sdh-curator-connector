@@ -31,57 +31,63 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
 
 public class MessageUtilTest {
 
-	@Test
-	public void testToString$enrichmentRequest() throws Exception {
-		System.out.println(
-			MessageUtil.
-				newInstance().
-					toString(
-						newEnrichmentRequest().
-							withMessageId(UUID.randomUUID()).
-							withSubmittedOn(new Date()).
-							withSubmittedBy(
-								newAgent().
-									withAgentId(UUID.randomUUID())).
-							withReplyTo(
-								newDeliveryChannel().
-									withBroker(
-										newBroker().
-											withHost("127.0.0.1").
-											withPort(12345).
-											withVirtualHost("/virtualHost")).
-									withExchangeName("exchange.name").
-									withQueueName("queue.name").
-									withRoutingKey("routing.key")).
-							withTargetResource(URI.create("urn:example")).
-							build()
-					)
-				);
+	private EnrichmentRequest request() {
+		return
+			newEnrichmentRequest().
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+				withReplyTo(
+					newDeliveryChannel().
+						withBroker(
+							newBroker().
+								withHost("127.0.0.1").
+								withPort(12345).
+								withVirtualHost("/virtualHost")).
+						withExchangeName("exchange.name").
+						withQueueName("queue.name").
+						withRoutingKey("routing.key")).
+				withTargetResource(URI.create("urn:example")).
+				build();
+	}
+
+	private EnrichmentResponse response() {
+		return newEnrichmentResponse().
+			withMessageId(UUID.randomUUID()).
+			withSubmittedOn(new Date()).
+			withSubmittedBy(
+				newAgent().
+					withAgentId(UUID.randomUUID())).
+			withResponseTo(UUID.randomUUID()).
+			withResponseNumber(2).
+			withTargetResource(URI.create("urn:example")).
+			withAdditionTarget(URI.create("urn:add")).
+			withRemovalTarget(URI.create("urn:remove")).
+			build();
 	}
 
 	@Test
-	public void testToString$enrichmentResponse() throws Exception {
-		System.out.println(
-			MessageUtil.
-				newInstance().
-					toString(
-						newEnrichmentResponse().
-							withMessageId(UUID.randomUUID()).
-							withSubmittedOn(new Date()).
-							withSubmittedBy(
-								newAgent().
-									withAgentId(UUID.randomUUID())).
-							withResponseTo(UUID.randomUUID()).
-							withResponseNumber(2).
-							withTargetResource(URI.create("urn:example")).
-							withAdditionTarget(URI.create("urn:add")).
-							withRemovalTarget(URI.create("urn:remove")).
-							build()
-					)
-				);
+	public void testRoundtrip$enrichmentRequest() throws Exception {
+		String strRequest = MessageUtil.newInstance().toString(request());
+		System.out.println(strRequest);
+		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$enrichmentResponse() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(response());
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
+		System.out.println();
 	}
 }

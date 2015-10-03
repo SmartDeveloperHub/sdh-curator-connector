@@ -51,13 +51,6 @@ public class ValidationException extends RuntimeConnectorException {
 		this.description = description;
 	}
 
-	private static String toString(Object value) {
-		return
-			value==null?
-				"<null>":
-				"'"+value+"'";
-	}
-
 	public ValidationException(Object value, String type, Throwable cause) {
 		this(value,type,null,cause);
 	}
@@ -72,6 +65,13 @@ public class ValidationException extends RuntimeConnectorException {
 
 	public String getDescription() {
 		return this.description;
+	}
+
+	private static String toString(Object value) {
+		return
+			value==null?
+				"<null>":
+				"'"+value+"'";
 	}
 
 }

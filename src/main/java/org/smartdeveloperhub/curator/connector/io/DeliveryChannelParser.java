@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.DeliveryChannelBuilder;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
@@ -45,13 +46,16 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public final class DeliveryChannelParser {
+final class DeliveryChannelParser {
 
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.loadResource(DeliveryChannelParser.class,"deliveryChannel.sparql"));
 
-	public static DeliveryChannel fromModel(Model model, Resource resource) {
+	private DeliveryChannelParser() {
+	}
+
+	static DeliveryChannel fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
 		parameters.add("deliveryChannel", resource);
 		QueryExecution queryExecution = null;
@@ -72,7 +76,7 @@ public final class DeliveryChannelParser {
 		if(result.isEmpty()) {
 			return null;
 		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many Broker definitions for resource '"+resource+"'");
+			throw new IllegalArgumentException("Too many DeliveryChannel definitions for resource '"+resource+"'");
 		} else {
 			return result.get(0);
 		}

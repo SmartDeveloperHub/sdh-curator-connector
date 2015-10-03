@@ -26,46 +26,44 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.io.StringReader;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
-import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
+import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 
 import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.ResIterator;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-abstract class ParserTester {
+public class EnrichmentResponseParserTest {
 
-	private final String dataResource;
-	private final String type;
-
-	ParserTester(String dataResource, String type) {
-		this.dataResource = dataResource;
-		this.type = type;
+	@Test
+	public void testFromModel$happyPath() {
+		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				EnrichmentResponse result=EnrichmentResponseParser.fromModel(model, target);
+				assertThat(result,notNullValue());
+				System.out.println(result);
+			}
+		}.verify();
 	}
 
-	private Model loadData(String data) {
-		Model model=ModelFactory.createDefaultModel();
-		StringReader in = new StringReader(ResourceUtil.loadResource(data));
-		model.read(in, "http://www.smartdeveloperhub.org/base#","TURTLE");
-		return model;
-	}
-
-	public final void verify() {
-		Model model = loadData(this.dataResource);
-		ResIterator iterator=
-			model.
-				listSubjectsWithProperty(
-					model.createProperty(Namespaces.rdf("type")),
-					model.createResource(this.type));
-		while(iterator.hasNext()) {
-			Resource resource = iterator.next();
-			exercise(model,resource);
-		}
-	}
-
-	protected abstract void exercise(Model model, Resource target);
+//	@Test
+//	public void testFromModel$fail$multiple() {
+//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
+//			@Override
+//			protected void exercise(Model model, Resource target) {
+//				try {
+//					AgentParser.fromModel(model, target);
+//					fail("Should not return an agent when multiple are available");
+//				} catch (Exception e) {
+//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
+//					assertThat(e.getCause(),nullValue());
+//				}
+//			}
+//		}.verify();
+//	}
 
 }

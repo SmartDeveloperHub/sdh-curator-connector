@@ -28,7 +28,7 @@
 PREFIX : <http://www.w3.org/2012/12/rdf-val/SOTA-ex#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/'>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX dt: <http://example.org/dataTime#>
+PREFIX fn: <http://www.smartdeveloperhub.org/sparql#>
 
 SELECT DISTINCT
   ?issue
@@ -37,7 +37,7 @@ SELECT DISTINCT
   (if(BOUND(?reportedBy), "passed", "missing") AS ?reportedByArc)
   (if(BOUND(?reportedOn), "passed", "missing") AS ?reportedOnArc)
   (if(!BOUND(?reportedByCount), "expected 1, got 0", if(?reportedByCount=1, "passed", CONCAT("expected 1, got ", STR(?reportedByCount)))) AS ?reportedByArcCount)
-  (if(!BOUND(?reproducedOn) || dt:gt(?reproducedOn,?reportedOn), "passed", "bad sequence") AS ?reproducedOnSequence)
+  (if(!BOUND(?reproducedOn) || fn:greaterThan(?reproducedOn,?reportedOn), "passed", "bad sequence") AS ?reproducedOnSequence)
   (if(BOUND(?missingRelatedIssuesStr), ?missingRelatedIssuesStr, "passed") AS ?missingRelatedIssues)
 WHERE {
 

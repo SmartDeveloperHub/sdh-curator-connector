@@ -34,6 +34,9 @@ import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
+import org.smartdeveloperhub.curator.connector.rdf.SparqlFunctions;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
@@ -46,9 +49,6 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.ResIterator;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.sparql.expr.NodeValue;
-import com.hp.hpl.jena.sparql.function.FunctionBase2;
-import com.hp.hpl.jena.sparql.function.FunctionRegistry;
 
 public class QueryTester {
 
@@ -110,26 +110,9 @@ public class QueryTester {
 		}
 	}
 
-	public static class GreaterThanFunction extends FunctionBase2 {
-		@Override
-		public NodeValue exec(NodeValue v1, NodeValue v2) {
-			if(!v1.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			if(!v2.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			return NodeValue.makeBoolean(v1.getDateTime().compare(v2.getDateTime())>0);
-		}
-	}
-
 	@Test
 	public void testValidation() {
-		FunctionRegistry.
-			get().
-				put(
-					"http://example.org/dataTime#gt",
-					GreaterThanFunction.class) ;
+		SparqlFunctions.enable();
 		Model model = loadData("/validation.ttl");
 		Query query =
 			QueryFactory.

@@ -24,36 +24,20 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
+import java.net.URI;
+import java.net.URL;
 
-import org.apache.commons.io.IOUtils;
 
-public final class ResourceUtil {
+public interface ModelHelper {
 
-	private ResourceUtil() {
-	}
+	ResourceHelper resource(String resourceId);
 
-	public static String loadResource(String resourceName) {
-		return load(resourceName, Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName));
-	}
+	ResourceHelper resource(URI resourceId);
 
-	public static String loadResource(Class<?> clazz, String resourceName) {
-		return load(resourceName, clazz.getResourceAsStream(resourceName));
-	}
+	ResourceHelper resource(URL resourceId);
 
-	private static String load(String resourceName, InputStream resource) throws AssertionError {
-		try {
-			if(resource==null) {
-				throw new AssertionError("Could not find resource '"+resourceName+"'");
-			}
-			return IOUtils.toString(resource, Charset.forName("UTF-8"));
-		} catch (IOException e) {
-			throw new AssertionError("Could not load resource '"+resourceName+"'");
-		}
-	}
+	ResourceHelper blankNode(String bnode);
 
 }

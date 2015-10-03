@@ -31,8 +31,10 @@ import java.util.List;
 
 
 
+
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.protocol.Agent;
 
@@ -48,7 +50,7 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public final class AgentParser {
+final class AgentParser {
 
 	private static final Query QUERY=
 		QueryFactory.create(
@@ -57,7 +59,7 @@ public final class AgentParser {
 	private AgentParser() {
 	}
 
-	public static Agent fromModel(Model model, Resource resource) {
+	static Agent fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
 		parameters.add("agent", resource);
 		QueryExecution queryExecution = null;

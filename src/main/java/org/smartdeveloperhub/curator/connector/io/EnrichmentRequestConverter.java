@@ -26,9 +26,18 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentRequest> {
 
@@ -42,7 +51,7 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 				property(CURATOR.SUBMITTED_BY).
 					withBlankNode("agent").
 				property(CURATOR.SUBMITTED_ON).
-					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_STAMP).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 				property(CURATOR.REPLY_TO).
 					withBlankNode("deliveryChannel").
 				property(CURATOR.TARGET_RESOURCE).
@@ -82,6 +91,16 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 					property(property).
 						withTypedLiteral(value,type);
 		}
+	}
+
+	@Override
+	protected EnrichmentRequest parse(Model model, Resource resource) {
+		return EnrichmentRequestParser.fromModel(model, resource);
+	}
+
+	@Override
+	protected String messageType() {
+		return CURATOR.ENRICHMENT_REQUEST_TYPE;
 	}
 
 }

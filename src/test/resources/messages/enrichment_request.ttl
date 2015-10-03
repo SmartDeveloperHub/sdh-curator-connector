@@ -48,6 +48,6 @@
   curator:submittedBy     [ a                foaf:Agent ;
                             curator:agentId  "e8c6fdeb-e442-40be-95bf-ea93519142ad"^^types:UUID
                           ] ;
-  curator:submittedOn     "2015-10-01T19:34:12.041+02:00"^^xsd:dateTimeStamp ;
+  curator:submittedOn     "2015-10-01T19:34:12.041+02:00"^^xsd:dateTime ;
   curator:targetResource  <urn:example>
 ] .

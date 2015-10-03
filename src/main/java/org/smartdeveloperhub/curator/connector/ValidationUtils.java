@@ -26,8 +26,12 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
 import java.util.regex.Pattern;
+
+import org.joda.time.DateTime;
 
 import com.google.common.net.InetAddresses;
 
@@ -44,6 +48,12 @@ final class ValidationUtils {
 	private static final Pattern AMQP_ROUTING_KEY=Pattern.compile("^[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*$");
 
 	private ValidationUtils() {
+	}
+
+	private static void checkArgument(boolean passes, String type, Object value, String message) {
+		if(!passes) {
+			throw new ValidationException(value,type,String.format(message,value));
+		}
 	}
 
 	/**
@@ -98,17 +108,27 @@ final class ValidationUtils {
 		checkArgument(port<65536,"types:Port",port,"Invalid port number (%s is greater than 65535)");
 	}
 
-	private static void checkArgument(boolean passes, String type, Object value, String message) {
-		if(!passes) {
-			throw new ValidationException(value,type,String.format(message,value));
+	static UUID toUUID(String value) {
+		try {
+			return UUID.fromString(value);
+		} catch (IllegalArgumentException e) {
+			throw new ValidationException(value,"types:UUID",e);
 		}
 	}
 
-	static UUID toUUID(String agentId) {
+	static DateTime toDateTime(String value) {
 		try {
-			return UUID.fromString(agentId);
+			return new DateTime(value);
 		} catch (IllegalArgumentException e) {
-			throw new ValidationException(agentId,"types:UUID",e);
+			throw new ValidationException(value,"xsd:DateTimeStamp",e);
+		}
+	}
+
+	static URI toURI(String value) {
+		try {
+			return new URI(value);
+		} catch (URISyntaxException e) {
+			throw new ValidationException(value,"xsd:anyURI",e);
 		}
 	}
 

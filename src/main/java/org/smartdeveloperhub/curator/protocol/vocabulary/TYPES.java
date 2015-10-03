@@ -24,17 +24,22 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.protocol.vocabulary;
 
-import com.hp.hpl.jena.rdf.model.Model;
+public final class TYPES {
 
-final class ModelUtil {
+	public static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/types#";
+	public static final String PREFIX    = "types";
 
-	private ModelUtil() {
+	public static final String UUID_TYPE = term("UUID");
+	public static final String PORT_TYPE = term("Port");
+	public static final String HOSTNAME_TYPE = term("Hostname");
+
+	private TYPES() {
 	}
 
-	static ModelHelper createHelper(Model model) {
-		return new ImmutableModelHelper(model);
+	private static String term(String localName) {
+		return NAMESPACE+localName;
 	}
 
 }

@@ -29,9 +29,11 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.BrokerBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
+import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.rdf.SparqlFunctions;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
@@ -41,28 +43,57 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class BrokerParser {
+final class EnrichmentRequestParser extends MessageParser<EnrichmentRequest, EnrichmentRequestBuilder> {
 
 	private static final Query QUERY=
 		QueryFactory.create(
-			ResourceUtil.loadResource(BrokerParser.class,"broker.sparql"));
+			ResourceUtil.
+				loadResource(
+					EnrichmentRequestParser.class,
+					"enrichmentRequest.sparql"));
 
-	private BrokerParser() {
+	static {
+		SparqlFunctions.enable();
 	}
 
-	static Broker fromModel(Model model, Resource resource) {
+	EnrichmentRequestParser(Model model, Resource resource) {
+		super(model, resource);
+	}
+
+	@Override
+	protected MessageWorker createWorker() {
+		return new MessageWorker() {
+
+			@Override
+			public void parse() {
+				super.parse();
+				updateTargetResource();
+			}
+
+			private void updateTargetResource() {
+				Resource targetResource = resource("targetResource", "curator:targetResource",false);
+				try {
+					this.builder.withTargetResource(targetResource.getURI());
+				} catch (ValidationException e) {
+					failConversion("curator:targetResource",e);
+				}
+			}
+
+		};
+	}
+
+	static EnrichmentRequest fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("broker", resource);
+		parameters.add("enrichmentRequest", resource);
 		QueryExecution queryExecution = null;
 		try {
 			queryExecution=QueryExecutionFactory.create(QUERY, model);
 			queryExecution.setInitialBinding(parameters);
 			ResultSet results = queryExecution.execSelect();
-			List<Broker> result=processResult(results);
+			List<EnrichmentRequest> result=processResult(new EnrichmentRequestParser(model, resource),results);
 			return selectResult(result,resource);
 		} finally {
 			if (queryExecution != null) {
@@ -71,53 +102,25 @@ final class BrokerParser {
 		}
 	}
 
-	private static Broker selectResult(List<Broker> result, Resource resource) {
+	private static EnrichmentRequest selectResult(List<EnrichmentRequest> result, Resource resource) {
 		if(result.isEmpty()) {
 			return null;
 		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many Broker definitions for resource '"+resource+"'");
+			throw new IllegalArgumentException("Too many EnrichmentResponse definitions for resource '"+resource+"'");
 		} else {
 			return result.get(0);
 		}
 	}
 
-	private static List<Broker> processResult(ResultSet results) {
-		List<Broker> result=Lists.newArrayList();
+	private static List<EnrichmentRequest> processResult(EnrichmentRequestParser parser, ResultSet results) {
+		List<EnrichmentRequest> result=Lists.newArrayList();
 		for(; results.hasNext();) {
 			QuerySolution solution = results.nextSolution();
-			BrokerBuilder builder = ProtocolFactory.newBroker();
-			updateHost(solution, builder);
-			updatePort(solution, builder);
-			updateVirtualHost(solution, builder);
+			EnrichmentRequestBuilder builder = ProtocolFactory.newEnrichmentRequest();
+			parser.parse(solution, builder);
 			result.add(builder.build());
 		}
 		return result;
-	}
-
-	private static void updateVirtualHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal virtualHost=solution.getLiteral("virtualHost");
-		if(virtualHost!=null) {
-			builder.withVirtualHost(virtualHost.getLexicalForm());
-		}
-	}
-
-	private static void updatePort(QuerySolution solution, BrokerBuilder builder) {
-		Literal port=solution.getLiteral("port");
-		if(port!=null) {
-			String rawPort = port.getLexicalForm();
-			try {
-				builder.withPort(Integer.parseInt(rawPort));
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(rawPort+" is not a valid integer");
-			}
-		}
-	}
-
-	private static void updateHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal host=solution.getLiteral("host");
-		if(host!=null) {
-			builder.withHost(host.getLexicalForm());
-		}
 	}
 
 }

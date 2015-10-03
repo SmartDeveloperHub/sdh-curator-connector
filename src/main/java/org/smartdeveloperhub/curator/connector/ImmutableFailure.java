@@ -42,7 +42,7 @@ final class ImmutableFailure extends ImmutableResponse implements Failure {
 	private final String reason;
 	private final String detail;
 
-	ImmutableFailure(
+	ImmutableFailure( // NOSONAR
 		UUID messageId,
 		DateTime submittedOn,
 		Agent agent,

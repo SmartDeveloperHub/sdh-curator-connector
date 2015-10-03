@@ -24,20 +24,21 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
-
-import java.net.URI;
-import java.net.URL;
+package org.smartdeveloperhub.curator.protocol.vocabulary;
 
 
-interface ModelHelper {
+public final class FOAF {
 
-	ResourceHelper resource(String resourceId);
+	public static final String NAMESPACE = "http://xmlns.com/foaf/0.1/";
+	public static final String PREFIX    = "foaf";
 
-	ResourceHelper resource(URI resourceId);
+	public static final String AGENT_TYPE = term("Agent");
 
-	ResourceHelper resource(URL resourceId);
+	private FOAF() {
+	}
 
-	ResourceHelper blankNode(String bnode);
+	private static String term(String localName) {
+		return NAMESPACE+localName;
+	}
 
 }
