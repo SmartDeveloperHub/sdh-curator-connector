@@ -48,6 +48,8 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class DeliveryChannelParser {
 
+	private static final String DELIVERY_CHANNEL = "deliveryChannel";
+
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.loadResource(DeliveryChannelParser.class,"deliveryChannel.sparql"));
@@ -57,7 +59,7 @@ final class DeliveryChannelParser {
 
 	static DeliveryChannel fromModel(Model model, Resource resource) {
 		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("deliveryChannel", resource);
+		parameters.add(DELIVERY_CHANNEL, resource);
 		QueryExecution queryExecution = null;
 		try {
 			queryExecution=QueryExecutionFactory.create(QUERY, model);
@@ -87,10 +89,10 @@ final class DeliveryChannelParser {
 		for(; results.hasNext();) {
 			QuerySolution solution = results.nextSolution();
 			DeliveryChannelBuilder builder = ProtocolFactory.newDeliveryChannel();
-			updateBroker(model,solution, builder, solution.getResource("deliveryChannel"));
-			updateExchangeName(solution, builder, solution.getResource("deliveryChannel"));
-			updateQueueName(solution, builder, solution.getResource("deliveryChannel"));
-			updateRoutingKey(solution, builder, solution.getResource("deliveryChannel"));
+			updateBroker(model,solution, builder, solution.getResource(DELIVERY_CHANNEL));
+			updateExchangeName(solution, builder, solution.getResource(DELIVERY_CHANNEL));
+			updateQueueName(solution, builder, solution.getResource(DELIVERY_CHANNEL));
+			updateRoutingKey(solution, builder, solution.getResource(DELIVERY_CHANNEL));
 			result.add(builder.build());
 		}
 		return result;
@@ -102,7 +104,7 @@ final class DeliveryChannelParser {
 			try {
 				builder.withBroker(BrokerParser.fromModel(model, broker));
 			} catch (ValidationException e) {
-				throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
+				throw new ConversionException("Could not process amqp:broker property for resource '"+resource+"'",e);
 			}
 		}
 	}
@@ -113,7 +115,7 @@ final class DeliveryChannelParser {
 			try {
 				builder.withRoutingKey(routingKey.getLexicalForm());
 			} catch (ValidationException e) {
-				throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
+				throw new ConversionException("Could not process amqp:routingKey property for resource '"+resource+"'",e);
 			}
 		}
 	}
@@ -124,7 +126,7 @@ final class DeliveryChannelParser {
 			try {
 				builder.withQueueName(queueName.getLexicalForm());
 			} catch (ValidationException e) {
-				throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
+				throw new ConversionException("Could not process amqp:queueName property for resource '"+resource+"'",e);
 			}
 		}
 	}
@@ -135,7 +137,7 @@ final class DeliveryChannelParser {
 			try {
 				builder.withExchangeName(exchangeName.getLexicalForm());
 			} catch (ValidationException e) {
-				throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
+				throw new ConversionException("Could not process amqp:exchangeName property for resource '"+resource+"'",e);
 			}
 		}
 	}

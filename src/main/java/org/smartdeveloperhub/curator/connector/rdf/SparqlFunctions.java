@@ -96,6 +96,9 @@ public final class SparqlFunctions {
 		}
 	}
 
+	private SparqlFunctions() {
+	}
+
 	public static void enable() {
 		CustomFunctionFactory factory = new CustomFunctionFactory();
 		FunctionRegistry.get().put(GREATER_THAN,factory);

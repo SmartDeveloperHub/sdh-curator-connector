@@ -35,9 +35,8 @@ import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class ImmutablePropertyHelper implements ModelHelper, ResourceHelper, PropertyHelper {
+final class ImmutablePropertyHelper extends DelegatedModelHelper<ImmutableResourceHelper> implements ResourceHelper, PropertyHelper {
 
-	private final ImmutableResourceHelper delegate;
 	private final Resource resource;
 	private final Property property;
 
@@ -45,13 +44,13 @@ final class ImmutablePropertyHelper implements ModelHelper, ResourceHelper, Prop
 			ImmutableResourceHelper delegate,
 			Resource resource,
 			Property property) {
-		this.delegate = delegate;
+		super(delegate);
 		this.resource = resource;
 		this.property = property;
 	}
 
 	private Model model() {
-		return this.delegate.model();
+		return delegate().model();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -97,42 +96,22 @@ final class ImmutablePropertyHelper implements ModelHelper, ResourceHelper, Prop
 
 	@Override
 	public PropertyHelper property(String property) {
-		return this.delegate.property(property);
+		return delegate().property(property);
 	}
 
 	@Override
 	public PropertyHelper property(URI property) {
-		return this.delegate.property(property);
+		return delegate().property(property);
 	}
 
 	@Override
 	public <T extends ResourceHelper & ModelHelper> T type(String type) {
-		return this.delegate.type(type);
+		return delegate().type(type);
 	}
 
 	@Override
 	public <T extends ResourceHelper & ModelHelper> T type(URI type) {
-		return this.delegate.type(type);
-	}
-
-	@Override
-	public ResourceHelper resource(String resourceId) {
-		return this.delegate.resource(resourceId);
-	}
-
-	@Override
-	public ResourceHelper resource(URI resourceId) {
-		return this.delegate.resource(resourceId);
-	}
-
-	@Override
-	public ResourceHelper resource(URL resourceId) {
-		return this.delegate.resource(resourceId);
-	}
-
-	@Override
-	public ResourceHelper blankNode(String bnode) {
-		return this.delegate.blankNode(bnode);
+		return delegate().type(type);
 	}
 
 }

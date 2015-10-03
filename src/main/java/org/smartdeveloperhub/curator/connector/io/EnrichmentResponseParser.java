@@ -48,6 +48,49 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, EnrichmentResponseBuilder> {
 
+	private final class EnrichmentResponseWorker extends ResponseWorker {
+
+		@Override
+		public void parse() {
+			super.parse();
+			updateTargetResource();
+			updateAdditionTarget();
+			updateRemovalTarget();
+		}
+
+		private void updateTargetResource() {
+			Resource targetResource = resource("targetResource", "curator:targetResource",false);
+			try {
+				this.builder.withTargetResource(targetResource.getURI());
+			} catch (ValidationException e) {
+				failConversion("curator:targetResource",e);
+			}
+		}
+
+		private void updateAdditionTarget() {
+			Resource additionTarget = resource("additionTarget", "curator:additionTarget",true);
+			if(additionTarget!=null) {
+				try {
+					this.builder.withAdditionTarget(additionTarget.getURI());
+				} catch (ValidationException e) {
+					failConversion("curator:additionTarget",e);
+				}
+			}
+		}
+
+		private void updateRemovalTarget() {
+			Resource removalTarget = resource("removalTarget", "curator:removalTarget",true);
+			if(removalTarget!=null) {
+				try {
+					this.builder.withRemovalTarget(removalTarget.getURI());
+				} catch (ValidationException e) {
+					failConversion("curator:removalTarget",e);
+				}
+			}
+		}
+
+	}
+
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.
@@ -65,48 +108,7 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 
 	@Override
 	protected ResponseWorker createWorker() {
-		return new ResponseWorker() {
-
-			@Override
-			public void parse() {
-				super.parse();
-				updateTargetResource();
-				updateAdditionTarget();
-				updateRemovalTarget();
-			}
-
-			private void updateTargetResource() {
-				Resource targetResource = resource("targetResource", "curator:targetResource",false);
-				try {
-					this.builder.withTargetResource(targetResource.getURI());
-				} catch (ValidationException e) {
-					failConversion("curator:targetResource",e);
-				}
-			}
-
-			private void updateAdditionTarget() {
-				Resource additionTarget = resource("additionTarget", "curator:additionTarget",true);
-				if(additionTarget!=null) {
-					try {
-						this.builder.withAdditionTarget(additionTarget.getURI());
-					} catch (ValidationException e) {
-						failConversion("curator:additionTarget",e);
-					}
-				}
-			}
-
-			private void updateRemovalTarget() {
-				Resource removalTarget = resource("removalTarget", "curator:removalTarget",true);
-				if(removalTarget!=null) {
-					try {
-						this.builder.withRemovalTarget(removalTarget.getURI());
-					} catch (ValidationException e) {
-						failConversion("curator:removalTarget",e);
-					}
-				}
-			}
-
-		};
+		return new EnrichmentResponseWorker();
 	}
 
 	static EnrichmentResponse fromModel(Model model, Resource resource) {

@@ -41,6 +41,10 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentRequest> {
 
+	private static final String AGENT = "agent";
+	private static final String BROKER_BNODE = "broker";
+	private static final String DELIVERY_CHANNEL_BNODE = "deliveryChannel";
+
 	@Override
 	protected void toString(EnrichmentRequest message, ModelHelper helper) {
 		helper.
@@ -49,28 +53,28 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 				property(CURATOR.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
 				property(CURATOR.SUBMITTED_BY).
-					withBlankNode("agent").
+					withBlankNode(AGENT).
 				property(CURATOR.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 				property(CURATOR.REPLY_TO).
-					withBlankNode("deliveryChannel").
+					withBlankNode(DELIVERY_CHANNEL_BNODE).
 				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
-			blankNode("agent").
+			blankNode(AGENT).
 				type(FOAF.AGENT_TYPE).
 				property(CURATOR.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE).
-			blankNode("deliveryChannel").
+			blankNode(DELIVERY_CHANNEL_BNODE).
 				type(CURATOR.DELIVERY_CHANNEL_TYPE);
 
 		DeliveryChannel deliveryChannel = message.replyTo();
 		Broker broker = deliveryChannel.broker();
 		if(broker!=null) {
 			helper.
-				blankNode("deliveryChannel").
+				blankNode(DELIVERY_CHANNEL_BNODE).
 					property(AMQP.BROKER).
-						withBlankNode("broker").
-				blankNode("broker").
+						withBlankNode(BROKER_BNODE).
+				blankNode(BROKER_BNODE).
 					type(AMQP.BROKER_TYPE).
 					property(AMQP.HOST).
 						withTypedLiteral(broker.host(),TYPES.HOSTNAME_TYPE).
@@ -87,7 +91,7 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 	private void deliveryChannelProperty(ModelHelper helper, String property, String value, String type) {
 		if(value!=null) {
 			helper.
-				blankNode("deliveryChannel").
+				blankNode(DELIVERY_CHANNEL_BNODE).
 					property(property).
 						withTypedLiteral(value,type);
 		}

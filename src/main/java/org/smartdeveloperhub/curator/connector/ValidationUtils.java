@@ -37,6 +37,20 @@ import com.google.common.net.InetAddresses;
 
 final class ValidationUtils {
 
+	private static final String TYPES_HOSTNAME_TYPE = "types:Hostname";
+
+	private static final String XSD_ANY_URI_TYPE = "xsd:anyURI";
+
+	private static final String XSD_DATE_TIME_TYPE = "xsd:dateTime";
+
+	private static final String TYPES_UUID_TYPE = "types:UUID";
+
+	private static final String TYPES_PORT_TYPE = "types:Port";
+
+	private static final String AMQP_NAME_TYPE = "amqp:Name";
+
+	private static final String AMQP_PATH_TYPE = "amqp:Path";
+
 	private static final int MAX_SEMI_SHORT_STR_LENGTH = 127;
 
 	private static final int MAX_SHORT_STR_LENGTH = 255;
@@ -75,17 +89,17 @@ final class ValidationUtils {
 	}
 
 	static void validatePath(String path) {
-		checkArgument(path!=null,"amqp:Path",path,"Path cannot be null");
-		checkArgument(path.length()>0,"amqp:Path",path,"Path cannot be empty");
-		checkArgument(path.length()<=MAX_SEMI_SHORT_STR_LENGTH,"amqp:Path",path,"Path cannot be larger than 127 octets ("+path.length()+")");
+		checkArgument(path!=null,AMQP_PATH_TYPE,path,"Path cannot be null");
+		checkArgument(path.length()>0,AMQP_PATH_TYPE,path,"Path cannot be empty");
+		checkArgument(path.length()<=MAX_SEMI_SHORT_STR_LENGTH,AMQP_PATH_TYPE,path,"Path cannot be larger than 127 octets ("+path.length()+")");
 	}
 
 	static void validateName(String name) {
 		if(name==null) {
 			return;
 		}
-		checkArgument(name.length()<=MAX_SEMI_SHORT_STR_LENGTH,"amqp:Name",name,"Name cannot be larger than 127 octets ("+name.length()+")");
-		checkArgument(AMQP_NAME.matcher(name).matches(),"amqp:Name",name,"Invalid name syntax");
+		checkArgument(name.length()<=MAX_SEMI_SHORT_STR_LENGTH,AMQP_NAME_TYPE,name,"Name cannot be larger than 127 octets ("+name.length()+")");
+		checkArgument(AMQP_NAME.matcher(name).matches(),AMQP_NAME_TYPE,name,"Invalid name syntax");
 	}
 
 	static void validateRoutingKey(String routingKey) {
@@ -95,24 +109,24 @@ final class ValidationUtils {
 		if(routingKey.isEmpty()) {
 			return;
 		}
-		checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,"amqp:Path",routingKey,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
-		checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),"amqp:Path",routingKey,"Invalid routing key syntax");
+		checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,AMQP_PATH_TYPE,routingKey,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
+		checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),AMQP_PATH_TYPE,routingKey,"Invalid routing key syntax");
 	}
 
 	static void validateHostname(String hostname) {
-		checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),"types:Hostname",hostname,"Host name '%s' is not valid");
+		checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),TYPES_HOSTNAME_TYPE,hostname,"Host name '%s' is not valid");
 	}
 
 	static void validatePort(int port) {
-		checkArgument(port>=0,"types:Port",port,"Invalid port number (%s is lower than 0)");
-		checkArgument(port<65536,"types:Port",port,"Invalid port number (%s is greater than 65535)");
+		checkArgument(port>=0,TYPES_PORT_TYPE,port,"Invalid port number (%s is lower than 0)");
+		checkArgument(port<65536,TYPES_PORT_TYPE,port,"Invalid port number (%s is greater than 65535)");
 	}
 
 	static UUID toUUID(String value) {
 		try {
 			return UUID.fromString(value);
 		} catch (IllegalArgumentException e) {
-			throw new ValidationException(value,"types:UUID",e);
+			throw new ValidationException(value,TYPES_UUID_TYPE,e);
 		}
 	}
 
@@ -120,7 +134,7 @@ final class ValidationUtils {
 		try {
 			return new DateTime(value);
 		} catch (IllegalArgumentException e) {
-			throw new ValidationException(value,"xsd:DateTimeStamp",e);
+			throw new ValidationException(value,XSD_DATE_TIME_TYPE,e);
 		}
 	}
 
@@ -128,7 +142,7 @@ final class ValidationUtils {
 		try {
 			return new URI(value);
 		} catch (URISyntaxException e) {
-			throw new ValidationException(value,"xsd:anyURI",e);
+			throw new ValidationException(value,XSD_ANY_URI_TYPE,e);
 		}
 	}
 

@@ -44,15 +44,15 @@ public class ValidationException extends RuntimeConnectorException {
 		this(value,type,description,null);
 	}
 
+	public ValidationException(Object value, String type, Throwable cause) {
+		this(value,type,null,cause);
+	}
+
 	public ValidationException(Object value, String type, String description, Throwable cause) {
-		super("Value "+toString(value)+" is not a valid "+type+(description!=null?": "+description:""));
+		super("Value "+toString(value)+" is not a valid "+type+(description!=null?": "+description:""),cause);
 		this.value = value!=null?value.toString():null;
 		this.type = type;
 		this.description = description;
-	}
-
-	public ValidationException(Object value, String type, Throwable cause) {
-		this(value,type,null,cause);
 	}
 
 	public String getValue() {

@@ -59,8 +59,7 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 		} else if(resources.size()>1) {
 			throw new MessageConversionException("Too many "+messageType()+" definitions found");
 		}
-		Resource target = resources.get(0);
-		return target;
+		return resources.get(0);
 	}
 
 	@Override

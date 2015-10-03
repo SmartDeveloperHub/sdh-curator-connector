@@ -27,43 +27,38 @@
 package org.smartdeveloperhub.curator.connector.rdf;
 
 import java.net.URI;
+import java.net.URL;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Resource;
+abstract class DelegatedModelHelper<T extends ModelHelper> implements ModelHelper {
 
-final class ImmutableResourceHelper extends DelegatedModelHelper<ImmutableModelHelper> implements ResourceHelper {
+	private final T delegate;
 
-	private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-	private final Resource resource;
-
-	ImmutableResourceHelper(ImmutableModelHelper delegate, Resource resource) {
-		super(delegate);
-		this.resource = resource;
+	DelegatedModelHelper(T delegate) {
+		this.delegate = delegate;
 	}
 
-	Model model() {
-		return delegate().model();
+	protected final T delegate() {
+		return this.delegate;
 	}
 
 	@Override
-	public ImmutablePropertyHelper property(String property) {
-		return new ImmutablePropertyHelper(this,this.resource,model().createProperty(property));
+	public final ResourceHelper resource(String resourceId) {
+		return this.delegate.resource(resourceId);
 	}
 
 	@Override
-	public PropertyHelper property(URI property) {
-		return property(property.toString());
+	public final ResourceHelper resource(URI resourceId) {
+		return this.delegate.resource(resourceId);
 	}
 
 	@Override
-	public <T extends ResourceHelper & ModelHelper> T type(String type) {
-		return property(RDF_TYPE).withResource(type);
+	public final ResourceHelper resource(URL resourceId) {
+		return this.delegate.resource(resourceId);
 	}
 
 	@Override
-	public <T extends ResourceHelper & ModelHelper> T type(URI type) {
-		return type(type.toString());
+	public final ResourceHelper blankNode(String bnode) {
+		return this.delegate.blankNode(bnode);
 	}
 
 }

@@ -38,6 +38,9 @@ abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>
 
 	protected class ResponseWorker extends MessageWorker {
 
+		private static final String CURATOR_RESPONSE_TO     = "curator:responseTo";
+		private static final String CURATOR_RESPONSE_NUMBER = "curator:responseNumber";
+
 		@Override
 		public void parse() {
 			super.parse();
@@ -46,22 +49,22 @@ abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>
 		}
 
 		private void updateResponseTo() {
-			Literal responseTo = literal("responseTo", "curator:responseTo",false);
+			Literal responseTo = literal("responseTo", CURATOR_RESPONSE_TO,false);
 			try {
 				this.builder.withResponseTo(responseTo.getLexicalForm());
 			} catch (ValidationException e) {
-				failConversion("curator:responseTo",e);
+				failConversion(CURATOR_RESPONSE_TO,e);
 			}
 		}
 
 		private void updateResponseNumber() {
-			Literal responseTo = literal("responseNumber", "curator:responseNumber",false);
+			Literal responseTo = literal("responseNumber", CURATOR_RESPONSE_NUMBER,false);
 			try {
 				this.builder.withResponseNumber(responseTo.getLong());
 			} catch (NumberFormatException e) {
-				failConversion("curator:responseTo",e);
+				failConversion(CURATOR_RESPONSE_NUMBER,e);
 			} catch (ValidationException e) {
-				failConversion("curator:responseTo",e);
+				failConversion(CURATOR_RESPONSE_NUMBER,e);
 			}
 		}
 	}

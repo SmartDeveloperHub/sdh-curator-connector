@@ -48,6 +48,25 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentRequestParser extends MessageParser<EnrichmentRequest, EnrichmentRequestBuilder> {
 
+	private final class EnrichmentRequestWorker extends MessageWorker {
+
+		@Override
+		public void parse() {
+			super.parse();
+			updateTargetResource();
+		}
+
+		private void updateTargetResource() {
+			Resource targetResource = resource("targetResource", "curator:targetResource",false);
+			try {
+				this.builder.withTargetResource(targetResource.getURI());
+			} catch (ValidationException e) {
+				failConversion("curator:targetResource",e);
+			}
+		}
+
+	}
+
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.
@@ -65,24 +84,7 @@ final class EnrichmentRequestParser extends MessageParser<EnrichmentRequest, Enr
 
 	@Override
 	protected MessageWorker createWorker() {
-		return new MessageWorker() {
-
-			@Override
-			public void parse() {
-				super.parse();
-				updateTargetResource();
-			}
-
-			private void updateTargetResource() {
-				Resource targetResource = resource("targetResource", "curator:targetResource",false);
-				try {
-					this.builder.withTargetResource(targetResource.getURI());
-				} catch (ValidationException e) {
-					failConversion("curator:targetResource",e);
-				}
-			}
-
-		};
+		return new EnrichmentRequestWorker();
 	}
 
 	static EnrichmentRequest fromModel(Model model, Resource resource) {
