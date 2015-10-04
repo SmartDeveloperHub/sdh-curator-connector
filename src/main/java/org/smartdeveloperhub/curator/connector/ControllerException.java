@@ -24,36 +24,14 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.util;
+package org.smartdeveloperhub.curator.connector;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
+public class ControllerException extends ConnectorException {
 
-import org.apache.commons.io.IOUtils;
+	private static final long serialVersionUID = 7249473927408663886L;
 
-public final class ResourceUtil {
-
-	private ResourceUtil() {
-	}
-
-	public static String loadResource(String resourceName) {
-		return load(resourceName, Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName));
-	}
-
-	public static String loadResource(Class<?> clazz, String resourceName) {
-		return load(resourceName, clazz.getResourceAsStream(resourceName));
-	}
-
-	private static String load(String resourceName, InputStream resource) throws AssertionError {
-		try {
-			if(resource==null) {
-				throw new AssertionError("Could not find resource '"+resourceName+"'");
-			}
-			return IOUtils.toString(resource, Charset.forName("UTF-8"));
-		} catch (IOException e) {
-			throw new AssertionError("Could not load resource '"+resourceName+"'",e);
-		}
+	public ControllerException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 }

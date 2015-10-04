@@ -32,6 +32,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.google.common.base.Preconditions;
@@ -40,6 +42,8 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 final class BrokerController {
+
+	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
 
 	private final Broker broker;
 	private final Lock read;
@@ -60,7 +64,7 @@ final class BrokerController {
 		return this.broker;
 	}
 
-	void connect() throws IOException, TimeoutException {
+	void connect() throws ControllerException {
 		this.write.lock();
 		try {
 			if(this.connected) {
@@ -76,7 +80,10 @@ final class BrokerController {
 				this.connected=true;
 			} catch (Exception e) {
 				closeConnectionQuietly();
+				throw new ControllerException("Could not create channel for broker connection",e);
 			}
+		} catch(IOException | TimeoutException e) {
+			throw new ControllerException("Could not connect to broker",e);
 		} finally {
 			this.write.unlock();
 		}
@@ -111,7 +118,7 @@ final class BrokerController {
 			try {
 				this.channel.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.trace("Could not close channel gracefully",e);
 			}
 		}
 	}
@@ -121,7 +128,7 @@ final class BrokerController {
 			try {
 				this.connection.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOGGER.trace("Could not close connection gracefully",e);
 			}
 		}
 	}

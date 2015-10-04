@@ -27,13 +27,16 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
+import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
+import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.rabbitmq.client.Channel;
 
 final class CuratorController {
+
+	private static final String CURATOR_ROUTING_KEY = "";
 
 	private final CuratorConfiguration configuration;
 	private final BrokerController brokerController;
@@ -47,31 +50,26 @@ final class CuratorController {
 		return this.brokerController;
 	}
 
-	private void configureBroker() throws IOException {
-		Channel channel = this.brokerController.channel();
-		channel.exchangeDeclare(this.configuration.exchangeName(),"direct");
-
-		channel.queueDeclare(this.configuration.requestQueueName(),true,false,false,null);
-		channel.queueBind(this.configuration.requestQueueName(),this.configuration.exchangeName(),"");
-
-		channel.queueDeclare(this.configuration.responseQueueName(),true,false,false,null);
-		channel.queueBind(this.configuration.responseQueueName(),this.configuration.exchangeName(),"");
-	}
-
-	void connect() throws IOException, TimeoutException {
+	void connect() throws ControllerException {
 		this.brokerController.connect();
 		configureBroker();
 	}
 
 	void publish(Message message) throws IOException {
-		this.brokerController.
-			channel().
-				basicPublish(
-					this.configuration.exchangeName(),
-					"",
-					null,
-					message.toString().getBytes());
-
+		try {
+			this.brokerController.
+				channel().
+					basicPublish(
+						this.configuration.exchangeName(),
+						CURATOR_ROUTING_KEY,
+						null,
+						MessageUtil.
+							newInstance().
+								toString(message).
+									getBytes());
+		} catch (MessageConversionException e) {
+			throw new IOException("Could not serialize message",e);
+		}
 	}
 
 	void handleResponses(final MessageHandler handler) throws IOException {
@@ -94,6 +92,34 @@ final class CuratorController {
 
 	void disconnect() {
 		this.brokerController.disconnect();
+	}
+
+	private void configureBroker() throws ControllerException {
+		Channel channel = this.brokerController.channel();
+		prepareExchange(channel, this.configuration.exchangeName());
+		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.requestQueueName());
+		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.responseQueueName());
+	}
+
+	private void prepareExchange(Channel channel, String exchangeName) throws ControllerException {
+		try {
+			channel.exchangeDeclare(exchangeName,"direct");
+		} catch (IOException e) {
+			throw new ControllerException("Could not create curator exchange named '"+exchangeName+"'",e);
+		}
+	}
+
+	private void prepareQueue(Channel channel, String exchangeName, String queueName) throws ControllerException {
+		try {
+			channel.queueDeclare(queueName,true,false,false,null);
+		} catch (IOException e) {
+			throw new ControllerException("Could not create curator queue named '"+queueName+"'",e);
+		}
+		try {
+			channel.queueBind(queueName,exchangeName,CURATOR_ROUTING_KEY);
+		} catch (IOException e) {
+			throw new ControllerException("Could not bind curator queue '"+queueName+"' to exchange '"+exchangeName+"'",e);
+		}
 	}
 
 }

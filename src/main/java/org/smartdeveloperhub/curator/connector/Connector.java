@@ -33,20 +33,27 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
+import org.smartdeveloperhub.curator.connector.io.MessageUtil;
+import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 import com.google.common.base.Preconditions;
 import com.rabbitmq.client.Channel;
 
 public final class Connector {
+
+	private static final String NL = System.lineSeparator();
 
 	public static final class ConnectorBuilder {
 
@@ -109,18 +116,27 @@ public final class Connector {
 
 	}
 
-	private final class CuratorResponseHandler implements Runnable {
+	private final class CuratorResponseListener implements Runnable {
 
 		private final class ResponseMessageHandler implements MessageHandler {
 
 			@Override
 			public void handlePayload(String payload) {
-				System.out.println("Received response: "+payload);
+				LOGGER.trace("Received message in connector's curator response queue: {}",payload);
+				try {
+					Accepted response =
+						MessageUtil.
+							newInstance().
+								fromString(payload, Accepted.class);
+					LOGGER.info("Should process curator response {}",response);
+				} catch (MessageConversionException e) {
+					LOGGER.warn("Could not process curator response:\n{}\n. Full stacktrace follows",e);
+				}
 			}
 
 			@Override
 			public void handleCancel() {
-				System.out.println("Closing response handler...");
+				LOGGER.info("Should cancel request (close response handler)");
 			}
 
 		}
@@ -130,15 +146,59 @@ public final class Connector {
 			try {
 				Connector.this.curatorController.handleResponses(new ResponseMessageHandler());
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error("Could not setup the curator response message handler",e);
 			}
 		}
 
 	}
 
+	private final class ConnectorResponseListener implements Runnable {
+
+		private final class ResponseMessageHandler implements MessageHandler {
+
+			@Override
+			public void handlePayload(String payload) {
+				LOGGER.trace("Received message in connector's response queue: {}",payload);
+				try {
+					EnrichmentResponse response =
+						MessageUtil.
+							newInstance().
+								fromString(payload, EnrichmentResponse.class);
+					LOGGER.info("Should process EnrichmentResponse {}",response);
+				} catch (MessageConversionException e) {
+					LOGGER.warn("Could not process EnrichmentResponse:\n{}\n. Full stacktrace follows",e);
+				}
+			}
+
+			@Override
+			public void handleCancel() {
+				LOGGER.info("Should cancel request (close response handler)");
+			}
+
+		}
+
+		@Override
+		public void run() {
+			try {
+				ResponseMessageHandler handler = new ResponseMessageHandler();
+				Channel channel = Connector.this.connectorController.channel();
+				channel.basicConsume(
+					Connector.this.connectorConfiguration.queueName(),
+					true,
+					new MessageHandlerConsumer(channel, handler)
+				);
+			} catch (IOException e) {
+				LOGGER.error("Could not setup the connector response message handler",e);
+			}
+		}
+
+	}
+
+	private static final Logger LOGGER=LoggerFactory.getLogger(Connector.class);
+
 	private final CuratorConfiguration curatorConfiguration;
 	private final Agent agent;
-	private final DeliveryChannel connectorConfiguration;
+	private DeliveryChannel connectorConfiguration;
 
 	private final CuratorController curatorController;
 	private final BrokerController connectorController;
@@ -177,28 +237,12 @@ public final class Connector {
 			this.curatorConfiguration.responseQueueName().equals(connectorQueueName);
 	}
 
-	private DeliveryChannel prepareConnectorQueue() throws IOException, TimeoutException {
+	private DeliveryChannel configureConnectorQueue() throws ConnectorException {
 		this.connectorController.connect();
-
 		Channel channel = this.connectorController.channel();
-
-		String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), this.curatorConfiguration.exchangeName());
-		if(!usesDifferentBrokers() || !exchangeName.equals(this.curatorConfiguration.exchangeName())) {
-			channel.exchangeDeclare(exchangeName,"direct");
-		}
-
-		String queueName = this.connectorConfiguration.queueName();
-		if(!usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
-			if(queueName==null) {
-				channel.queueDeclare(this.connectorConfiguration.queueName(),true,false,false,null);
-			} else {
-				queueName=channel.queueDeclare().getQueue();
-			}
-		}
-
-		String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
-		channel.queueBind(queueName,exchangeName,routingKey);
-
+		String exchangeName = declareConnectorExchange(channel);
+		String queueName = declareConnectorQueue(channel);
+		String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
 		return
 			ProtocolFactory.
 				newDeliveryChannel().
@@ -207,6 +251,48 @@ public final class Connector {
 					withQueueName(queueName).
 					withRoutingKey(routingKey).
 					build();
+	}
+
+	private String bindConnectorQueue(Channel channel, String exchangeName, String queueName) throws ConnectorException {
+		String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
+		try {
+			channel.queueBind(queueName,exchangeName,routingKey);
+		} catch (IOException e) {
+			throw new ConnectorException("Could not bind connector queue '"+queueName+"' using routing key '"+routingKey+"' to exchange '"+exchangeName+"'",e);
+		}
+		return routingKey;
+	}
+
+	private String declareConnectorQueue(Channel channel) throws ConnectorException {
+		String queueName = this.connectorConfiguration.queueName();
+		if(!usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
+			if(queueName!=null) {
+				try {
+					channel.queueDeclare(queueName,true,false,false,null);
+				} catch (IOException e) {
+					throw new ConnectorException("Could not declare connector queue named '"+queueName+"'",e);
+				}
+			} else {
+				try {
+					queueName=channel.queueDeclare().getQueue();
+				} catch (IOException e) {
+					throw new ConnectorException("Could not declare anonymous connector queue",e);
+				}
+			}
+		}
+		return queueName;
+	}
+
+	private String declareConnectorExchange(Channel channel) throws ConnectorException {
+		String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), this.curatorConfiguration.exchangeName());
+		if(!usesDifferentBrokers() || !exchangeName.equals(this.curatorConfiguration.exchangeName())) {
+			try {
+				channel.exchangeDeclare(exchangeName,"direct");
+			} catch (IOException e) {
+				throw new ConnectorException("Could not declare connector exchange named '"+exchangeName+"'",e);
+			}
+		}
+		return exchangeName;
 	}
 
 	private String firstNonNull(String providedValue, String defaultValue) {
@@ -219,24 +305,58 @@ public final class Connector {
 			try {
 				this.executor.awaitTermination(100,TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOGGER.trace("Interrupted while waiting to shutdown the executor service",e);
 			}
 		}
 	}
 
-	public void connect() throws IOException, TimeoutException {
+	private void logConnectionDetails() {
+		StringBuilder builder=new StringBuilder();
+		builder.append(NL).append("-->> CONNECTED <<--").append(NL);
+		builder.append("Curator configuration:").append(NL);
+		appendBrokerDetails(builder, this.curatorConfiguration.broker());
+		appendExchangeName(builder, this.curatorConfiguration.exchangeName());
+		builder.append("- Request queue name.: ").append(this.curatorConfiguration.requestQueueName()).append(NL);
+		appendResponseQueueDetails(builder, this.curatorConfiguration.responseQueueName());
+		builder.append("Connector configuration:").append(NL);
+		appendBrokerDetails(builder, this.connectorConfiguration.broker());
+		appendExchangeName(builder, this.connectorConfiguration.exchangeName());
+		appendResponseQueueDetails(builder, this.connectorConfiguration.queueName());
+		builder.append("- Routing key........: ").append(this.connectorConfiguration.routingKey()).append(NL);
+		LOGGER.info(builder.toString());
+	}
+
+	private void appendResponseQueueDetails(StringBuilder builder, String responseQueueName) {
+		builder.append("- Response queue name: ").append(responseQueueName).append(NL);
+	}
+
+	private void appendExchangeName(StringBuilder builder, String exchangeName) {
+		builder.append("- Exchange name......: ").append(exchangeName).append(NL);
+	}
+
+	private void appendBrokerDetails(StringBuilder builder, Broker broker) {
+		builder.append("- Broker").append(NL);
+		builder.append("  + Host.............: ").append(broker.host()).append(NL);
+		builder.append("  + Port.............: ").append(broker.port()).append(NL);
+		builder.append("  + Virtual host.....: ").append(broker.virtualHost()).append(NL);
+	}
+
+	public void connect() throws ConnectorException {
 		this.write.lock();
 		try {
 			Preconditions.checkState(!this.connected,"Already connected");
-			this.executor = Executors.newFixedThreadPool(2);
+			this.executor=Executors.newFixedThreadPool(2);
 			try {
 				this.curatorController.connect();
-				prepareConnectorQueue();
-				this.executor.submit(new CuratorResponseHandler());
+				this.connectorConfiguration=configureConnectorQueue();
+				this.executor.submit(new CuratorResponseListener());
+				this.executor.submit(new ConnectorResponseListener());
 				this.connected=true;
-			} catch (IOException | TimeoutException e) {
+				logConnectionDetails();
+			} catch (Exception e) {
+				LOGGER.warn("Could not connect to curator",e);
 				shutdownExecutorQuietly();
-				throw e;
+				throw new ConnectorException("Could not connect to curator",e);
 			}
 		} finally {
 			this.write.unlock();
@@ -247,14 +367,15 @@ public final class Connector {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
-			EnrichmentRequest message = ProtocolFactory.
-				newEnrichmentRequest().
-					withMessageId(UUID.randomUUID()).
-					withSubmittedOn(new Date()).
-					withSubmittedBy(this.agent).
-					withReplyTo(this.connectorConfiguration).
-					withTargetResource(targetResource).
-					build();
+			EnrichmentRequest message =
+				ProtocolFactory.
+					newEnrichmentRequest().
+						withMessageId(UUID.randomUUID()).
+						withSubmittedOn(new Date()).
+						withSubmittedBy(this.agent).
+						withReplyTo(this.connectorConfiguration).
+						withTargetResource(targetResource).
+						build();
 			this.curatorController.publish(message);
 		} finally {
 			this.read.unlock();
