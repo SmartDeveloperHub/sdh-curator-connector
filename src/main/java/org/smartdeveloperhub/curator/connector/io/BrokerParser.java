@@ -26,98 +26,99 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.List;
-
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.BrokerBuilder;
+import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.QuerySolutionMap;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class BrokerParser {
+final class BrokerParser extends Parser<Broker,BrokerBuilder> {
+
+	private final class BrokerWorker extends Worker {
+
+		@Override
+		protected void parse() {
+			updateHost();
+			updatePort();
+			updateVirtualHost();
+		}
+
+		private void updateVirtualHost() {
+			Literal virtualHost=literal("virtualHost","amqp:virtualHost",true);
+			if(virtualHost!=null) {
+				try {
+					this.builder.withVirtualHost(virtualHost.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:virtualHost",e);
+				}
+			}
+		}
+
+		private void updatePort() {
+			Literal port=literal("port","amqp:port",true);
+			if(port!=null) {
+				try {
+					this.builder.withPort(port.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:port",e);
+				}
+			}
+		}
+
+		private void updateHost() {
+			Literal host=literal("host","amqp:host",true);
+			if(host!=null) {
+				try {
+					this.builder.withHost(host.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:host",e);
+				}
+			}
+		}
+
+	}
 
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.loadResource(BrokerParser.class,"broker.sparql"));
 
-	private BrokerParser() {
+	private BrokerParser(Model model, Resource resource) {
+		super(model, resource);
+	}
+
+	@Override
+	protected Worker solutionParser() {
+		return new BrokerWorker();
+	}
+
+	@Override
+	protected String parsedType() {
+		return "amqp:Broker";
+	}
+
+	@Override
+	protected Query parserQuery() {
+		return QUERY;
+	}
+
+	@Override
+	protected String targetVariable() {
+		return "broker";
+	}
+
+	@Override
+	protected BrokerBuilder newBuilder() {
+		return ProtocolFactory.newBroker();
 	}
 
 	static Broker fromModel(Model model, Resource resource) {
-		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("broker", resource);
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution=QueryExecutionFactory.create(QUERY, model);
-			queryExecution.setInitialBinding(parameters);
-			ResultSet results = queryExecution.execSelect();
-			List<Broker> result=processResult(results);
-			return selectResult(result,resource);
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
-			}
-		}
-	}
-
-	private static Broker selectResult(List<Broker> result, Resource resource) {
-		if(result.isEmpty()) {
-			return null;
-		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many Broker definitions for resource '"+resource+"'");
-		} else {
-			return result.get(0);
-		}
-	}
-
-	private static List<Broker> processResult(ResultSet results) {
-		List<Broker> result=Lists.newArrayList();
-		for(; results.hasNext();) {
-			QuerySolution solution = results.nextSolution();
-			BrokerBuilder builder = ProtocolFactory.newBroker();
-			updateHost(solution, builder);
-			updatePort(solution, builder);
-			updateVirtualHost(solution, builder);
-			result.add(builder.build());
-		}
-		return result;
-	}
-
-	private static void updateVirtualHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal virtualHost=solution.getLiteral("virtualHost");
-		if(virtualHost!=null) {
-			builder.withVirtualHost(virtualHost.getLexicalForm());
-		}
-	}
-
-	private static void updatePort(QuerySolution solution, BrokerBuilder builder) {
-		Literal port=solution.getLiteral("port");
-		if(port!=null) {
-			String rawPort = port.getLexicalForm();
-			try {
-				builder.withPort(Integer.parseInt(rawPort));
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException(rawPort+" is not a valid integer");
-			}
-		}
-	}
-
-	private static void updateHost(QuerySolution solution, BrokerBuilder builder) {
-		Literal host=solution.getLiteral("host");
-		if(host!=null) {
-			builder.withHost(host.getLexicalForm());
-		}
+		return new BrokerParser(model, resource).parse();
 	}
 
 }

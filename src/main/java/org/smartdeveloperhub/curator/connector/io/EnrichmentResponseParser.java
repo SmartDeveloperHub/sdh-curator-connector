@@ -26,23 +26,14 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.List;
-
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
-import org.smartdeveloperhub.curator.connector.rdf.SparqlFunctions;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.QuerySolutionMap;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
@@ -98,55 +89,37 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 					EnrichmentResponseParser.class,
 					"enrichmentResponse.sparql"));
 
-	static {
-		SparqlFunctions.enable();
-	}
-
-	EnrichmentResponseParser(Model model, Resource resource) {
+	private EnrichmentResponseParser(Model model, Resource resource) {
 		super(model, resource);
 	}
 
 	@Override
-	protected ResponseWorker createWorker() {
+	protected ResponseWorker solutionParser() {
 		return new EnrichmentResponseWorker();
 	}
 
+	@Override
+	protected String parsedType() {
+		return "curator:EnrichmentResponse";
+	}
+
+	@Override
+	protected Query parserQuery() {
+		return QUERY;
+	}
+
+	@Override
+	protected String targetVariable() {
+		return "enrichmentResponse";
+	}
+
+	@Override
+	protected EnrichmentResponseBuilder newBuilder() {
+		return ProtocolFactory.newEnrichmentResponse();
+	}
+
 	static EnrichmentResponse fromModel(Model model, Resource resource) {
-		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("enrichmentResponse", resource);
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution=QueryExecutionFactory.create(QUERY, model);
-			queryExecution.setInitialBinding(parameters);
-			ResultSet results = queryExecution.execSelect();
-			List<EnrichmentResponse> result=processResult(new EnrichmentResponseParser(model, resource),results);
-			return selectResult(result,resource);
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
-			}
-		}
-	}
-
-	private static EnrichmentResponse selectResult(List<EnrichmentResponse> result, Resource resource) {
-		if(result.isEmpty()) {
-			return null;
-		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many EnrichmentResponse definitions for resource '"+resource+"'");
-		} else {
-			return result.get(0);
-		}
-	}
-
-	private static List<EnrichmentResponse> processResult(EnrichmentResponseParser parser,ResultSet results) {
-		List<EnrichmentResponse> result=Lists.newArrayList();
-		for(; results.hasNext();) {
-			QuerySolution solution = results.nextSolution();
-			EnrichmentResponseBuilder builder = ProtocolFactory.newEnrichmentResponse();
-			parser.parse(solution, builder);
-			result.add(builder.build());
-		}
-		return result;
+		return new EnrichmentResponseParser(model, resource).parse();
 	}
 
 }

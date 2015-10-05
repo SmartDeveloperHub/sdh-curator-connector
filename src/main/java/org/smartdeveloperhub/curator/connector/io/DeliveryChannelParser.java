@@ -26,120 +26,109 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.List;
-
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.DeliveryChannelBuilder;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.QuerySolutionMap;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class DeliveryChannelParser {
+final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannelBuilder> {
 
-	private static final String DELIVERY_CHANNEL = "deliveryChannel";
+	private final class DeliveryChannelWorker extends Worker {
+		@Override
+		protected void parse() {
+			updateBroker();
+			updateExchangeName();
+			updateQueueName();
+			updateRoutingKey();
+		}
+
+		private void updateBroker() {
+			Resource broker=resource("broker","amqp:broker",true);
+			if(broker!=null) {
+				try {
+					this.builder.withBroker(BrokerParser.fromModel(model(), broker));
+				} catch (ValidationException e) {
+					failConversion("amqp:broker", e);
+				}
+			}
+		}
+
+		private void updateRoutingKey() {
+			Literal routingKey=literal("routingKey","amqp:routingKey",true);
+			if(routingKey!=null) {
+				try {
+					this.builder.withRoutingKey(routingKey.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:routingKey",e);
+				}
+			}
+		}
+
+		private void updateQueueName() {
+			Literal queueName=literal("queueName","amqp:queueName",true);
+			if(queueName!=null) {
+				try {
+					builder.withQueueName(queueName.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:routingKey",e);
+				}
+			}
+		}
+
+		private void updateExchangeName() {
+			Literal exchangeName=literal("exchangeName","amqp:exchangeName",true);
+			if(exchangeName!=null) {
+				try {
+					this.builder.withExchangeName(exchangeName.getLexicalForm());
+				} catch (ValidationException e) {
+					failConversion("amqp:routingKey",e);
+				}
+			}
+		}
+	}
 
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.loadResource(DeliveryChannelParser.class,"deliveryChannel.sparql"));
 
-	private DeliveryChannelParser() {
+	private DeliveryChannelParser(Model model, Resource resource) {
+		super(model, resource);
+	}
+
+	@Override
+	protected Worker solutionParser() {
+		return new DeliveryChannelWorker();
+	}
+
+	@Override
+	protected String parsedType() {
+		return "curator:DeliveryChannel";
+	}
+
+	@Override
+	protected Query parserQuery() {
+		return QUERY;
+	}
+
+	@Override
+	protected String targetVariable() {
+		return "deliveryChannel";
+	}
+
+	@Override
+	protected DeliveryChannelBuilder newBuilder() {
+		return ProtocolFactory.newDeliveryChannel();
 	}
 
 	static DeliveryChannel fromModel(Model model, Resource resource) {
-		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add(DELIVERY_CHANNEL, resource);
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution=QueryExecutionFactory.create(QUERY, model);
-			queryExecution.setInitialBinding(parameters);
-			ResultSet results = queryExecution.execSelect();
-			List<DeliveryChannel> result=processResult(model,results);
-			return selectResult(result,resource);
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
-			}
-		}
-	}
-
-	private static DeliveryChannel selectResult(List<DeliveryChannel> result, Resource resource) {
-		if(result.isEmpty()) {
-			return null;
-		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many DeliveryChannel definitions for resource '"+resource+"'");
-		} else {
-			return result.get(0);
-		}
-	}
-
-	private static List<DeliveryChannel> processResult(Model model,ResultSet results) {
-		List<DeliveryChannel> result=Lists.newArrayList();
-		for(; results.hasNext();) {
-			QuerySolution solution = results.nextSolution();
-			DeliveryChannelBuilder builder = ProtocolFactory.newDeliveryChannel();
-			updateBroker(model,solution, builder, solution.getResource(DELIVERY_CHANNEL));
-			updateExchangeName(solution, builder, solution.getResource(DELIVERY_CHANNEL));
-			updateQueueName(solution, builder, solution.getResource(DELIVERY_CHANNEL));
-			updateRoutingKey(solution, builder, solution.getResource(DELIVERY_CHANNEL));
-			result.add(builder.build());
-		}
-		return result;
-	}
-
-	private static void updateBroker(Model model,QuerySolution solution, DeliveryChannelBuilder builder, Resource resource) {
-		Resource broker=solution.getResource("broker");
-		if(broker!=null) {
-			try {
-				builder.withBroker(BrokerParser.fromModel(model, broker));
-			} catch (ValidationException e) {
-				throw new ConversionException("Could not process amqp:broker property for resource '"+resource+"'",e);
-			}
-		}
-	}
-
-	private static void updateRoutingKey(QuerySolution solution, DeliveryChannelBuilder builder, Resource resource) {
-		Literal routingKey=solution.getLiteral("routingKey");
-		if(routingKey!=null) {
-			try {
-				builder.withRoutingKey(routingKey.getLexicalForm());
-			} catch (ValidationException e) {
-				throw new ConversionException("Could not process amqp:routingKey property for resource '"+resource+"'",e);
-			}
-		}
-	}
-
-	private static void updateQueueName(QuerySolution solution, DeliveryChannelBuilder builder, Resource resource) {
-		Literal queueName=solution.getLiteral("queueName");
-		if(queueName!=null) {
-			try {
-				builder.withQueueName(queueName.getLexicalForm());
-			} catch (ValidationException e) {
-				throw new ConversionException("Could not process amqp:queueName property for resource '"+resource+"'",e);
-			}
-		}
-	}
-
-	private static void updateExchangeName(QuerySolution solution, DeliveryChannelBuilder builder, Resource resource) {
-		Literal exchangeName=solution.getLiteral("exchangeName");
-		if(exchangeName!=null) {
-			try {
-				builder.withExchangeName(exchangeName.getLexicalForm());
-			} catch (ValidationException e) {
-				throw new ConversionException("Could not process amqp:exchangeName property for resource '"+resource+"'",e);
-			}
-		}
+		return new DeliveryChannelParser(model, resource).parse();
 	}
 
 }

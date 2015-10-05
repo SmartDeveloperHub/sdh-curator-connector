@@ -69,6 +69,13 @@ public final class ProtocolFactory {
 			return this;
 		}
 
+		public BrokerBuilder withPort(String port) {
+			if(port!=null) {
+				return withPort(ValidationUtils.toPort(port));
+			}
+			return this;
+		}
+
 		public BrokerBuilder withPort(int port) {
 			ValidationUtils.validatePort(port);
 			this.port=port;
@@ -340,6 +347,13 @@ public final class ProtocolFactory {
 
 		public final B withResponseNumber(long responseNumber) {
 			this.responseNumber = responseNumber;
+			return builder();
+		}
+
+		public final B withResponseNumber(String responseNumber) {
+			if(responseNumber!=null) {
+				this.responseNumber=ValidationUtils.toResponseNumner(responseNumber);
+			}
 			return builder();
 		}
 

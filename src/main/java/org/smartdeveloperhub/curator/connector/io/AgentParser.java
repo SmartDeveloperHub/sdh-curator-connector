@@ -26,84 +26,69 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.List;
-
-
-
-
-
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Agent;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.QuerySolutionMap;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class AgentParser {
+final class AgentParser extends Parser<Agent,AgentBuilder>{
+
+	private final class AgentWorker extends Worker {
+
+		@Override
+		protected void parse() {
+			try {
+				Literal host=literal("agentId","curator:agentId",false);
+				this.builder.withAgentId(host.getLexicalForm());
+			} catch (ValidationException e) {
+				failConversion("curator:agentId", e);;
+			}
+		}
+
+	}
 
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.loadResource(AgentParser.class,"agent.sparql"));
 
-	private AgentParser() {
+	private AgentParser(Model model, Resource resource) {
+		super(model, resource);
+	}
+
+	@Override
+	protected Worker solutionParser() {
+		return new AgentWorker();
+	}
+
+	@Override
+	protected String parsedType() {
+		return "foaf:Agent";
+	}
+
+	@Override
+	protected Query parserQuery() {
+		return QUERY;
+	}
+
+	@Override
+	protected String targetVariable() {
+		return "agent";
+	}
+
+	@Override
+	protected AgentBuilder newBuilder() {
+		return ProtocolFactory.newAgent();
 	}
 
 	static Agent fromModel(Model model, Resource resource) {
-		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("agent", resource);
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution=QueryExecutionFactory.create(QUERY, model);
-			queryExecution.setInitialBinding(parameters);
-			ResultSet results = queryExecution.execSelect();
-			List<Agent> result=processResult(results);
-			return selectResult(result,resource);
-		} finally {
-			if (queryExecution!=null) {
-				queryExecution.close();
-			}
-		}
-	}
-
-	private static Agent selectResult(List<Agent> result, Resource resource) {
-		if(result.isEmpty()) {
-			return null;
-		} else if(result.size()>1) {
-			throw new ConversionException("Too many Agent definitions for resource '"+resource+"'");
-		} else {
-			return result.get(0);
-		}
-	}
-
-	private static List<Agent> processResult(ResultSet results) {
-		List<Agent> result=Lists.newArrayList();
-		for(; results.hasNext();) {
-			QuerySolution solution = results.nextSolution();
-			AgentBuilder builder = ProtocolFactory.newAgent();
-			updateAgentId(solution, builder, solution.getResource("agent"));
-			result.add(builder.build());
-		}
-		return result;
-	}
-
-	private static void updateAgentId(QuerySolution solution, AgentBuilder builder, Resource resource) {
-		try {
-			Literal host=solution.getLiteral("agentId");
-			builder.withAgentId(host.getLexicalForm());
-		} catch (ValidationException e) {
-			throw new ConversionException("Could not process curator:agentId property for resource '"+resource+"'",e);
-		}
+		return new AgentParser(model, resource).parse();
 	}
 
 }

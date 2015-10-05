@@ -91,6 +91,6 @@ abstract class MessageParser<T extends Message, B extends MessageBuilder<T,B>> e
 	}
 
 	@Override
-	protected abstract MessageWorker createWorker();
+	protected abstract MessageWorker solutionParser();
 
 }

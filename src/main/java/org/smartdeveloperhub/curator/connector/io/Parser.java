@@ -26,9 +26,17 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+import java.util.List;
+
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
 
+import com.google.common.collect.Lists;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryExecution;
+import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.QuerySolutionMap;
+import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -92,13 +100,57 @@ abstract class Parser<T, B extends Builder<T>> {
 		this.resource = resource;
 	}
 
-	final void parse(QuerySolution solution, B builder) {
-		createWorker().
-			withSolution(solution).
-			withBuilder(builder).
-			parse();
+	final T parse() {
+		QuerySolutionMap parameters = new QuerySolutionMap();
+		parameters.add(targetVariable(), resource);
+		QueryExecution queryExecution=QueryExecutionFactory.create(parserQuery(), model);
+		queryExecution.setInitialBinding(parameters);
+		try {
+			ResultSet results = queryExecution.execSelect();
+			List<T> result=processResults(results);
+			return firstResult(result,resource,parsedType());
+		} finally {
+			closeQuietly(queryExecution);
+		}
 	}
 
-	protected abstract Worker createWorker();
+	private List<T> processResults(ResultSet results) {
+		List<T> result=Lists.newArrayList();
+		for(; results.hasNext();) {
+			QuerySolution solution = results.nextSolution();
+			B builder = newBuilder();
+			solutionParser().
+				withSolution(solution).
+				withBuilder(builder).
+				parse();
+			result.add(builder.build());
+		}
+		return result;
+	}
+
+	private T firstResult(List<T> result, Resource resource, String type) {
+		if(result.isEmpty()) {
+			return null;
+		} else if(result.size()==1) {
+			return result.get(0);
+		}
+		throw new ConversionException("Too many "+type+" definitions for resource '"+resource+"'");
+	}
+
+	private void closeQuietly(QueryExecution closeable) {
+		if(closeable!=null) {
+			closeable.close();
+		}
+	}
+
+	protected abstract String parsedType();
+
+	protected abstract Query parserQuery();
+
+	protected abstract String targetVariable();
+
+	protected abstract B newBuilder();
+
+	protected abstract Worker solutionParser();
 
 }

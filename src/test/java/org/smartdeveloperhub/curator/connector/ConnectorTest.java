@@ -103,7 +103,7 @@ public class ConnectorTest {
 		connector.connect();
 		try {
 			connector.requestEnrichment(URI.create("urn:message"));
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(1);
 		} finally {
 			connector.disconnect();
 		}

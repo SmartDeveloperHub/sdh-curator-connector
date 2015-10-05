@@ -26,21 +26,13 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.List;
-
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.AcceptedBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryExecution;
-import com.hp.hpl.jena.query.QueryExecutionFactory;
 import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.QuerySolutionMap;
-import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
@@ -53,51 +45,37 @@ final class AcceptedParser extends ResponseParser<Accepted, AcceptedBuilder> {
 					AcceptedParser.class,
 					"accepted.sparql"));
 
-	AcceptedParser(Model model, Resource resource) {
+	private AcceptedParser(Model model, Resource resource) {
 		super(model, resource);
 	}
 
 	@Override
-	protected ResponseWorker createWorker() {
+	protected ResponseWorker solutionParser() {
 		return new ResponseWorker();
 	}
 
+	@Override
+	protected String parsedType() {
+		return "curator:Accepted";
+	}
+
+	@Override
+	protected Query parserQuery() {
+		return QUERY;
+	}
+
+	@Override
+	protected String targetVariable() {
+		return "accepted";
+	}
+
+	@Override
+	protected AcceptedBuilder newBuilder() {
+		return ProtocolFactory.newAccepted();
+	}
+
 	static Accepted fromModel(Model model, Resource resource) {
-		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add("accepted", resource);
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution=QueryExecutionFactory.create(QUERY, model);
-			queryExecution.setInitialBinding(parameters);
-			ResultSet results = queryExecution.execSelect();
-			List<Accepted> result=processResult(new AcceptedParser(model, resource),results);
-			return selectResult(result,resource);
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
-			}
-		}
-	}
-
-	private static Accepted selectResult(List<Accepted> result, Resource resource) {
-		if(result.isEmpty()) {
-			return null;
-		} else if(result.size()>1) {
-			throw new IllegalArgumentException("Too many EnrichmentResponse definitions for resource '"+resource+"'");
-		} else {
-			return result.get(0);
-		}
-	}
-
-	private static List<Accepted> processResult(AcceptedParser parser, ResultSet results) {
-		List<Accepted> result=Lists.newArrayList();
-		for(; results.hasNext();) {
-			QuerySolution solution = results.nextSolution();
-			AcceptedBuilder builder = ProtocolFactory.newAccepted();
-			parser.parse(solution, builder);
-			result.add(builder.build());
-		}
-		return result;
+		return new AcceptedParser(model, resource).parse();
 	}
 
 }

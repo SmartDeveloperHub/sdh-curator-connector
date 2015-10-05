@@ -43,6 +43,8 @@ final class ValidationUtils {
 
 	private static final String XSD_DATE_TIME_TYPE = "xsd:dateTime";
 
+	private static final String XSD_UNSIGNED_LONG_TYPE = "xsd:unsignedLong";
+
 	private static final String TYPES_UUID_TYPE = "types:UUID";
 
 	private static final String TYPES_PORT_TYPE = "types:Port";
@@ -143,6 +145,22 @@ final class ValidationUtils {
 			return new URI(value);
 		} catch (URISyntaxException e) {
 			throw new ValidationException(value,XSD_ANY_URI_TYPE,e);
+		}
+	}
+
+	static int toPort(String value) {
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new ValidationException(value,TYPES_PORT_TYPE,e);
+		}
+	}
+
+	static Long toResponseNumner(String value) {
+		try {
+			return Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			throw new ValidationException(value,XSD_UNSIGNED_LONG_TYPE,e);
 		}
 	}
 

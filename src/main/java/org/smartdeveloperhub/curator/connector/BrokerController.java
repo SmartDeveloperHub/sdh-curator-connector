@@ -169,8 +169,8 @@ final class BrokerController {
 	}
 
 	private ThreadFactory brokerThreadFactory() {
-		final ThreadFactory threadFactory=
-				new ThreadFactoryBuilder().
+		return
+			new ThreadFactoryBuilder().
 				setNameFormat(this.name+"-broker-%d").
 				setUncaughtExceptionHandler(
 					new UncaughtExceptionHandler(){
@@ -179,8 +179,8 @@ final class BrokerController {
 							LOGGER.error("Unexpected failure on thread {}",t.getName(),e);
 						}
 					}
-				).build();
-		return threadFactory;
+				).
+				build();
 	}
 
 	private void createChannel() throws ControllerException {

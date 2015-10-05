@@ -60,9 +60,7 @@ abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>
 		private void updateResponseNumber() {
 			Literal responseTo = literal("responseNumber", CURATOR_RESPONSE_NUMBER,false);
 			try {
-				this.builder.withResponseNumber(responseTo.getLong());
-			} catch (NumberFormatException e) {
-				failConversion(CURATOR_RESPONSE_NUMBER,e);
+				this.builder.withResponseNumber(responseTo.getLexicalForm());
 			} catch (ValidationException e) {
 				failConversion(CURATOR_RESPONSE_NUMBER,e);
 			}
@@ -74,6 +72,6 @@ abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>
 	}
 
 	@Override
-	protected abstract ResponseWorker createWorker();
+	protected abstract ResponseWorker solutionParser();
 
 }

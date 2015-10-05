@@ -97,7 +97,7 @@ public class AgentParserTest {
 					AgentParser.fromModel(model, target);
 					fail("Should not return an agent when multiple are available");
 				} catch (Exception e) {
-					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
+					assertThat(e.getMessage(),equalTo("Too many foaf:Agent definitions for resource '"+target+"'"));
 					assertThat(e.getCause(),nullValue());
 				}
 			}
