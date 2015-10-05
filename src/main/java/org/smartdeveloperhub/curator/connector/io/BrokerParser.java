@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.BrokerBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
@@ -50,36 +49,36 @@ final class BrokerParser extends Parser<Broker,BrokerBuilder> {
 		}
 
 		private void updateVirtualHost() {
-			Literal virtualHost=literal("virtualHost","amqp:virtualHost",true);
-			if(virtualHost!=null) {
-				try {
-					this.builder.withVirtualHost(virtualHost.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:virtualHost",e);
+			optional(
+				new LiteralConsumer("virtualHost","amqp:virtualHost") {
+					@Override
+					protected void consumeLiteral(BrokerBuilder builder, Literal literal) {
+						builder.withVirtualHost(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
 
 		private void updatePort() {
-			Literal port=literal("port","amqp:port",true);
-			if(port!=null) {
-				try {
-					this.builder.withPort(port.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:port",e);
+			optional(
+				new LiteralConsumer("port","amqp:port") {
+					@Override
+					protected void consumeLiteral(BrokerBuilder builder, Literal literal) {
+						builder.withPort(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
 
 		private void updateHost() {
-			Literal host=literal("host","amqp:host",true);
-			if(host!=null) {
-				try {
-					this.builder.withHost(host.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:host",e);
+			optional(
+				new LiteralConsumer("host","amqp:host") {
+					@Override
+					protected void consumeLiteral(BrokerBuilder builder, Literal literal) {
+						builder.withHost(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
 
 	}
@@ -89,27 +88,12 @@ final class BrokerParser extends Parser<Broker,BrokerBuilder> {
 			ResourceUtil.loadResource(BrokerParser.class,"broker.sparql"));
 
 	private BrokerParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource, "amqp:Broker", "broker", QUERY);
 	}
 
 	@Override
 	protected Worker solutionParser() {
 		return new BrokerWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "amqp:Broker";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "broker";
 	}
 
 	@Override

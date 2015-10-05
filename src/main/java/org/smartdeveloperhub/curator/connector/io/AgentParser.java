@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Agent;
 
@@ -44,12 +43,14 @@ final class AgentParser extends Parser<Agent,AgentBuilder>{
 
 		@Override
 		protected void parse() {
-			try {
-				Literal host=literal("agentId","curator:agentId",false);
-				this.builder.withAgentId(host.getLexicalForm());
-			} catch (ValidationException e) {
-				failConversion("curator:agentId", e);;
-			}
+			mandatory(
+				new LiteralConsumer("agentId","curator:agentId") {
+					@Override
+					protected void consumeLiteral(AgentBuilder builder, Literal literal) {
+						builder.withAgentId(literal.getLexicalForm());
+					}
+				}
+			);
 		}
 
 	}
@@ -59,27 +60,12 @@ final class AgentParser extends Parser<Agent,AgentBuilder>{
 			ResourceUtil.loadResource(AgentParser.class,"agent.sparql"));
 
 	private AgentParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource,"foaf:Agent","agent",QUERY);
 	}
 
 	@Override
 	protected Worker solutionParser() {
 		return new AgentWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "foaf:Agent";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "agent";
 	}
 
 	@Override

@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.DeliveryChannelBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
@@ -50,48 +49,49 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 		}
 
 		private void updateBroker() {
-			Resource broker=resource("broker","amqp:broker",true);
-			if(broker!=null) {
-				try {
-					this.builder.withBroker(BrokerParser.fromModel(model(), broker));
-				} catch (ValidationException e) {
-					failConversion("amqp:broker", e);
+			optional(
+				new ResourceConsumer("broker","amqp:broker") {
+					@Override
+					protected void consumeResource(DeliveryChannelBuilder builder, Resource resource) {
+						builder.withBroker(BrokerParser.fromModel(model(), resource));
+					}
 				}
-			}
+			);
 		}
 
 		private void updateRoutingKey() {
-			Literal routingKey=literal("routingKey","amqp:routingKey",true);
-			if(routingKey!=null) {
-				try {
-					this.builder.withRoutingKey(routingKey.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:routingKey",e);
+			optional(
+				new LiteralConsumer("routingKey","amqp:routingKey") {
+					@Override
+					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
+						builder.withRoutingKey(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
 
 		private void updateQueueName() {
-			Literal queueName=literal("queueName","amqp:queueName",true);
-			if(queueName!=null) {
-				try {
-					builder.withQueueName(queueName.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:routingKey",e);
+			optional(
+				new LiteralConsumer("queueName","amqp:queueName") {
+					@Override
+					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
+						builder.withQueueName(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
 
 		private void updateExchangeName() {
-			Literal exchangeName=literal("exchangeName","amqp:exchangeName",true);
-			if(exchangeName!=null) {
-				try {
-					this.builder.withExchangeName(exchangeName.getLexicalForm());
-				} catch (ValidationException e) {
-					failConversion("amqp:routingKey",e);
+			optional(
+				new LiteralConsumer("exchangeName","amqp:exchangeName") {
+					@Override
+					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
+						builder.withExchangeName(literal.getLexicalForm());
+					}
 				}
-			}
+			);
 		}
+
 	}
 
 	private static final Query QUERY=
@@ -99,27 +99,12 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 			ResourceUtil.loadResource(DeliveryChannelParser.class,"deliveryChannel.sparql"));
 
 	private DeliveryChannelParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource, "curator:DeliveryChannel","deliveryChannel", QUERY);
 	}
 
 	@Override
 	protected Worker solutionParser() {
 		return new DeliveryChannelWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "curator:DeliveryChannel";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "deliveryChannel";
 	}
 
 	@Override

@@ -46,27 +46,12 @@ final class AcceptedParser extends ResponseParser<Accepted, AcceptedBuilder> {
 					"accepted.sparql"));
 
 	private AcceptedParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource,"curator:Accepted","accepted",QUERY);
 	}
 
 	@Override
 	protected ResponseWorker solutionParser() {
 		return new ResponseWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "curator:Accepted";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "accepted";
 	}
 
 	@Override

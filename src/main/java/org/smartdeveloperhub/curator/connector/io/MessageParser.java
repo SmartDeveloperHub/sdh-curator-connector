@@ -27,9 +27,9 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.MessageBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.protocol.Message;
 
+import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -47,47 +47,53 @@ abstract class MessageParser<T extends Message, B extends MessageBuilder<T,B>> e
 		}
 
 		private void updateMessageId() {
-			Literal messageId = literal("messageId", "curator:messageId",false);
-			try {
-				this.builder.withMessageId(messageId.getLexicalForm());
-			} catch (ValidationException e) {
-				failConversion("curator:messageId",e);
-			}
+			mandatory(
+				new LiteralConsumer("messageId", "curator:messageId") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withMessageId(literal.getLexicalForm());
+					}
+				}
+			);
 		}
 
 		private void updateSubmittedOn() {
-			Literal submittedOn=literal("submittedOn","curator:submittedOn",false);
-			try {
-				this.builder.withSubmittedOn(submittedOn.getLexicalForm());
-			} catch (ValidationException e) {
-				failConversion("curator:submittedOn", e);
-			}
+			mandatory(
+				new LiteralConsumer("submittedOn","curator:submittedOn") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withSubmittedOn(literal.getLexicalForm());
+					}
+				}
+			);
 		}
 
 		private void updateSubmittedBy() {
-			Resource submittedBy=resource("submittedBy","curator:submittedBy",false);
-			try {
-				this.builder.withSubmittedBy(AgentParser.fromModel(model(), submittedBy));
-			} catch (ValidationException e) {
-				failConversion("curator:submittedBy", e);
-			}
+			mandatory(
+				new ResourceConsumer("submittedBy","curator:submittedBy") {
+					@Override
+					protected void consumeResource(B builder, Resource resource) {
+						builder.withSubmittedBy(AgentParser.fromModel(model(), resource));
+					}
+				}
+			);
 		}
 
 		private void updateReplyTo() {
-			Resource deliveryChannel=resource("replyTo","curator:replyTo",true);
-			if(deliveryChannel!=null) {
-				try {
-					builder.withReplyTo(DeliveryChannelParser.fromModel(model(), deliveryChannel));
-				} catch (ValidationException e) {
-					failConversion("curator:replyTo", e);
+			optional(
+				new ResourceConsumer("replyTo","curator:replyTo") {
+					@Override
+					protected void consumeResource(B builder, Resource resource) {
+						builder.withReplyTo(DeliveryChannelParser.fromModel(model(), resource));
+					}
 				}
-			}
+			);
 		}
 
 	}
 
-	MessageParser(Model model, Resource resource) {
-		super(model,resource);
+	MessageParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
+		super(model,resource,parsedType,targetVariable,query);
 	}
 
 	@Override

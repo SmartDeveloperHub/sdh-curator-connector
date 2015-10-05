@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 
@@ -44,16 +43,14 @@ final class EnrichmentRequestParser extends MessageParser<EnrichmentRequest, Enr
 		@Override
 		public void parse() {
 			super.parse();
-			updateTargetResource();
-		}
-
-		private void updateTargetResource() {
-			Resource targetResource = resource("targetResource", "curator:targetResource",false);
-			try {
-				this.builder.withTargetResource(targetResource.getURI());
-			} catch (ValidationException e) {
-				failConversion("curator:targetResource",e);
-			}
+			mandatory(
+				new ResourceConsumer("targetResource","curator:targetResource") {
+					@Override
+					protected void consumeResource(EnrichmentRequestBuilder builder, Resource resource) {
+						builder.withTargetResource(resource.getURI());
+					}
+				}
+			);
 		}
 
 	}
@@ -66,27 +63,12 @@ final class EnrichmentRequestParser extends MessageParser<EnrichmentRequest, Enr
 					"enrichmentRequest.sparql"));
 
 	private EnrichmentRequestParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource, "curator:EnrichmentRequest", "enrichmentRequest", QUERY);
 	}
 
 	@Override
 	protected MessageWorker solutionParser() {
 		return new EnrichmentRequestWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "curator:EnrichmentRequest";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "enrichmentRequest";
 	}
 
 	@Override

@@ -27,9 +27,9 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.protocol.Response;
 
+import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -37,9 +37,6 @@ import com.hp.hpl.jena.rdf.model.Resource;
 abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>> extends MessageParser<T,B> {
 
 	protected class ResponseWorker extends MessageWorker {
-
-		private static final String CURATOR_RESPONSE_TO     = "curator:responseTo";
-		private static final String CURATOR_RESPONSE_NUMBER = "curator:responseNumber";
 
 		@Override
 		public void parse() {
@@ -49,26 +46,30 @@ abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>
 		}
 
 		private void updateResponseTo() {
-			Literal responseTo = literal("responseTo", CURATOR_RESPONSE_TO,false);
-			try {
-				this.builder.withResponseTo(responseTo.getLexicalForm());
-			} catch (ValidationException e) {
-				failConversion(CURATOR_RESPONSE_TO,e);
-			}
+			mandatory(
+				new LiteralConsumer("responseTo", "curator:responseTo") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withResponseTo(literal.getLexicalForm());
+					}
+				}
+			);
 		}
 
 		private void updateResponseNumber() {
-			Literal responseTo = literal("responseNumber", CURATOR_RESPONSE_NUMBER,false);
-			try {
-				this.builder.withResponseNumber(responseTo.getLexicalForm());
-			} catch (ValidationException e) {
-				failConversion(CURATOR_RESPONSE_NUMBER,e);
-			}
+			mandatory(
+				new LiteralConsumer("responseNumber", "curator:responseNumber") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withResponseNumber(literal.getLexicalForm());
+					}
+				}
+			);
 		}
 	}
 
-	ResponseParser(Model model, Resource resource) {
-		super(model,resource);
+	ResponseParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
+		super(model,resource,parsedType,targetVariable,query);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
+import org.smartdeveloperhub.curator.connector.ValidationException;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
@@ -45,7 +46,81 @@ abstract class Parser<T, B extends Builder<T>> {
 
 	protected abstract class Worker {
 
-		protected B builder;
+		protected abstract class Consumer {
+
+			private final String varName;
+			private final String propertyName;
+			private boolean optional;
+
+			private Consumer(String varName, String propertyName) {
+				this.varName = varName;
+				this.propertyName = propertyName;
+			}
+
+			private void setOptional(boolean optional) {
+				this.optional = optional;
+			}
+
+			private final String variableName() {
+				return this.varName;
+			}
+
+			private final String propertyName() {
+				return this.propertyName;
+			}
+
+			private final boolean isOptional() {
+				return this.optional;
+			}
+
+			protected abstract void consume(QuerySolution solution);
+
+		}
+
+		protected abstract class LiteralConsumer extends Consumer {
+
+			protected LiteralConsumer(String varName, String propertyName) {
+				super(varName,propertyName);
+			}
+
+			protected final void consume(QuerySolution solution) {
+				Literal literal=literal(super.variableName(), super.propertyName(), super.isOptional());
+				if(literal!=null) {
+					try {
+						consumeLiteral(Worker.this.builder,literal);
+					} catch (ValidationException e) {
+						failConversion(super.propertyName(),e);
+					}
+				}
+			}
+
+			protected abstract void consumeLiteral(B builder, Literal literal);
+
+		}
+
+		protected abstract class ResourceConsumer extends Consumer {
+
+			protected ResourceConsumer(String varName, String propertyName) {
+				super(varName,propertyName);
+			}
+
+			protected final void consume(QuerySolution solution) {
+				Resource resource=resource(super.variableName(), super.propertyName(), super.isOptional());
+				if(resource!=null) {
+					try {
+						consumeResource(Worker.this.builder,resource);
+					} catch (ValidationException e) {
+						failConversion(super.propertyName(),e);
+					}
+				}
+			}
+
+			protected abstract void consumeResource(B builder, Resource resource);
+
+		}
+
+		private B builder;
+
 		private QuerySolution solution;
 
 		protected Worker() {
@@ -71,15 +146,25 @@ abstract class Parser<T, B extends Builder<T>> {
 			return Parser.this.resource;
 		}
 
-		protected final Literal literal(String varName, String property, boolean nullable) {
+		protected final void optional(Consumer consumer) {
+			consumer.setOptional(true);
+			consumer.consume(this.solution);
+		}
+
+		protected final void mandatory(Consumer consumer) {
+			consumer.setOptional(false);
+			consumer.consume(this.solution);
+		}
+
+		private Literal literal(String varName, String property, boolean nullable) {
 			return acceptResolution(property, nullable, this.solution.getLiteral(varName));
 		}
 
-		protected final Resource resource(String varName, String property, boolean nullable) {
+		private Resource resource(String varName, String property, boolean nullable) {
 			return acceptResolution(property, nullable, this.solution.getResource(varName));
 		}
 
-		protected final void failConversion(String property, Throwable e) {
+		private void failConversion(String property, Throwable e) {
 			throw new ConversionException("Could not process "+property+" property for resource '"+Parser.this.resource+"'",e);
 		}
 
@@ -94,21 +179,27 @@ abstract class Parser<T, B extends Builder<T>> {
 
 	private final Model model;
 	private final Resource resource;
+	private final String parsedType;
+	private final String targetVariable;
+	private final Query query;
 
-	Parser(Model model, Resource resource) {
+	Parser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
 		this.model = model;
 		this.resource = resource;
+		this.parsedType = parsedType;
+		this.targetVariable = targetVariable;
+		this.query = query;
 	}
 
 	final T parse() {
 		QuerySolutionMap parameters = new QuerySolutionMap();
-		parameters.add(targetVariable(), resource);
-		QueryExecution queryExecution=QueryExecutionFactory.create(parserQuery(), model);
+		parameters.add(this.targetVariable,this.resource);
+		QueryExecution queryExecution=QueryExecutionFactory.create(this.query,this.model);
 		queryExecution.setInitialBinding(parameters);
 		try {
 			ResultSet results = queryExecution.execSelect();
 			List<T> result=processResults(results);
-			return firstResult(result,resource,parsedType());
+			return firstResult(result);
 		} finally {
 			closeQuietly(queryExecution);
 		}
@@ -128,13 +219,13 @@ abstract class Parser<T, B extends Builder<T>> {
 		return result;
 	}
 
-	private T firstResult(List<T> result, Resource resource, String type) {
+	private T firstResult(List<T> result) {
 		if(result.isEmpty()) {
 			return null;
 		} else if(result.size()==1) {
 			return result.get(0);
 		}
-		throw new ConversionException("Too many "+type+" definitions for resource '"+resource+"'");
+		throw new ConversionException("Too many "+this.parsedType+" definitions for resource '"+this.resource+"'");
 	}
 
 	private void closeQuietly(QueryExecution closeable) {
@@ -142,12 +233,6 @@ abstract class Parser<T, B extends Builder<T>> {
 			closeable.close();
 		}
 	}
-
-	protected abstract String parsedType();
-
-	protected abstract Query parserQuery();
-
-	protected abstract String targetVariable();
 
 	protected abstract B newBuilder();
 

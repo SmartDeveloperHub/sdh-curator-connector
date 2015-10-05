@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
-import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
@@ -50,34 +49,36 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 		}
 
 		private void updateTargetResource() {
-			Resource targetResource = resource("targetResource", "curator:targetResource",false);
-			try {
-				this.builder.withTargetResource(targetResource.getURI());
-			} catch (ValidationException e) {
-				failConversion("curator:targetResource",e);
-			}
+			mandatory(
+				new ResourceConsumer("targetResource","curator:targetResource") {
+					@Override
+					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+						builder.withTargetResource(resource.getURI());
+					}
+				}
+			);
 		}
 
 		private void updateAdditionTarget() {
-			Resource additionTarget = resource("additionTarget", "curator:additionTarget",true);
-			if(additionTarget!=null) {
-				try {
-					this.builder.withAdditionTarget(additionTarget.getURI());
-				} catch (ValidationException e) {
-					failConversion("curator:additionTarget",e);
+			optional(
+				new ResourceConsumer("additionTarget","curator:additionTarget") {
+					@Override
+					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+						builder.withAdditionTarget(resource.getURI());
+					}
 				}
-			}
+			);
 		}
 
 		private void updateRemovalTarget() {
-			Resource removalTarget = resource("removalTarget", "curator:removalTarget",true);
-			if(removalTarget!=null) {
-				try {
-					this.builder.withRemovalTarget(removalTarget.getURI());
-				} catch (ValidationException e) {
-					failConversion("curator:removalTarget",e);
+			optional(
+				new ResourceConsumer("removalTarget","curator:removalTarget") {
+					@Override
+					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+						builder.withRemovalTarget(resource.getURI());
+					}
 				}
-			}
+			);
 		}
 
 	}
@@ -90,27 +91,12 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 					"enrichmentResponse.sparql"));
 
 	private EnrichmentResponseParser(Model model, Resource resource) {
-		super(model, resource);
+		super(model, resource, "curator:EnrichmentResponse", "enrichmentResponse", QUERY);
 	}
 
 	@Override
 	protected ResponseWorker solutionParser() {
 		return new EnrichmentResponseWorker();
-	}
-
-	@Override
-	protected String parsedType() {
-		return "curator:EnrichmentResponse";
-	}
-
-	@Override
-	protected Query parserQuery() {
-		return QUERY;
-	}
-
-	@Override
-	protected String targetVariable() {
-		return "enrichmentResponse";
 	}
 
 	@Override
