@@ -87,7 +87,6 @@ public class ParserTest {
 						new LiteralConsumer("mandatoryLiteral","curator:messageId") {
 							@Override
 							protected void consumeLiteral(CustomBuilder builder, Literal literal) {
-								System.out.println("Mandatory literal: "+literal.getLexicalForm());
 							}
 						}
 					);
@@ -95,7 +94,6 @@ public class ParserTest {
 						new ResourceConsumer("mandatoryResource","curator:submittedBy") {
 							@Override
 							protected void consumeResource(CustomBuilder builder, Resource resource) {
-								System.out.println("Mandatory resource: "+resource);
 							}
 						}
 					);
@@ -103,7 +101,6 @@ public class ParserTest {
 						new LiteralConsumer("optionalLiteral","rdfs:label") {
 							@Override
 							protected void consumeLiteral(CustomBuilder builder, Literal literal) {
-								System.out.println("Optional literal: "+literal.getLexicalForm());
 								throw new ValidationException(literal,"xsd:string");
 							}
 						}
@@ -112,7 +109,6 @@ public class ParserTest {
 						new ResourceConsumer("optionalResource","curator:replyTo") {
 							@Override
 							protected void consumeResource(CustomBuilder builder, Resource resource) {
-								System.out.println("Optional resource: "+resource);
 								throw new ValidationException(resource,"curator:DeliveryChannel");
 							}
 						}

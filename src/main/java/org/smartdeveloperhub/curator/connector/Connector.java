@@ -29,7 +29,10 @@ package org.smartdeveloperhub.curator.connector;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,8 +50,10 @@ import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.rabbitmq.client.Channel;
 
 public final class Connector {
@@ -128,9 +133,23 @@ public final class Connector {
 						MessageUtil.
 							newInstance().
 								fromString(payload, Accepted.class);
-					LOGGER.info("Should process curator response {}",response);
+					processAcceptance(response);
 				} catch (MessageConversionException e) {
-					LOGGER.warn("Could not process curator response:\n{}\n. Full stacktrace follows",e);
+					LOGGER.warn("Could not process curator response:\n{}\n. Full stacktrace follows",payload,e);
+				}
+			}
+
+			private void processAcceptance(Accepted response) {
+				Exchanger<Message> exchanger = pending.get(response.responseTo());
+				if(exchanger==null) {
+					LOGGER.warn("Could not process curator response {}: unknown curator request {}",response,response.responseTo());
+				} else {
+					pending.remove(response.responseTo(), exchanger);
+					try {
+						exchanger.exchange(response);
+					} catch (InterruptedException e) {
+						LOGGER.warn("Could not process curator response {}: {}",response,e.getMessage());
+					}
 				}
 			}
 
@@ -207,6 +226,7 @@ public final class Connector {
 	private final Lock write;
 	private boolean connected;
 	private ExecutorService executor;
+	private final ConcurrentMap<UUID,CancelableExchange> pending;
 
 	private Connector(CuratorConfiguration configuration, Agent agent, DeliveryChannel connectorChannel) {
 		this.curatorConfiguration = configuration;
@@ -222,6 +242,7 @@ public final class Connector {
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
 		this.connected=false;
+		this.pending=Maps.newConcurrentMap();
 	}
 
 	private boolean usesDifferentBrokers() {
@@ -363,7 +384,7 @@ public final class Connector {
 		}
 	}
 
-	public void requestEnrichment(URI targetResource) throws IOException {
+	public Acknowledge requestEnrichment(URI targetResource) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
@@ -376,7 +397,13 @@ public final class Connector {
 						withReplyTo(this.connectorConfiguration).
 						withTargetResource(targetResource).
 						build();
+			CancelableExchange exchanger = new CancelableExchange();
+			this.pending.put(message.messageId(), exchanger);
 			this.curatorController.publishRequest(message);
+			Message response = exchanger.exchange(message);
+			return Acknowledge.of(response);
+		} catch (InterruptedException e) {
+			throw new IOException("Could not receive curator response message",e);
 		} finally {
 			this.read.unlock();
 		}
@@ -386,6 +413,7 @@ public final class Connector {
 		this.write.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
+			clearPendingExchanges();
 			this.connectorController.disconnect();
 			this.curatorController.disconnect();
 			shutdownExecutorQuietly();
@@ -393,6 +421,13 @@ public final class Connector {
 		} finally {
 			this.write.unlock();
 		}
+	}
+
+	private void clearPendingExchanges() {
+		for(Entry<UUID,CancelableExchange> entry:this.pending.entrySet()) {
+			entry.getValue().cancel();
+		}
+		this.pending.clear();
 	}
 
 	public static ConnectorBuilder builder() {

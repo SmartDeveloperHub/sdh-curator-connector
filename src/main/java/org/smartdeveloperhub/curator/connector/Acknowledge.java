@@ -24,8 +24,43 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
-public interface Accepted extends Response {
+import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.Message;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
+
+public final class Acknowledge {
+
+	private final Message message;
+
+	private Acknowledge(Message message) {
+		this.message = message;
+	}
+
+	public boolean isAccepted() {
+		return this.message instanceof Accepted;
+	}
+
+	public Failure getFailure() {
+		Preconditions.checkState(!isAccepted(),"Request was accepted");
+		return (Failure)this.message;
+	}
+
+	@Override
+	public String toString() {
+		return
+			MoreObjects.
+				toStringHelper(getClass()).
+					add("message", this.message).
+					toString();
+	}
+
+	static Acknowledge of(Message message) {
+		return new Acknowledge(message);
+	}
 
 }

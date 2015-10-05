@@ -42,7 +42,6 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 
 public class ConnectorTest {
 
-
 	private CuratorController controller;
 
 	@Before
@@ -53,11 +52,9 @@ public class ConnectorTest {
 			new MessageHandler() {
 				@Override
 				public void handleCancel() {
-					System.out.println("Received cancel request");
 				}
 				@Override
 				public void handlePayload(String payload) {
-					System.out.println("Received request: "+payload);
 					try {
 						EnrichmentRequest request=
 							MessageUtil.
@@ -74,7 +71,10 @@ public class ConnectorTest {
 								withResponseTo(request.messageId()).
 								withResponseNumber(1).
 								build();
-						System.out.println("Sending response: "+response);
+						try {
+							TimeUnit.MILLISECONDS.sleep(150);
+						} catch (InterruptedException e) {
+						}
 						controller.publishResponse(response);
 					} catch (IOException | MessageConversionException e) {
 						e.printStackTrace();
@@ -102,8 +102,8 @@ public class ConnectorTest {
 					build();
 		connector.connect();
 		try {
-			connector.requestEnrichment(URI.create("urn:message"));
-			TimeUnit.SECONDS.sleep(1);
+			Acknowledge response=connector.requestEnrichment(URI.create("urn:message"));
+			System.out.println("Acknowledge: "+response);
 		} finally {
 			connector.disconnect();
 		}
