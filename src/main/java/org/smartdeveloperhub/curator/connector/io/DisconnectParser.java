@@ -38,15 +38,6 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class DisconnectParser extends MessageParser<Disconnect, DisconnectBuilder> {
 
-	private final class DisconnectWorker extends MessageWorker {
-
-		@Override
-		public void parse() {
-			super.parse();
-		}
-
-	}
-
 	private static final Query QUERY=
 		QueryFactory.create(
 			ResourceUtil.
@@ -60,7 +51,7 @@ final class DisconnectParser extends MessageParser<Disconnect, DisconnectBuilder
 
 	@Override
 	protected MessageWorker solutionParser() {
-		return new DisconnectWorker();
+		return new MessageWorker();
 	}
 
 	@Override

@@ -40,10 +40,12 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentResponseConverter extends ModelMessageConverter<EnrichmentResponse> {
 
+	private static final String RESPONSE_BNODE = "response";
+
 	@Override
 	protected void toString(EnrichmentResponse message, ModelHelper helper) {
 		helper.
-			blankNode("response").
+			blankNode(RESPONSE_BNODE).
 				type(CURATOR.ENRICHMENT_RESPONSE_TYPE).
 				property(CURATOR.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
@@ -68,7 +70,7 @@ final class EnrichmentResponseConverter extends ModelMessageConverter<Enrichment
 	private void target(ModelHelper helper, String property, URI value) {
 		if(value!=null) {
 			helper.
-				blankNode("response").
+				blankNode(RESPONSE_BNODE).
 					property(property).
 						withResource(value);
 		}

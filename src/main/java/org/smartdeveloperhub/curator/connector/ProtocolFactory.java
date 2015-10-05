@@ -505,8 +505,8 @@ public final class ProtocolFactory {
 					responseTo(),
 					responseNumber(),
 					Objects.requireNonNull(this.targetResource,"Target resource cannot be null"),
-					Objects.requireNonNull(this.additionTarget,"Addition target resource cannot be null"),
-					Objects.requireNonNull(this.removalTarget,"Removal target resource cannot be null"));
+					this.additionTarget,
+					this.removalTarget);
 		}
 
 	}

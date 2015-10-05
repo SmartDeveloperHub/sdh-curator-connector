@@ -44,6 +44,8 @@ import mockit.integration.junit4.JMockit;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.Agent;
@@ -57,30 +59,34 @@ import org.smartdeveloperhub.curator.protocol.Message;
 @RunWith(JMockit.class)
 public class MessageUtilTest {
 
-	private EnrichmentRequest request() {
-		return
+	private EnrichmentRequest request(boolean full) {
+		final EnrichmentRequestBuilder builder =
 			newEnrichmentRequest().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
 					newAgent().
 						withAgentId(UUID.randomUUID())).
-				withReplyTo(
-					newDeliveryChannel().
-						withBroker(
-							newBroker().
-								withHost("127.0.0.1").
-								withPort(12345).
-								withVirtualHost("/virtualHost")).
-						withExchangeName("exchange.name").
-						withQueueName("queue.name").
-						withRoutingKey("routing.key")).
-				withTargetResource(URI.create("urn:example")).
-				build();
+				withTargetResource(URI.create("urn:example"));
+		if(full) {
+			builder.withReplyTo(
+				newDeliveryChannel().
+					withBroker(
+						newBroker().
+							withHost("127.0.0.1").
+							withPort(12345).
+							withVirtualHost("/virtualHost")).
+					withExchangeName("exchange.name").
+					withQueueName("queue.name").
+					withRoutingKey("routing.key"));
+		} else {
+			builder.withReplyTo(newDeliveryChannel());
+		}
+		return builder.build();
 	}
 
-	private EnrichmentResponse response() {
-		return
+	private EnrichmentResponse response(boolean full) {
+		final EnrichmentResponseBuilder builder =
 			newEnrichmentResponse().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
@@ -89,10 +95,13 @@ public class MessageUtilTest {
 						withAgentId(UUID.randomUUID())).
 				withResponseTo(UUID.randomUUID()).
 				withResponseNumber(2).
-				withTargetResource(URI.create("urn:example")).
+				withTargetResource(URI.create("urn:example"));
+		if(full) {
+			builder.
 				withAdditionTarget(URI.create("urn:add")).
-				withRemovalTarget(URI.create("urn:remove")).
-				build();
+				withRemovalTarget(URI.create("urn:remove"));
+		}
+		return builder.build();
 	}
 
 	private Accepted accepted() {
@@ -108,8 +117,8 @@ public class MessageUtilTest {
 				build();
 	}
 
-	private Failure failure() {
-		return
+	private Failure failure(boolean full) {
+		FailureBuilder builder=
 			newFailure().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
@@ -119,10 +128,13 @@ public class MessageUtilTest {
 				withResponseTo(UUID.randomUUID()).
 				withResponseNumber(4).
 				withCode(12).
+				withReason("A failure");
+		if(full) {
+			builder.
 				withSubcode(1344).
-				withReason("A failure").
-				withDetail("The detail of the failure").
-				build();
+				withDetail("The detail of the failure");
+		}
+		return builder.build();
 	}
 
 	private Disconnect disconnect() {
@@ -238,7 +250,7 @@ public class MessageUtilTest {
 			}
 		};
 		try {
-			MessageUtil.newInstance().toString(request());
+			MessageUtil.newInstance().toString(request(true));
 			fail("Should not produce result when serialization failure occurs");
 		} catch (MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Could not serialize message"));
@@ -247,7 +259,15 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentRequest() throws Exception {
-		String strRequest = MessageUtil.newInstance().toString(request());
+		String strRequest = MessageUtil.newInstance().toString(request(true));
+		System.out.println(strRequest);
+		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$enrichmentRequest$partialDeliveryChannel() throws Exception {
+		String strRequest = MessageUtil.newInstance().toString(request(false));
 		System.out.println(strRequest);
 		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
 		System.out.println();
@@ -255,7 +275,15 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentResponse() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(response());
+		String strResponse = MessageUtil.newInstance().toString(response(true));
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$enrichmentResponse$partial() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(response(false));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
 		System.out.println();
@@ -271,7 +299,15 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$failure() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(failure());
+		String strResponse = MessageUtil.newInstance().toString(failure(true));
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$failure$min() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(failure(false));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
 		System.out.println();

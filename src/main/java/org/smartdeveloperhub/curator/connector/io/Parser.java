@@ -199,7 +199,7 @@ abstract class Parser<T, B extends Builder<T>> {
 			List<T> result=processResults(results);
 			return firstResult(result);
 		} finally {
-			closeQuietly(queryExecution);
+			queryExecution.close();
 		}
 	}
 
@@ -224,12 +224,6 @@ abstract class Parser<T, B extends Builder<T>> {
 			return result.get(0);
 		}
 		throw new ConversionException("Too many "+this.parsedType+" definitions for resource '"+this.resource+"'");
-	}
-
-	private void closeQuietly(QueryExecution closeable) {
-		if(closeable!=null) {
-			closeable.close();
-		}
 	}
 
 	protected abstract B newBuilder();
