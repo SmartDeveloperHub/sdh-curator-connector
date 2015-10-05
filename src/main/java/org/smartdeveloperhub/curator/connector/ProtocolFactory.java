@@ -352,7 +352,7 @@ public final class ProtocolFactory {
 
 		public final B withResponseNumber(String responseNumber) {
 			if(responseNumber!=null) {
-				this.responseNumber=ValidationUtils.toResponseNumner(responseNumber);
+				this.responseNumber=ValidationUtils.toUnsignedLong(responseNumber);
 			}
 			return builder();
 		}
@@ -395,10 +395,25 @@ public final class ProtocolFactory {
 			return this;
 		}
 
+		public FailureBuilder withCode(String code) {
+			if(code!=null) {
+				this.code=ValidationUtils.toUnsignedLong(code);
+			}
+			return this;
+		}
+
 		public FailureBuilder withSubcode(long subcode) {
 			this.subcode = subcode;
 			return this;
 		}
+
+		public FailureBuilder withSubcode(String subcode) {
+			if(subcode!=null) {
+				this.subcode=ValidationUtils.toUnsignedLong(subcode);
+			}
+			return this;
+		}
+
 
 		public FailureBuilder withReason(String reason) {
 			this.reason = reason;

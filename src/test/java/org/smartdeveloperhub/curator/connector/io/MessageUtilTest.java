@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.Failure;
 
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
 
@@ -62,30 +63,49 @@ public class MessageUtilTest {
 	}
 
 	private EnrichmentResponse response() {
-		return newEnrichmentResponse().
-			withMessageId(UUID.randomUUID()).
-			withSubmittedOn(new Date()).
-			withSubmittedBy(
-				newAgent().
-					withAgentId(UUID.randomUUID())).
-			withResponseTo(UUID.randomUUID()).
-			withResponseNumber(2).
-			withTargetResource(URI.create("urn:example")).
-			withAdditionTarget(URI.create("urn:add")).
-			withRemovalTarget(URI.create("urn:remove")).
-			build();
+		return
+			newEnrichmentResponse().
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+				withResponseTo(UUID.randomUUID()).
+				withResponseNumber(2).
+				withTargetResource(URI.create("urn:example")).
+				withAdditionTarget(URI.create("urn:add")).
+				withRemovalTarget(URI.create("urn:remove")).
+				build();
 	}
 
 	private Accepted accepted() {
-		return newAccepted().
-			withMessageId(UUID.randomUUID()).
-			withSubmittedOn(new Date()).
-			withSubmittedBy(
-				newAgent().
-					withAgentId(UUID.randomUUID())).
-			withResponseTo(UUID.randomUUID()).
-			withResponseNumber(4).
-			build();
+		return
+			newAccepted().
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+				withResponseTo(UUID.randomUUID()).
+				withResponseNumber(4).
+				build();
+	}
+
+	private Failure failure() {
+		return
+			newFailure().
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+				withResponseTo(UUID.randomUUID()).
+				withResponseNumber(4).
+				withCode(12).
+				withSubcode(1344).
+				withReason("A failure").
+				withDetail("The detail of the failure").
+				build();
 	}
 
 	@Test
@@ -111,4 +131,13 @@ public class MessageUtilTest {
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, Accepted.class));
 		System.out.println();
 	}
+
+	@Test
+	public void testRoundtrip$failure() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(failure());
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
+		System.out.println();
+	}
+
 }

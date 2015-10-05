@@ -46,6 +46,11 @@ public final class CURATOR {
 	public static final String ADDITION_TARGET = term("additionTarget");
 	public static final String REMOVAL_TARGET = term("removalTarget");
 	public static final String ACCEPTED_TYPE = term("Accepted");
+	public static final String FAILURE_TYPE = term("Failure");
+	public static final String CODE = term("code");
+	public static final String SUBCODE = term("subcode");
+	public static final String REASON = term("reason");
+	public static final String DETAIL = term("detail");
 
 	private CURATOR() {
 	}

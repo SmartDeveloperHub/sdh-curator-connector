@@ -156,7 +156,7 @@ final class ValidationUtils {
 		}
 	}
 
-	static Long toResponseNumner(String value) {
+	static Long toUnsignedLong(String value) {
 		try {
 			return Long.parseLong(value);
 		} catch (NumberFormatException e) {

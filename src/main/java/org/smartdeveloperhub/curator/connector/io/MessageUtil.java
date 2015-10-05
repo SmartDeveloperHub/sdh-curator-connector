@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.collect.Maps;
@@ -44,6 +45,7 @@ public final class MessageUtil {
 		MessageUtil.registerConverter(EnrichmentRequest.class,EnrichmentRequestConverter.class);
 		MessageUtil.registerConverter(EnrichmentResponse.class,EnrichmentResponseConverter.class);
 		MessageUtil.registerConverter(Accepted.class,AcceptedConverter.class);
+		MessageUtil.registerConverter(Failure.class,FailureConverter.class);
 	}
 
 	private MessageUtil() {

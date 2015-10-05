@@ -34,6 +34,7 @@ public final class XSD {
 
 	public static final String DATE_TIME_TYPE = term("dateTime");
 	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
+	public static final String STRING_TYPE = term("string");
 
 	private XSD() {
 	}
