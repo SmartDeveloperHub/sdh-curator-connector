@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RiotException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
@@ -55,23 +56,27 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 					model.createResource(messageType()));
 		List<Resource> resources = Lists.newArrayList(iterator);
 		if(resources.isEmpty()) {
-			throw new MessageConversionException("No "+messageType()+" definition found");
+			throw new MessageConversionException("No <"+messageType()+"> definition found");
 		} else if(resources.size()>1) {
-			throw new MessageConversionException("Too many "+messageType()+" definitions found");
+			throw new MessageConversionException("Too many <"+messageType()+"> definitions found");
 		}
 		return resources.get(0);
 	}
 
 	@Override
 	public final T fromString(String body) throws MessageConversionException {
-		Model model=
-			ModelFactory.
-				createDefaultModel().
-					read(
-						new StringReader(body),
-						"http://www.smartdeveloperhub.org/base#",
-						"TURTLE");
-		return parse(model,getTargetResource(model));
+		try {
+			Model model=
+				ModelFactory.
+					createDefaultModel().
+						read(
+							new StringReader(body),
+							"http://www.smartdeveloperhub.org/base#",
+							"TURTLE");
+			return parse(model,getTargetResource(model));
+		} catch (RiotException e) {
+			throw new MessageConversionException("Could not parse body '"+body+"' as Turtle",e);
+		}
 	}
 
 	@Override

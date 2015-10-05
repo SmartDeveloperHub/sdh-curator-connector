@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
@@ -43,6 +44,7 @@ public final class MessageUtil {
 
 	static {
 		MessageUtil.registerConverter(EnrichmentRequest.class,EnrichmentRequestConverter.class);
+		MessageUtil.registerConverter(Disconnect.class, DisconnectConverter.class);
 		MessageUtil.registerConverter(EnrichmentResponse.class,EnrichmentResponseConverter.class);
 		MessageUtil.registerConverter(Accepted.class,AcceptedConverter.class);
 		MessageUtil.registerConverter(Failure.class,FailureConverter.class);
@@ -85,7 +87,11 @@ public final class MessageUtil {
 	}
 
 	public static <T extends Message> void registerConverter(Class<? extends T> messageClass, Class<? extends MessageConverter<T>> converterClass) {
-		CONVERTERS.putIfAbsent(messageClass, converterClass);
+		if(converterClass!=null) {
+			CONVERTERS.putIfAbsent(messageClass, converterClass);
+		} else {
+			CONVERTERS.remove(messageClass);
+		}
 	}
 
 	public static MessageUtil newInstance() {

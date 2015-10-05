@@ -26,18 +26,35 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.fail;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
+
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
 
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.integration.junit4.JMockit;
+
+import org.joda.time.DateTime;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.Message;
 
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
-
+@RunWith(JMockit.class)
 public class MessageUtilTest {
 
 	private EnrichmentRequest request() {
@@ -108,6 +125,126 @@ public class MessageUtilTest {
 				build();
 	}
 
+	private Disconnect disconnect() {
+		return
+			newDisconnect().
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+				build();
+	}
+
+	private static class UnknownMessage implements Message {
+
+		@Override
+		public UUID messageId() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public DateTime submittedOn() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Agent submittedBy() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public DeliveryChannel replyTo() {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	private static class UnknownMessageConverter implements MessageConverter<UnknownMessage> {
+
+		private UnknownMessageConverter() {
+		}
+
+		@Override
+		public UnknownMessage fromString(String body) throws MessageConversionException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String toString(UnknownMessage message) throws MessageConversionException {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	@Test
+	public void testUnsupportedMessageClass() {
+		MessageUtil.registerConverter(UnknownMessage.class,null);
+		try {
+			MessageUtil.newInstance().fromString("body",UnknownMessage.class);
+			fail("Should not parse an unsupported class");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("Cannot convert messages of type 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessage'"));
+		}
+	}
+
+	@Test
+	public void testFailingConverterClass() {
+		MessageUtil.registerConverter(UnknownMessage.class,UnknownMessageConverter.class);
+		try {
+			MessageUtil.newInstance().fromString("body",UnknownMessage.class);
+			fail("Should not parse an supported class if the converter cannot be instantiated");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("Could not instantiate converter 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessageConverter' for message of type 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessage'"));
+		}
+	}
+
+	@Test
+	public void testFromString$badBody() {
+		try {
+			MessageUtil.newInstance().fromString("bad body",Accepted.class);
+			fail("Should not parse an bad body");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("Could not parse body 'bad body' as Turtle"));
+		}
+	}
+
+	@Test
+	public void testFromString$noDefinition() {
+		try {
+			MessageUtil.newInstance().fromString("",Accepted.class);
+			fail("Should not parse input with no definition");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("No <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found"));
+		}
+	}
+
+	@Test
+	public void testFromString$manyDefinitions() {
+		try {
+			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),Accepted.class);
+			fail("Should not parse input with multiple definitions");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found"));
+		}
+	}
+
+	@Test
+	public void testToString$failure() throws Exception {
+		new MockUp<StringWriter>() {
+			@Mock
+			public void close() throws IOException {
+				throw new IOException("fail");
+			}
+		};
+		try {
+			MessageUtil.newInstance().toString(request());
+			fail("Should not produce result when serialization failure occurs");
+		} catch (MessageConversionException e) {
+			assertThat(e.getMessage(),equalTo("Could not serialize message"));
+		}
+	}
+
 	@Test
 	public void testRoundtrip$enrichmentRequest() throws Exception {
 		String strRequest = MessageUtil.newInstance().toString(request());
@@ -137,6 +274,14 @@ public class MessageUtilTest {
 		String strResponse = MessageUtil.newInstance().toString(failure());
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$disconnect() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(disconnect());
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, Disconnect.class));
 		System.out.println();
 	}
 

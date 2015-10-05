@@ -24,31 +24,45 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.protocol.Disconnect;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
-import org.junit.Test;
-import org.ldp4j.commons.testing.Utils;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-public class ProtocolFactoryTest {
+final class DisconnectConverter extends ModelMessageConverter<Disconnect> {
 
-	@Test
-	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(ProtocolFactory.class),equalTo(true));
+	@Override
+	protected void toString(Disconnect message, ModelHelper helper) {
+		helper.
+			blankNode("response").
+				type(CURATOR.DISCONNECT_TYPE).
+				property(CURATOR.MESSAGE_ID).
+					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
+				property(CURATOR.SUBMITTED_BY).
+					withBlankNode("agent").
+				property(CURATOR.SUBMITTED_ON).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
+			blankNode("agent").
+				type(FOAF.AGENT_TYPE).
+				property(CURATOR.AGENT_ID).
+					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
 	}
 
-	@Test
-	public void testNewBroker() throws Exception {
-		Broker build =
-			ProtocolFactory.
-				newBroker().
-					withHost("hostname").
-					withPort(12345).
-					build();
-		System.out.println(build);
+	@Override
+	protected Disconnect parse(Model model, Resource resource) {
+		return DisconnectParser.fromModel(model, resource);
+	}
+
+	@Override
+	protected String messageType() {
+		return CURATOR.DISCONNECT_TYPE;
 	}
 
 }

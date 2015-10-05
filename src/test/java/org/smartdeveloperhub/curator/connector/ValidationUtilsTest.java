@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 
 import org.junit.Test;
+import org.ldp4j.commons.testing.Utils;
 
 import com.rabbitmq.client.ConnectionFactory;
 
@@ -58,6 +59,11 @@ public class ValidationUtilsTest {
 			assertThat(e.getType(),equalTo("amqp:Path"));
 			assertThat(e.getDescription(),equalTo(description));
 		}
+	}
+
+	@Test
+	public void verifyIsValidUtilityClass() {
+		assertThat(Utils.isUtilityClass(ValidationUtils.class),equalTo(true));
 	}
 
 	@Test

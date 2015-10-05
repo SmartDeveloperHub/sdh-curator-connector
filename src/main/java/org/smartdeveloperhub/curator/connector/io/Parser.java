@@ -83,13 +83,14 @@ abstract class Parser<T, B extends Builder<T>> {
 				super(varName,propertyName);
 			}
 
+			@Override
 			protected final void consume(QuerySolution solution) {
-				Literal literal=literal(super.variableName(), super.propertyName(), super.isOptional());
-				if(literal!=null) {
+				Literal literalValue=literal(super.variableName(), super.propertyName(), super.isOptional());
+				if(literalValue!=null) {
 					try {
-						consumeLiteral(Worker.this.builder,literal);
+						consumeLiteral(Worker.this.builder,literalValue);
 					} catch (ValidationException e) {
-						failConversion(super.propertyName(),e);
+						throw failConversion(super.propertyName(),e);
 					}
 				}
 			}
@@ -104,13 +105,14 @@ abstract class Parser<T, B extends Builder<T>> {
 				super(varName,propertyName);
 			}
 
+			@Override
 			protected final void consume(QuerySolution solution) {
-				Resource resource=resource(super.variableName(), super.propertyName(), super.isOptional());
-				if(resource!=null) {
+				Resource resourceValue=resource(super.variableName(), super.propertyName(), super.isOptional());
+				if(resourceValue!=null) {
 					try {
-						consumeResource(Worker.this.builder,resource);
+						consumeResource(Worker.this.builder,resourceValue);
 					} catch (ValidationException e) {
-						failConversion(super.propertyName(),e);
+						throw failConversion(super.propertyName(),e);
 					}
 				}
 			}
@@ -142,10 +144,6 @@ abstract class Parser<T, B extends Builder<T>> {
 			return Parser.this.model;
 		}
 
-		protected final Resource resource() {
-			return Parser.this.resource;
-		}
-
 		protected final void optional(Consumer consumer) {
 			consumer.setOptional(true);
 			consumer.consume(this.solution);
@@ -164,8 +162,8 @@ abstract class Parser<T, B extends Builder<T>> {
 			return acceptResolution(property, nullable, this.solution.getResource(varName));
 		}
 
-		private void failConversion(String property, Throwable e) {
-			throw new ConversionException("Could not process "+property+" property for resource '"+Parser.this.resource+"'",e);
+		private ConversionException failConversion(String property, Throwable e) {
+			return new ConversionException("Could not process "+property+" property for resource '"+Parser.this.resource+"'",e);
 		}
 
 		private <V> V acceptResolution(String property, boolean nullable, V value) {

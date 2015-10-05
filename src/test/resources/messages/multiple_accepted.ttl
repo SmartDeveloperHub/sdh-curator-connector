@@ -1,0 +1,54 @@
+#
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   This file is part of the Smart Developer Hub Project:
+#     http://www.smartdeveloperhub.org/
+#
+#   Center for Open Middleware
+#     http://www.centeropenmiddleware.com/
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Copyright (C) 2015 Center for Open Middleware.
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#             http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0-SNAPSHOT
+#   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#
+
+@prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
+
+[ a                       curator:Accepted ;
+  curator:messageId       "c826f745-0ba8-4f7f-a551-08bd05f7efbf"^^types:UUID ;
+  curator:responseNumber  "4"^^xsd:unsignedLong ;
+  curator:responseTo      "11e6e4a1-73d1-4e9a-af43-21d163b3eef9"^^types:UUID ;
+  curator:submittedBy     [ a                foaf:Agent ;
+                            curator:agentId  "0ffb6527-494c-4edf-879e-73d48bfc0688"^^types:UUID
+                          ] ;
+  curator:submittedOn     "2015-10-05T19:56:31.200+02:00"^^xsd:dateTime
+] .
+
+[ a                       curator:Accepted ;
+  curator:messageId       "a826f745-0ba8-4f7f-a551-08bd05f7efbf"^^types:UUID ;
+  curator:responseNumber  "2"^^xsd:unsignedLong ;
+  curator:responseTo      "12e6e4a1-73d1-4e9a-af43-21d163b3eef9"^^types:UUID ;
+  curator:submittedBy     [ a                foaf:Agent ;
+                            curator:agentId  "1ffb6527-494c-4edf-879e-73d48bfc0688"^^types:UUID
+                          ] ;
+  curator:submittedOn     "2015-10-05T19:56:31.200+02:00"^^xsd:dateTime
+] .

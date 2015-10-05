@@ -24,31 +24,25 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.ConnectorTestsSuite;
+import org.smartdeveloperhub.curator.connector.io.IOTestsSuite;
+import org.smartdeveloperhub.curator.connector.rdf.RdfTestsSuite;
+import org.smartdeveloperhub.curator.connector.util.UtilTestsSuite;
+import org.smartdeveloperhub.curator.protocol.vocabulary.VocabularyTestsSuite;
 
-import org.junit.Test;
-import org.ldp4j.commons.testing.Utils;
-import org.smartdeveloperhub.curator.protocol.Broker;
-
-public class ProtocolFactoryTest {
-
-	@Test
-	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(ProtocolFactory.class),equalTo(true));
-	}
-
-	@Test
-	public void testNewBroker() throws Exception {
-		Broker build =
-			ProtocolFactory.
-				newBroker().
-					withHost("hostname").
-					withPort(12345).
-					build();
-		System.out.println(build);
-	}
+@RunWith(Suite.class)
+@SuiteClasses({
+	RdfTestsSuite.class,
+	UtilTestsSuite.class,
+	VocabularyTestsSuite.class,
+	IOTestsSuite.class,
+	ConnectorTestsSuite.class
+})
+public class AllTestsSuite {
 
 }

@@ -24,31 +24,20 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.protocol.vocabulary;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-import org.junit.Test;
-import org.ldp4j.commons.testing.Utils;
-import org.smartdeveloperhub.curator.protocol.Broker;
-
-public class ProtocolFactoryTest {
-
-	@Test
-	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(ProtocolFactory.class),equalTo(true));
-	}
-
-	@Test
-	public void testNewBroker() throws Exception {
-		Broker build =
-			ProtocolFactory.
-				newBroker().
-					withHost("hostname").
-					withPort(12345).
-					build();
-		System.out.println(build);
-	}
+@RunWith(Suite.class)
+@SuiteClasses({
+	AMQPTest.class,
+	CURATORTest.class,
+	FOAFTest.class,
+	TYPESTest.class,
+	XSDTest.class
+})
+public class VocabularyTestsSuite {
 
 }

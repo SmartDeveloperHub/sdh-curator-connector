@@ -51,6 +51,8 @@ public final class CURATOR {
 	public static final String SUBCODE = term("subcode");
 	public static final String REASON = term("reason");
 	public static final String DETAIL = term("detail");
+	public static final String MESSAGE_TYPE = term("Message");
+	public static final String DISCONNECT_TYPE = term("Disconnect");
 
 	private CURATOR() {
 	}

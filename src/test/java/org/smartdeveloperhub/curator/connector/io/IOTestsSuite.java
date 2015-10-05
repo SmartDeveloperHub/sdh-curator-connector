@@ -32,6 +32,7 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+	ParserTest.class,
 	AgentParserTest.class,
 	BrokerParserTest.class,
 	DeliveryChannelParserTest.class,

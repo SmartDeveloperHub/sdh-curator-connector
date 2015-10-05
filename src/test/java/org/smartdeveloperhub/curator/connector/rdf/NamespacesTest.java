@@ -24,18 +24,20 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-import org.smartdeveloperhub.curator.connector.io.IOTestsSuite;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	IOTestsSuite.class,
-	ConnectorTestsSuite.class
-})
-public class AllTestsSuite {
+import org.junit.Test;
+import org.ldp4j.commons.testing.Utils;
+
+
+public class NamespacesTest {
+
+	@Test
+	public void verifyIsValidUtilityClass() {
+		assertThat(Utils.isUtilityClass(Namespaces.class),equalTo(true));
+	}
 
 }

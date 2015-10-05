@@ -24,31 +24,52 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.DisconnectBuilder;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
+import org.smartdeveloperhub.curator.protocol.Disconnect;
 
-import org.junit.Test;
-import org.ldp4j.commons.testing.Utils;
-import org.smartdeveloperhub.curator.protocol.Broker;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-public class ProtocolFactoryTest {
+final class DisconnectParser extends MessageParser<Disconnect, DisconnectBuilder> {
 
-	@Test
-	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(ProtocolFactory.class),equalTo(true));
+	private final class DisconnectWorker extends MessageWorker {
+
+		@Override
+		public void parse() {
+			super.parse();
+		}
+
 	}
 
-	@Test
-	public void testNewBroker() throws Exception {
-		Broker build =
-			ProtocolFactory.
-				newBroker().
-					withHost("hostname").
-					withPort(12345).
-					build();
-		System.out.println(build);
+	private static final Query QUERY=
+		QueryFactory.create(
+			ResourceUtil.
+				loadResource(
+					DisconnectParser.class,
+					"disconnect.sparql"));
+
+	private DisconnectParser(Model model, Resource resource) {
+		super(model, resource, "curator:Disconnect", "disconnect", QUERY);
+	}
+
+	@Override
+	protected MessageWorker solutionParser() {
+		return new DisconnectWorker();
+	}
+
+	@Override
+	protected DisconnectBuilder newBuilder() {
+		return ProtocolFactory.newDisconnect();
+	}
+
+	static Disconnect fromModel(Model model, Resource resource) {
+		return new DisconnectParser(model, resource).parse();
 	}
 
 }
