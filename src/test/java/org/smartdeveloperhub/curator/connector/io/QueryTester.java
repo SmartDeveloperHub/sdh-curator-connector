@@ -35,7 +35,6 @@ import java.util.Iterator;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
-import org.smartdeveloperhub.curator.connector.rdf.SparqlFunctions;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 
 import com.hp.hpl.jena.query.Query;
@@ -106,34 +105,6 @@ public class QueryTester {
 				if (queryExecution != null) {
 					queryExecution.close();
 				}
-			}
-		}
-	}
-
-	@Test
-	public void testValidation() {
-		SparqlFunctions.enable();
-		Model model = loadData("/validation.ttl");
-		Query query =
-			QueryFactory.
-				create(
-					loadResource("/validation.sparql"));
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution = QueryExecutionFactory.create(query, model);
-			ResultSet results = queryExecution.execSelect();
-			for(; results.hasNext();) {
-				System.out.println("Solution found: ");
-				QuerySolution solution = results.nextSolution();
-				Iterator<String> varNames = solution.varNames();
-				while(varNames.hasNext()) {
-					String var=varNames.next();
-					System.out.println(" - "+var+" : "+solution.get(var));
-				}
-			}
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
 			}
 		}
 	}
