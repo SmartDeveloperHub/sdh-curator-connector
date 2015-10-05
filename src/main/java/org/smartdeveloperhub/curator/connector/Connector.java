@@ -212,9 +212,9 @@ public final class Connector {
 		this.curatorConfiguration = configuration;
 		this.agent = agent;
 		this.connectorConfiguration = connectorChannel;
-		this.curatorController = new CuratorController(this.curatorConfiguration);
+		this.curatorController = new CuratorController(this.curatorConfiguration,"curator");
 		if(usesDifferentBrokers()) {
-			this.connectorController=new BrokerController(this.connectorConfiguration.broker());
+			this.connectorController=new BrokerController(this.connectorConfiguration.broker(),"connector");
 		} else {
 			this.connectorController = this.curatorController.brokerController();
 		}
@@ -376,7 +376,7 @@ public final class Connector {
 						withReplyTo(this.connectorConfiguration).
 						withTargetResource(targetResource).
 						build();
-			this.curatorController.publish(message);
+			this.curatorController.publishRequest(message);
 		} finally {
 			this.read.unlock();
 		}

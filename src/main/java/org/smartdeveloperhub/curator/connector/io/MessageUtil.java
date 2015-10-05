@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
+import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Message;
@@ -42,6 +43,7 @@ public final class MessageUtil {
 	static {
 		MessageUtil.registerConverter(EnrichmentRequest.class,EnrichmentRequestConverter.class);
 		MessageUtil.registerConverter(EnrichmentResponse.class,EnrichmentResponseConverter.class);
+		MessageUtil.registerConverter(Accepted.class,AcceptedConverter.class);
 	}
 
 	private MessageUtil() {

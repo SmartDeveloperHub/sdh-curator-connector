@@ -26,11 +26,19 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
+import org.smartdeveloperhub.curator.connector.io.MessageUtil;
+import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 
 public class ConnectorTest {
 
@@ -39,7 +47,7 @@ public class ConnectorTest {
 
 	@Before
 	public void setUp() throws Exception {
-		this.controller = new CuratorController(CuratorConfiguration.newInstance());
+		this.controller = new CuratorController(CuratorConfiguration.newInstance(),"client");
 		this.controller.connect();
 		this.controller.handleRequests(
 			new MessageHandler() {
@@ -50,6 +58,27 @@ public class ConnectorTest {
 				@Override
 				public void handlePayload(String payload) {
 					System.out.println("Received request: "+payload);
+					try {
+						EnrichmentRequest request=
+							MessageUtil.
+								newInstance().
+									fromString(payload, EnrichmentRequest.class);
+						Accepted response = ProtocolFactory.
+							newAccepted().
+								withMessageId(UUID.randomUUID()).
+								withSubmittedOn(new Date()).
+								withSubmittedBy(
+									ProtocolFactory.
+										newAgent().
+											withAgentId(UUID.randomUUID())).
+								withResponseTo(request.messageId()).
+								withResponseNumber(1).
+								build();
+						System.out.println("Sending response: "+response);
+						controller.publishResponse(response);
+					} catch (IOException | MessageConversionException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		);
@@ -74,6 +103,7 @@ public class ConnectorTest {
 		connector.connect();
 		try {
 			connector.requestEnrichment(URI.create("urn:message"));
+			TimeUnit.SECONDS.sleep(3);
 		} finally {
 			connector.disconnect();
 		}

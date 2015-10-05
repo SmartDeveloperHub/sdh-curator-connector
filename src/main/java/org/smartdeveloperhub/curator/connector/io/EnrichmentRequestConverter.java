@@ -41,26 +41,27 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentRequest> {
 
-	private static final String AGENT = "agent";
+	private static final String REQUEST_BNODE = "request";
+	private static final String AGENT_BNODE = "agent";
 	private static final String BROKER_BNODE = "broker";
 	private static final String DELIVERY_CHANNEL_BNODE = "deliveryChannel";
 
 	@Override
 	protected void toString(EnrichmentRequest message, ModelHelper helper) {
 		helper.
-			blankNode("request").
+			blankNode(REQUEST_BNODE).
 				type(CURATOR.ENRICHMENT_REQUEST_TYPE).
 				property(CURATOR.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
 				property(CURATOR.SUBMITTED_BY).
-					withBlankNode(AGENT).
+					withBlankNode(AGENT_BNODE).
 				property(CURATOR.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 				property(CURATOR.REPLY_TO).
 					withBlankNode(DELIVERY_CHANNEL_BNODE).
 				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
-			blankNode(AGENT).
+			blankNode(AGENT_BNODE).
 				type(FOAF.AGENT_TYPE).
 				property(CURATOR.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE).

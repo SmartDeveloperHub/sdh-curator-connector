@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
@@ -75,6 +76,18 @@ public class MessageUtilTest {
 			build();
 	}
 
+	private Accepted accepted() {
+		return newAccepted().
+			withMessageId(UUID.randomUUID()).
+			withSubmittedOn(new Date()).
+			withSubmittedBy(
+				newAgent().
+					withAgentId(UUID.randomUUID())).
+			withResponseTo(UUID.randomUUID()).
+			withResponseNumber(4).
+			build();
+	}
+
 	@Test
 	public void testRoundtrip$enrichmentRequest() throws Exception {
 		String strRequest = MessageUtil.newInstance().toString(request());
@@ -88,6 +101,14 @@ public class MessageUtilTest {
 		String strResponse = MessageUtil.newInstance().toString(response());
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
+		System.out.println();
+	}
+
+	@Test
+	public void testRoundtrip$accepted() throws Exception {
+		String strResponse = MessageUtil.newInstance().toString(accepted());
+		System.out.println(strResponse);
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, Accepted.class));
 		System.out.println();
 	}
 }

@@ -24,34 +24,18 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.io.IOTestsSuite;
 
-public final class CURATOR {
-
-	public static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/curator#";
-	public static final String PREFIX    = "curator";
-
-	public static final String DELIVERY_CHANNEL_TYPE = term("DeliveryChannel");
-	public static final String AGENT_ID = term("agentId");
-	public static final String TARGET_RESOURCE = term("targetResource");
-	public static final String REPLY_TO = term("replyTo");
-	public static final String SUBMITTED_ON = term("submittedOn");
-	public static final String SUBMITTED_BY = term("submittedBy");
-	public static final String MESSAGE_ID = term("messageId");
-	public static final String ENRICHMENT_REQUEST_TYPE = term("EnrichmentRequest");
-	public static final String ENRICHMENT_RESPONSE_TYPE = term("EnrichmentResponse");
-	public static final String RESPONSE_TO = term("responseTo");
-	public static final String RESPONSE_NUMBER = term("responseNumber");
-	public static final String ADDITION_TARGET = term("additionTarget");
-	public static final String REMOVAL_TARGET = term("removalTarget");
-	public static final String ACCEPTED_TYPE = term("Accepted");
-
-	private CURATOR() {
-	}
-
-	private static String term(String localName) {
-		return NAMESPACE+localName;
-	}
+@RunWith(Suite.class)
+@SuiteClasses({
+	IOTestsSuite.class,
+	ConnectorTestsSuite.class
+})
+public class AllTestsSuite {
 
 }
