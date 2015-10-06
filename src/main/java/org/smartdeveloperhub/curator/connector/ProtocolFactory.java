@@ -328,7 +328,7 @@ public final class ProtocolFactory {
 		}
 
 		protected long responseNumber() {
-			return ValidationUtil.validateÙnsignedLong(this.responseNumber,"Response number");
+			return ValidationUtil.validateUnsignedLong(this.responseNumber,"Response number");
 		}
 
 		public final B withResponseTo(String messageId) {
@@ -431,8 +431,8 @@ public final class ProtocolFactory {
 					agent(),
 					responseTo(),
 					responseNumber(),
-					ValidationUtil.validateÙnsignedLong(this.code,"Failure code"),
-					this.subcode==null?null:ValidationUtil.validateÙnsignedLong(this.subcode,"Failure subcode"),
+					ValidationUtil.validateUnsignedLong(this.code,"Failure code"),
+					this.subcode==null?null:ValidationUtil.validateUnsignedLong(this.subcode,"Failure subcode"),
 					ValidationUtil.checkNotNull(this.reason,XSD.STRING_TYPE,"Failure reason cannot be null"),
 					this.detail);
 		}

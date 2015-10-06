@@ -41,7 +41,11 @@ import org.smartdeveloperhub.curator.protocol.Request;
 
 final class DefaultConnectorFuture extends ConnectorFuture implements Future<Acknowledge> {
 
-	private enum State {WAITING, DONE, CANCELLED};
+	private enum State {
+		WAITING,
+		DONE,
+		CANCELLED
+	}
 
 	private final BlockingQueue<Acknowledge> replyQueue;
 	private final Request request;
@@ -65,6 +69,7 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 
 	@Override
 	void start() {
+		// NOTHING TO DO HERE FOR THE TIME BEING
 	}
 
 	@Override

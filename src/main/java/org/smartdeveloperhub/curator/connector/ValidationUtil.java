@@ -112,7 +112,7 @@ final class ValidationUtil {
 		return port;
 	}
 
-	static long validateÙnsignedLong(Long responseNumber, String name) {
+	static long validateUnsignedLong(Long responseNumber, String name) {
 		checkNotNull(responseNumber,XSD.UNSIGNED_LONG_TYPE,name+" cannot be null");
 		return checkArgument(responseNumber>=0,XSD.UNSIGNED_LONG_TYPE,responseNumber,name+" must be greater than 0 ("+responseNumber+")");
 	}

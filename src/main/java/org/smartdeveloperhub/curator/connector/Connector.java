@@ -54,16 +54,6 @@ import com.rabbitmq.client.Channel;
 
 public final class Connector {
 
-	private static final String NL = System.lineSeparator();
-
-	private final class NullMessageHandler implements MessageHandler {
-
-		@Override
-		public void handlePayload(String payload) {
-		}
-
-	}
-
 	public static final class ConnectorBuilder {
 
 		private CuratorConfiguration curatorConfiguration;
@@ -161,21 +151,34 @@ public final class Connector {
 
 	}
 
+	private final class NullMessageHandler implements MessageHandler {
+
+		@Override
+		public void handlePayload(String payload) {
+			// NO IMPLEMENTATION REQUIRED YET
+			// AS THIS TYPE IS TO BE REPLACED
+		}
+
+	}
+
 	private static final Logger LOGGER=LoggerFactory.getLogger(Connector.class);
+
+	private static final String NL = System.lineSeparator();
 
 	private final CuratorConfiguration curatorConfiguration;
 	private final Agent agent;
-	private DeliveryChannel connectorConfiguration;
-
 	private final CuratorController curatorController;
 	private final BrokerController connectorController;
 
 	private final Lock read;
 	private final Lock write;
-	private boolean connected;
 
 	private final ConcurrentMap<UUID,ConnectorFuture> pendingAcknowledgements;
 	private final ConcurrentMap<UUID,MessageHandler> activeRequests;
+
+	private DeliveryChannel connectorConfiguration;
+
+	private boolean connected;
 
 	private Connector(CuratorConfiguration configuration, Agent agent, DeliveryChannel connectorChannel) {
 		this.curatorConfiguration = configuration;
