@@ -24,55 +24,22 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import java.net.URI;
-import java.util.concurrent.Phaser;
+public class InvalidDefinitionFoundException extends MessageConversionException {
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+	private static final long serialVersionUID = 6447604891373094427L;
 
-public class ConnectorTest {
+	private final String definitionType;
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
-
-	private Phaser phaser=new Phaser(2);
-	private ExampleCurator curator;
-
-	@Before
-	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(phaser);
-		this.curator.connect();
+	public InvalidDefinitionFoundException(String definitionType, Throwable cause) {
+		super("Invalid <"+definitionType+"> definition found: "+cause.getMessage(),cause);
+		this.definitionType = definitionType;
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		this.curator.disconnect();
+	public String getDefinitionType() {
+		return this.definitionType;
 	}
 
-	@Test
-	public void testRequestEnrichment() throws Exception {
-		Connector connector =
-			Connector.
-				builder().
-					withConnectorChannel(
-						ProtocolFactory.
-							newDeliveryChannel().
-								withQueueName("connector").
-								build()).
-					build();
-		connector.connect();
-		try {
-			Acknowledge response=connector.requestEnrichment(URI.create("urn:message"));
-			LOGGER.info("Acknowledge: {}",response);
-		} finally {
-			connector.disconnect();
-		}
-		phaser.arriveAndAwaitAdvance();
-		LOGGER.info("Disconnection processed");
-	}
 
 }

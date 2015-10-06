@@ -239,7 +239,7 @@ public class MessageUtilTest {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),Accepted.class);
 			fail("Should not parse input with multiple definitions");
 		} catch (MessageConversionException e) {
-			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found"));
+			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found (2)"));
 		}
 	}
 

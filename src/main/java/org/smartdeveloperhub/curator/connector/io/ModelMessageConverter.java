@@ -56,9 +56,9 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 					model.createResource(messageType()));
 		List<Resource> resources = Lists.newArrayList(iterator);
 		if(resources.isEmpty()) {
-			throw new MessageConversionException("No <"+messageType()+"> definition found");
+			throw new NoDefinitionFoundException(messageType());
 		} else if(resources.size()>1) {
-			throw new MessageConversionException("Too many <"+messageType()+"> definitions found");
+			throw new TooManyDefinitionsFoundException(messageType(),resources.size());
 		}
 		return resources.get(0);
 	}
@@ -74,6 +74,8 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 							"http://www.smartdeveloperhub.org/base#",
 							"TURTLE");
 			return parse(model,getTargetResource(model));
+		} catch (ConversionException e) {
+			throw new InvalidDefinitionFoundException(messageType(),e);
 		} catch (RiotException e) {
 			throw new MessageConversionException("Could not parse body '"+body+"' as Turtle",e);
 		}

@@ -222,9 +222,9 @@ public final class Connector {
 		this.curatorConfiguration = configuration;
 		this.agent = agent;
 		this.connectorConfiguration = connectorChannel;
-		this.curatorController = new CuratorController(this.curatorConfiguration,"curator");
+		this.curatorController = new CuratorController(this.curatorConfiguration,"connector-curator");
 		if(usesDifferentBrokers()) {
-			this.connectorController=new BrokerController(this.connectorConfiguration.broker(),"connector");
+			this.connectorController=new BrokerController(this.connectorConfiguration.broker(),"connector-custom");
 		} else {
 			this.connectorController = this.curatorController.brokerController();
 		}
@@ -323,33 +323,33 @@ public final class Connector {
 
 	private void logConnectionDetails() {
 		StringBuilder builder=new StringBuilder();
-		builder.append(NL).append("-->> CONNECTED <<--").append(NL);
-		builder.append("Curator configuration:").append(NL);
+		builder.append("-- Connector details:").append(NL);
+		builder.append("   + Curator configuration:").append(NL);
 		appendBrokerDetails(builder, this.curatorConfiguration.broker());
 		appendExchangeName(builder, this.curatorConfiguration.exchangeName());
-		builder.append("- Request queue name.: ").append(this.curatorConfiguration.requestQueueName()).append(NL);
+		builder.append("     - Request queue name.: ").append(this.curatorConfiguration.requestQueueName()).append(NL);
 		appendResponseQueueDetails(builder, this.curatorConfiguration.responseQueueName());
-		builder.append("Connector configuration:").append(NL);
+		builder.append("   + Connector configuration:").append(NL);
 		appendBrokerDetails(builder, this.connectorConfiguration.broker());
 		appendExchangeName(builder, this.connectorConfiguration.exchangeName());
 		appendResponseQueueDetails(builder, this.connectorConfiguration.queueName());
-		builder.append("- Routing key........: ").append(this.connectorConfiguration.routingKey()).append(NL);
+		builder.append("     - Routing key........: ").append(this.connectorConfiguration.routingKey());
 		LOGGER.info(builder.toString());
 	}
 
 	private void appendResponseQueueDetails(StringBuilder builder, String responseQueueName) {
-		builder.append("- Response queue name: ").append(responseQueueName).append(NL);
+		builder.append("     - Response queue name: ").append(responseQueueName).append(NL);
 	}
 
 	private void appendExchangeName(StringBuilder builder, String exchangeName) {
-		builder.append("- Exchange name......: ").append(exchangeName).append(NL);
+		builder.append("     - Exchange name......: ").append(exchangeName).append(NL);
 	}
 
 	private void appendBrokerDetails(StringBuilder builder, Broker broker) {
-		builder.append("- Broker").append(NL);
-		builder.append("  + Host.............: ").append(broker.host()).append(NL);
-		builder.append("  + Port.............: ").append(broker.port()).append(NL);
-		builder.append("  + Virtual host.....: ").append(broker.virtualHost()).append(NL);
+		builder.append("     - Broker").append(NL);
+		builder.append("       + Host.............: ").append(broker.host()).append(NL);
+		builder.append("       + Port.............: ").append(broker.port()).append(NL);
+		builder.append("       + Virtual host.....: ").append(broker.virtualHost()).append(NL);
 	}
 
 	private Acknowledge awaitCuratorResponse(CancelableExchange exchanger) throws IOException {
@@ -400,14 +400,16 @@ public final class Connector {
 			Preconditions.checkState(!this.connected,"Already connected");
 			this.executor=Executors.newFixedThreadPool(2);
 			try {
+				LOGGER.info("-->> CONNECTING <<--");
 				this.curatorController.connect();
 				this.connectorConfiguration=configureConnectorQueue();
 				this.executor.submit(new CuratorResponseListener());
 				this.executor.submit(new ConnectorResponseListener());
 				this.connected=true;
 				logConnectionDetails();
+				LOGGER.info("-->> CONNECTED <<--");
 			} catch (Exception e) {
-				LOGGER.warn("Could not connect to curator",e);
+				LOGGER.warn("-->> CONNECTION FAILED: Could not connect to curator <<--",e);
 				shutdownExecutorQuietly();
 				throw new ConnectorException("Could not connect to curator",e);
 			}
@@ -421,17 +423,40 @@ public final class Connector {
 		return awaitCuratorResponse(exchanger);
 	}
 
-	public void disconnect() {
+	public void disconnect() throws ConnectorException {
 		this.write.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
-			clearPendingExchanges();
-			this.connectorController.disconnect();
-			this.curatorController.disconnect();
-			shutdownExecutorQuietly();
-			this.connected=false;
+			LOGGER.info("-->> DISCONNECTING <<--");
+			logConnectionDetails();
+			try {
+				publishDisconnectMessage();
+			} finally {
+				clearPendingExchanges();
+				this.connectorController.disconnect();
+				this.curatorController.disconnect();
+				shutdownExecutorQuietly();
+				this.connected=false;
+				LOGGER.info("-->> DISCONNECTED <<--");
+			}
 		} finally {
 			this.write.unlock();
+		}
+	}
+
+	private void publishDisconnectMessage() throws ConnectorException  {
+		try {
+			this.curatorController.
+				publishRequest(
+					ProtocolFactory.
+						newDisconnect().
+							withMessageId(UUID.randomUUID()).
+							withSubmittedOn(new Date()).
+							withSubmittedBy(this.agent).
+							build());
+		} catch (IOException e) {
+			LOGGER.warn("Could not send disconnect to curator",e);
+			throw new ConnectorException("Could not send disconnect to curator",e);
 		}
 	}
 
