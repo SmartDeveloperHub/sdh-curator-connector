@@ -51,9 +51,6 @@ public class ConnectorTest {
 		this.controller.handleRequests(
 			new MessageHandler() {
 				@Override
-				public void handleCancel() {
-				}
-				@Override
 				public void handlePayload(String payload) {
 					try {
 						EnrichmentRequest request=

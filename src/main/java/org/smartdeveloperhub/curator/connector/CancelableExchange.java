@@ -41,45 +41,47 @@ public class CancelableExchange extends Exchanger<Message> {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(CancelableExchange.class);
 
+	private final Message message;
+
 	private volatile boolean cancelled;
 
-	@Override
-	public Message exchange(final Message x) throws InterruptedException {
+	public CancelableExchange(Message message) {
+		this.message=message;
+	}
+
+	public final Message exchange() throws InterruptedException {
 		final AtomicInteger interruptions=new AtomicInteger();
 		final Stopwatch waiting=Stopwatch.createStarted();
 		while(!this.cancelled) {
 			final Stopwatch timeOut=Stopwatch.createStarted();
 			try {
-				final Message result = exchange(x,100,TimeUnit.MILLISECONDS);
-				logCompletion(x, interruptions, waiting, "completed with message "+result.messageId()+")");
+				final Message result = exchange(this.message,100,TimeUnit.MILLISECONDS);
+				logCompletion(interruptions, waiting, "completed with message "+result.messageId()+")");
 				return result;
-			} catch (InterruptedException e) {
-				processInterruption(x,"interrupted", interruptions, waiting, timeOut, e);
-			} catch (TimeoutException e) {
-				processInterruption(x,"timed-out", interruptions, waiting, timeOut, e);
+			} catch (Exception e) {
+				processInterruption(interruptions,waiting,timeOut,e);
 			}
 		}
-		logCompletion(x, interruptions, waiting, "cancelled");
+		logCompletion(interruptions, waiting, "cancelled");
 		throw new InterruptedException("Exchange cancelled");
 	}
 
-	private void logCompletion(Message x, AtomicInteger interruptions, Stopwatch waiting, final String completion) {
+	private void logCompletion(AtomicInteger interruptions, Stopwatch waiting, final String completion) {
 		LOGGER.trace(
 			"Exchange for message {} {} after {} tries. Waited for {} milliseconds",
-			x.messageId(),
+			this.message.messageId(),
 			completion,
 			interruptions,
 			waiting.elapsed(TimeUnit.MILLISECONDS));
 	}
 
-	private void processInterruption(Message x, String message, AtomicInteger interruptions, Stopwatch waiting, Stopwatch timeOut, Throwable cause) {
+	private void processInterruption(AtomicInteger interruptions, Stopwatch waiting, Stopwatch timeOut, Throwable cause) {
 		interruptions.incrementAndGet();
 		LOGGER.trace(
-			"Exchange retry #{} for message {} {} after milliseconds {}{}. Waiting for exchange for {} milliseconds. Retrying one more time...",
+			"Exchange retry #{} for message {} {} after milliseconds {}. Waiting for exchange for {} milliseconds. Retrying one more time...",
 			interruptions,
-			x.messageId(),
-			message,
-			cause.getMessage()!=null?" ("+cause.getMessage()+")":"",
+			this.message.messageId(),
+			cause instanceof TimeoutException?"timed-out":"interrupted",
 			timeOut.elapsed(TimeUnit.MILLISECONDS),
 			waiting.elapsed(TimeUnit.MILLISECONDS));
 	}
@@ -87,7 +89,5 @@ public class CancelableExchange extends Exchanger<Message> {
 	public void cancel() {
 		this.cancelled=true;
 	}
-
-
 
 }

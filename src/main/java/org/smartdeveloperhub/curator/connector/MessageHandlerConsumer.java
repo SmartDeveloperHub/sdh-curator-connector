@@ -43,11 +43,6 @@ final class MessageHandlerConsumer extends DefaultConsumer {
 	}
 
 	@Override
-	public void handleCancel(String consumerTag) throws IOException {
-		this.handler.handleCancel();
-	}
-
-	@Override
 	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
 		String payload=new String(body, "UTF-8");
 		this.handler.handlePayload(payload);

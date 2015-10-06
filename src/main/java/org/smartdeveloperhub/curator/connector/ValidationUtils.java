@@ -128,7 +128,7 @@ final class ValidationUtils {
 		try {
 			return UUID.fromString(value);
 		} catch (IllegalArgumentException e) {
-			throw new ValidationException(value,TYPES_UUID_TYPE,e);
+			throw new ValidationException(value,TYPES_UUID_TYPE,"Not a valid UUID",e);
 		}
 	}
 
@@ -136,7 +136,7 @@ final class ValidationUtils {
 		try {
 			return new DateTime(value);
 		} catch (IllegalArgumentException e) {
-			throw new ValidationException(value,XSD_DATE_TIME_TYPE,e);
+			throw new ValidationException(value,XSD_DATE_TIME_TYPE,"Not a valid date",e);
 		}
 	}
 
@@ -144,7 +144,7 @@ final class ValidationUtils {
 		try {
 			return new URI(value);
 		} catch (URISyntaxException e) {
-			throw new ValidationException(value,XSD_ANY_URI_TYPE,e);
+			throw new ValidationException(value,XSD_ANY_URI_TYPE,"Not a valid URI",e);
 		}
 	}
 
@@ -152,7 +152,7 @@ final class ValidationUtils {
 		try {
 			return Integer.parseInt(value);
 		} catch (NumberFormatException e) {
-			throw new ValidationException(value,TYPES_PORT_TYPE,e);
+			throw new ValidationException(value,TYPES_PORT_TYPE,"Not a valid number",e);
 		}
 	}
 
@@ -160,7 +160,7 @@ final class ValidationUtils {
 		try {
 			return Long.parseLong(value);
 		} catch (NumberFormatException e) {
-			throw new ValidationException(value,XSD_UNSIGNED_LONG_TYPE,e);
+			throw new ValidationException(value,XSD_UNSIGNED_LONG_TYPE,"Not a valid number",e);
 		}
 	}
 

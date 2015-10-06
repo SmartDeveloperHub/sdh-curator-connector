@@ -276,10 +276,62 @@ public class ValidationUtilsTest {
 	public void testValidatePort$invalid$greaterThanMaxPort() {
 		try {
 			ValidationUtils.validatePort(65536);
+			fail("Should not accept a port over 65535");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo("65536"));
 			assertThat(e.getType(),equalTo("types:Port"));
 			assertThat(e.getDescription(),equalTo("Invalid port number (65536 is greater than 65535)"));
+		}
+	}
+
+	@Test
+	public void testToDateTime$failure() throws Exception {
+		try {
+			ValidationUtils.toDateTime("not a valid date");
+			fail("Should not accept an invalid date");
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo("not a valid date"));
+			assertThat(e.getType(),equalTo("xsd:dateTime"));
+			assertThat(e.getDescription(),equalTo("Not a valid date"));
+		}
+	}
+
+	@Test
+	public void testToURI$failure() throws Exception {
+		final String value = "http:/bad uri";
+		try {
+			ValidationUtils.toURI(value);
+			fail("Should not accept an invalid uri");
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(value));
+			assertThat(e.getType(),equalTo("xsd:anyURI"));
+			assertThat(e.getDescription(),equalTo("Not a valid URI"));
+		}
+	}
+
+	@Test
+	public void testToUnsignedLong$failure() throws Exception {
+		final String value = "not a number";
+		try {
+			ValidationUtils.toUnsignedLong(value);
+			fail("Should not accept an invalid long");
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(value));
+			assertThat(e.getType(),equalTo("xsd:unsignedLong"));
+			assertThat(e.getDescription(),equalTo("Not a valid number"));
+		}
+	}
+
+	@Test
+	public void testToPort$failure() throws Exception {
+		final String value = "not a number";
+		try {
+			ValidationUtils.toPort(value);
+			fail("Should not accept an invalid port");
+		} catch (ValidationException e) {
+			assertThat(e.getValue(),equalTo(value));
+			assertThat(e.getType(),equalTo("types:Port"));
+			assertThat(e.getDescription(),equalTo("Not a valid number"));
 		}
 	}
 

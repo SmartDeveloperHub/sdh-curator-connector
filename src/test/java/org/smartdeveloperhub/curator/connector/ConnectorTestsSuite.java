@@ -34,6 +34,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	ProtocolFactoryTest.class,
 	ValidationUtilsTest.class,
+	AcknowledgeTest.class,
+	CancelableExchangeTest.class,
 	ConnectorTest.class
 })
 public class ConnectorTestsSuite {

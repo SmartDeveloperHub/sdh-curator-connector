@@ -70,10 +70,10 @@ public final class ProtocolFactory {
 		}
 
 		public BrokerBuilder withPort(String port) {
-			if(port!=null) {
-				return withPort(ValidationUtils.toPort(port));
+			if(port==null) {
+				return this;
 			}
-			return this;
+			return withPort(ValidationUtils.toPort(port));
 		}
 
 		public BrokerBuilder withPort(int port) {
@@ -112,10 +112,10 @@ public final class ProtocolFactory {
 		}
 
 		public AgentBuilder withAgentId(String agentId) {
-			if(agentId!=null) {
-				this.agentId=ValidationUtils.toUUID(agentId);
+			if(agentId==null) {
+				return this;
 			}
-			return this;
+			return withAgentId(ValidationUtils.toUUID(agentId));
 		}
 
 		@Override
@@ -228,17 +228,17 @@ public final class ProtocolFactory {
 		}
 
 		public B withSubmittedOn(Date submittedOn) {
-			if(submittedOn!=null) {
-				this.submittedOn = new DateTime(submittedOn);
+			if(submittedOn==null) {
+				return this.builder;
 			}
-			return this.builder;
+			return withSubmittedOn(new DateTime(submittedOn));
 		}
 
 		public B withSubmittedOn(String submittedOn) {
-			if(submittedOn!=null) {
-				this.submittedOn = ValidationUtils.toDateTime(submittedOn);
+			if(submittedOn==null) {
+				return this.builder;
 			}
-			return this.builder;
+			return withSubmittedOn(ValidationUtils.toDateTime(submittedOn));
 		}
 
 		public B withSubmittedBy(Agent agent) {
@@ -247,6 +247,9 @@ public final class ProtocolFactory {
 		}
 
 		public B withSubmittedBy(Builder<Agent> builder) {
+			if(builder==null) {
+				return this.builder;
+			}
 			return withSubmittedBy(builder.build());
 		}
 
@@ -256,10 +259,10 @@ public final class ProtocolFactory {
 		}
 
 		public B withReplyTo(Builder<DeliveryChannel> builder) {
-			if(builder!=null) {
-				this.deliveryChannel=builder.build();
+			if(builder==null) {
+				return this.builder;
 			}
-			return this.builder;
+			return withReplyTo(builder.build());
 		}
 
 	}
@@ -273,10 +276,10 @@ public final class ProtocolFactory {
 		}
 
 		public EnrichmentRequestBuilder withTargetResource(String targetResource) {
-			if(targetResource!=null) {
-				this.targetResource = ValidationUtils.toURI(targetResource);
+			if(targetResource==null) {
+				return this;
 			}
-			return this;
+			return withTargetResource(ValidationUtils.toURI(targetResource));
 		}
 
 		public EnrichmentRequestBuilder withTargetResource(URI targetResource) {
@@ -334,10 +337,10 @@ public final class ProtocolFactory {
 		}
 
 		public final B withResponseTo(String messageId) {
-			if(messageId!=null) {
-				this.responseTo=ValidationUtils.toUUID(messageId);
+			if(messageId==null) {
+				return builder();
 			}
-			return builder();
+			return withResponseTo(ValidationUtils.toUUID(messageId));
 		}
 
 		public final B withResponseTo(UUID messageId) {
@@ -351,10 +354,10 @@ public final class ProtocolFactory {
 		}
 
 		public final B withResponseNumber(String responseNumber) {
-			if(responseNumber!=null) {
-				this.responseNumber=ValidationUtils.toUnsignedLong(responseNumber);
+			if(responseNumber==null) {
+				return builder();
 			}
-			return builder();
+			return withResponseNumber(ValidationUtils.toUnsignedLong(responseNumber));
 		}
 
 	}
@@ -396,10 +399,10 @@ public final class ProtocolFactory {
 		}
 
 		public FailureBuilder withCode(String code) {
-			if(code!=null) {
-				this.code=ValidationUtils.toUnsignedLong(code);
+			if(code==null) {
+				return this;
 			}
-			return this;
+			return withCode(ValidationUtils.toUnsignedLong(code));
 		}
 
 		public FailureBuilder withSubcode(long subcode) {
@@ -408,10 +411,10 @@ public final class ProtocolFactory {
 		}
 
 		public FailureBuilder withSubcode(String subcode) {
-			if(subcode!=null) {
-				this.subcode=ValidationUtils.toUnsignedLong(subcode);
+			if(subcode==null) {
+				return this;
 			}
-			return this;
+			return withSubcode(ValidationUtils.toUnsignedLong(subcode));
 		}
 
 
@@ -458,23 +461,16 @@ public final class ProtocolFactory {
 			super(EnrichmentResponseBuilder.class);
 		}
 
-		public EnrichmentResponseBuilder withTargetResource(String targetResource) {
-			if(targetResource!=null) {
-				this.targetResource = ValidationUtils.toURI(targetResource);
-			}
-			return this;
-		}
-
 		public EnrichmentResponseBuilder withTargetResource(URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withAdditionTarget(String additionTarget) {
-			if(additionTarget!=null) {
-				this.additionTarget = ValidationUtils.toURI(additionTarget);
+		public EnrichmentResponseBuilder withTargetResource(String targetResource) {
+			if(targetResource==null) {
+				return this;
 			}
-			return this;
+			return withTargetResource(ValidationUtils.toURI(targetResource));
 		}
 
 		public EnrichmentResponseBuilder withAdditionTarget(URI additionTarget) {
@@ -482,16 +478,23 @@ public final class ProtocolFactory {
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withRemovalTarget(String removalTarget) {
-			if(removalTarget!=null) {
-				this.removalTarget = ValidationUtils.toURI(removalTarget);
+		public EnrichmentResponseBuilder withAdditionTarget(String additionTarget) {
+			if(additionTarget==null) {
+				return this;
 			}
-			return this;
+			return withAdditionTarget(ValidationUtils.toURI(additionTarget));
 		}
 
 		public EnrichmentResponseBuilder withRemovalTarget(URI removalTarget) {
 			this.removalTarget = removalTarget;
 			return this;
+		}
+
+		public EnrichmentResponseBuilder withRemovalTarget(String removalTarget) {
+			if(removalTarget==null) {
+				return this;
+			}
+			return withAdditionTarget(ValidationUtils.toURI(removalTarget));
 		}
 
 		@Override

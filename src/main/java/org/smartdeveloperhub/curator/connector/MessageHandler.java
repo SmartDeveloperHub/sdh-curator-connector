@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector;
 
 public interface MessageHandler {
 
-	void handleCancel();
 	void handlePayload(String payload);
 
 }

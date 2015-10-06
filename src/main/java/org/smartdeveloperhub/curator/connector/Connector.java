@@ -140,22 +140,17 @@ public final class Connector {
 			}
 
 			private void processAcceptance(Accepted response) {
-				Exchanger<Message> exchanger = pending.get(response.responseTo());
+				Exchanger<Message> exchanger = pendingExchanges.get(response.responseTo());
 				if(exchanger==null) {
 					LOGGER.warn("Could not process curator response {}: unknown curator request {}",response,response.responseTo());
 				} else {
-					pending.remove(response.responseTo(), exchanger);
+					pendingExchanges.remove(response.responseTo(), exchanger);
 					try {
 						exchanger.exchange(response);
 					} catch (InterruptedException e) {
 						LOGGER.warn("Could not process curator response {}: {}",response,e.getMessage());
 					}
 				}
-			}
-
-			@Override
-			public void handleCancel() {
-				LOGGER.info("Should cancel request (close response handler)");
 			}
 
 		}
@@ -187,11 +182,6 @@ public final class Connector {
 				} catch (MessageConversionException e) {
 					LOGGER.warn("Could not process EnrichmentResponse:\n{}\n. Full stacktrace follows",e);
 				}
-			}
-
-			@Override
-			public void handleCancel() {
-				LOGGER.info("Should cancel request (close response handler)");
 			}
 
 		}
@@ -226,7 +216,7 @@ public final class Connector {
 	private final Lock write;
 	private boolean connected;
 	private ExecutorService executor;
-	private final ConcurrentMap<UUID,CancelableExchange> pending;
+	private final ConcurrentMap<UUID,CancelableExchange> pendingExchanges;
 
 	private Connector(CuratorConfiguration configuration, Agent agent, DeliveryChannel connectorChannel) {
 		this.curatorConfiguration = configuration;
@@ -242,7 +232,7 @@ public final class Connector {
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
 		this.connected=false;
-		this.pending=Maps.newConcurrentMap();
+		this.pendingExchanges=Maps.newConcurrentMap();
 	}
 
 	private boolean usesDifferentBrokers() {
@@ -362,6 +352,48 @@ public final class Connector {
 		builder.append("  + Virtual host.....: ").append(broker.virtualHost()).append(NL);
 	}
 
+	private Acknowledge awaitCuratorResponse(CancelableExchange exchanger) throws IOException {
+		try {
+			return Acknowledge.of(exchanger.exchange());
+		} catch (InterruptedException e) {
+			throw new IOException("Could not receive curator response message",e);
+		}
+	}
+
+	private CancelableExchange enqueueEnrichmentRequest(URI targetResource) throws IOException {
+		this.read.lock();
+		try {
+			Preconditions.checkState(this.connected,"Not connected");
+			EnrichmentRequest message=
+				ProtocolFactory.
+					newEnrichmentRequest().
+						withMessageId(UUID.randomUUID()).
+						withSubmittedOn(new Date()).
+						withSubmittedBy(this.agent).
+						withReplyTo(this.connectorConfiguration).
+						withTargetResource(targetResource).
+						build();
+			CancelableExchange exchange = enquePendingExchange(message);
+			this.curatorController.publishRequest(message);
+			return exchange;
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	private CancelableExchange enquePendingExchange(EnrichmentRequest message) {
+		CancelableExchange exchange=new CancelableExchange(message);
+		this.pendingExchanges.put(message.messageId(), exchange);
+		return exchange;
+	}
+
+	private void clearPendingExchanges() {
+		for(Entry<UUID,CancelableExchange> entry:this.pendingExchanges.entrySet()) {
+			entry.getValue().cancel();
+		}
+		this.pendingExchanges.clear();
+	}
+
 	public void connect() throws ConnectorException {
 		this.write.lock();
 		try {
@@ -385,28 +417,8 @@ public final class Connector {
 	}
 
 	public Acknowledge requestEnrichment(URI targetResource) throws IOException {
-		this.read.lock();
-		try {
-			Preconditions.checkState(this.connected,"Not connected");
-			EnrichmentRequest message =
-				ProtocolFactory.
-					newEnrichmentRequest().
-						withMessageId(UUID.randomUUID()).
-						withSubmittedOn(new Date()).
-						withSubmittedBy(this.agent).
-						withReplyTo(this.connectorConfiguration).
-						withTargetResource(targetResource).
-						build();
-			CancelableExchange exchanger = new CancelableExchange();
-			this.pending.put(message.messageId(), exchanger);
-			this.curatorController.publishRequest(message);
-			Message response = exchanger.exchange(message);
-			return Acknowledge.of(response);
-		} catch (InterruptedException e) {
-			throw new IOException("Could not receive curator response message",e);
-		} finally {
-			this.read.unlock();
-		}
+		CancelableExchange exchanger = enqueueEnrichmentRequest(targetResource);
+		return awaitCuratorResponse(exchanger);
 	}
 
 	public void disconnect() {
@@ -421,13 +433,6 @@ public final class Connector {
 		} finally {
 			this.write.unlock();
 		}
-	}
-
-	private void clearPendingExchanges() {
-		for(Entry<UUID,CancelableExchange> entry:this.pending.entrySet()) {
-			entry.getValue().cancel();
-		}
-		this.pending.clear();
 	}
 
 	public static ConnectorBuilder builder() {
