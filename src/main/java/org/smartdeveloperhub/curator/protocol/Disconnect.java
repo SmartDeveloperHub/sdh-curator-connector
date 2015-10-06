@@ -27,6 +27,6 @@
 package org.smartdeveloperhub.curator.protocol;
 
 
-public interface Disconnect extends Message {
+public interface Disconnect extends Request {
 
 }

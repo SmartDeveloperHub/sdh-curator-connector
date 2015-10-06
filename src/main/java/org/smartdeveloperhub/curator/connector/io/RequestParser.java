@@ -26,28 +26,29 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.RequestBuilder;
+import org.smartdeveloperhub.curator.protocol.Request;
 
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, EnrichmentRequestBuilder> {
+abstract class RequestParser<T extends Request, B extends RequestBuilder<T,B>> extends MessageParser<T,B> {
 
-	private final class EnrichmentRequestWorker extends RequestWorker {
+	protected class RequestWorker extends MessageWorker {
 
 		@Override
-		public void parse() {
+		protected void parse() {
 			super.parse();
-			mandatory(
-				new ResourceConsumer("targetResource","curator:targetResource") {
+			updateReplyTo();
+		}
+
+		private void updateReplyTo() {
+			optional(
+				new ResourceConsumer("replyTo","curator:replyTo") {
 					@Override
-					protected void consumeResource(EnrichmentRequestBuilder builder, Resource resource) {
-						builder.withTargetResource(resource.getURI());
+					protected void consumeResource(B builder, Resource resource) {
+						builder.withReplyTo(DeliveryChannelParser.fromModel(model(), resource));
 					}
 				}
 			);
@@ -55,29 +56,11 @@ final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, Enr
 
 	}
 
-	private static final Query QUERY=
-		QueryFactory.create(
-			ResourceUtil.
-				loadResource(
-					EnrichmentRequestParser.class,
-					"enrichmentRequest.sparql"));
-
-	private EnrichmentRequestParser(Model model, Resource resource) {
-		super(model, resource, "curator:EnrichmentRequest", "enrichmentRequest", QUERY);
+	RequestParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
+		super(model,resource,parsedType,targetVariable,query);
 	}
 
 	@Override
-	protected RequestWorker solutionParser() {
-		return new EnrichmentRequestWorker();
-	}
-
-	@Override
-	protected EnrichmentRequestBuilder newBuilder() {
-		return ProtocolFactory.newEnrichmentRequest();
-	}
-
-	static EnrichmentRequest fromModel(Model model, Resource resource) {
-		return new EnrichmentRequestParser(model, resource).parse();
-	}
+	protected abstract RequestWorker solutionParser();
 
 }

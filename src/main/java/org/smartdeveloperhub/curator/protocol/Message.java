@@ -38,8 +38,4 @@ public interface Message {
 
 	Agent submittedBy();
 
-	DeliveryChannel replyTo();
-
 }
-
-

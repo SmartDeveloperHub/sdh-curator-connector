@@ -40,7 +40,7 @@ final class ImmutableAccepted extends ImmutableResponse implements Accepted {
 		Agent agent,
 		UUID responseTo,
 		long responseNumber) {
-		super(messageId, submittedOn, agent, null, responseTo,responseNumber);
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
 	}
 
 }

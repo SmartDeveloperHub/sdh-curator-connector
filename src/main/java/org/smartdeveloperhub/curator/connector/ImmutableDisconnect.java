@@ -32,20 +32,13 @@ import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.Disconnect;
 
-import com.google.common.base.MoreObjects.ToStringHelper;
-
-final class ImmutableDisconnect extends ImmutableMessage implements Disconnect {
+final class ImmutableDisconnect extends ImmutableRequest implements Disconnect {
 
 	ImmutableDisconnect(
 			UUID messageId,
 			DateTime submittedOn,
 			Agent agent) {
 		super(messageId, submittedOn, agent,null);
-	}
-
-	@Override
-	protected void toString(ToStringHelper helper) {
-		// Nothing to do
 	}
 
 }

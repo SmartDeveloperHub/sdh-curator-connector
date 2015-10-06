@@ -30,7 +30,6 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Response;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -44,10 +43,9 @@ abstract class ImmutableResponse extends ImmutableMessage implements Response {
 			UUID messageId,
 			DateTime submittedOn,
 			Agent agent,
-			DeliveryChannel deliveryChannel,
 			UUID responseTo,
 			long responseNumber) {
-		super(messageId, submittedOn, agent,deliveryChannel);
+		super(messageId, submittedOn, agent);
 		this.responseTo=responseTo;
 		this.responseNumber=responseNumber;
 	}

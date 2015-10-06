@@ -41,6 +41,7 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Message;
+import org.smartdeveloperhub.curator.protocol.Request;
 import org.smartdeveloperhub.curator.protocol.Response;
 
 import com.google.common.base.Preconditions;
@@ -184,8 +185,6 @@ public final class ProtocolFactory {
 		private DateTime submittedOn;
 		private Agent agent;
 
-		private DeliveryChannel deliveryChannel;
-
 		private MessageBuilder(Class<? extends B> builderClass) {
 			this.builder = builderClass.cast(this);
 		}
@@ -196,10 +195,6 @@ public final class ProtocolFactory {
 
 		protected DateTime submissionDate() {
 			return Objects.requireNonNull(this.submittedOn,"Submission date cannot be null");
-		}
-
-		protected DeliveryChannel deliveryChannel() {
-			return this.deliveryChannel;
 		}
 
 		protected Agent agent() {
@@ -253,21 +248,34 @@ public final class ProtocolFactory {
 			return withSubmittedBy(builder.build());
 		}
 
+	}
+
+	public abstract static class RequestBuilder<T extends Request, B extends RequestBuilder<T,B>> extends MessageBuilder<T,B> {
+
+		private DeliveryChannel deliveryChannel;
+
+		private RequestBuilder(Class<? extends B> builderClass) {
+			super(builderClass);
+		}
+
+		protected DeliveryChannel deliveryChannel() {
+			return this.deliveryChannel;
+		}
+
 		public B withReplyTo(DeliveryChannel deliveryChannel) {
 			this.deliveryChannel=deliveryChannel;
-			return this.builder;
+			return builder();
 		}
 
 		public B withReplyTo(Builder<DeliveryChannel> builder) {
 			if(builder==null) {
-				return this.builder;
+				return builder();
 			}
 			return withReplyTo(builder.build());
 		}
 
 	}
-
-	public static final class EnrichmentRequestBuilder extends MessageBuilder<EnrichmentRequest,EnrichmentRequestBuilder> {
+	public static final class EnrichmentRequestBuilder extends RequestBuilder<EnrichmentRequest,EnrichmentRequestBuilder> {
 
 		private URI targetResource;
 
@@ -300,7 +308,7 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class DisconnectBuilder extends MessageBuilder<Disconnect,DisconnectBuilder> {
+	public static final class DisconnectBuilder extends RequestBuilder<Disconnect,DisconnectBuilder> {
 
 		private DisconnectBuilder() {
 			super(DisconnectBuilder.class);

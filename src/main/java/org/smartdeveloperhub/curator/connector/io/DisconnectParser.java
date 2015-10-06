@@ -36,7 +36,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class DisconnectParser extends MessageParser<Disconnect, DisconnectBuilder> {
+final class DisconnectParser extends RequestParser<Disconnect, DisconnectBuilder> {
 
 	private static final Query QUERY=
 		QueryFactory.create(
@@ -50,8 +50,8 @@ final class DisconnectParser extends MessageParser<Disconnect, DisconnectBuilder
 	}
 
 	@Override
-	protected MessageWorker solutionParser() {
-		return new MessageWorker();
+	protected RequestWorker solutionParser() {
+		return new RequestWorker();
 	}
 
 	@Override

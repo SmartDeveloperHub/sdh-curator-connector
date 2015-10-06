@@ -30,55 +30,31 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Message;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Request;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
-abstract class ImmutableMessage implements Message {
+abstract class ImmutableRequest extends ImmutableMessage implements Request {
 
-	private final UUID id;
-	private final DateTime submissionDate;
-	private final Agent agent;
+	private final DeliveryChannel deliveryChannel;
 
-	ImmutableMessage(
+	ImmutableRequest(
 			UUID messageId,
 			DateTime submittedOn,
-			Agent agent) {
-		this.agent = agent;
-		this.submissionDate = submittedOn;
-		this.id = messageId;
+			Agent agent,
+			DeliveryChannel deliveryChannel) {
+		super(messageId,submittedOn,agent);
+		this.deliveryChannel = deliveryChannel;
 	}
 
 	@Override
-	public final UUID messageId() {
-		return this.id;
+	public final DeliveryChannel replyTo() {
+		return this.deliveryChannel;
 	}
 
-	@Override
-	public final DateTime submittedOn() {
-		return this.submissionDate;
+	protected void toString(ToStringHelper helper) {
+		helper.add("replyTo",this.deliveryChannel);
 	}
-
-	@Override
-	public final Agent submittedBy() {
-		return this.agent;
-	}
-
-
-	@Override
-	public final String toString() {
-		ToStringHelper helper=
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("messageId",this.id).
-					add("submittedOn",this.submissionDate).
-					add("submittedBy",this.agent);
-		toString(helper);
-		return helper.toString();
-	}
-
-	protected abstract void toString(ToStringHelper helper);
 
 }

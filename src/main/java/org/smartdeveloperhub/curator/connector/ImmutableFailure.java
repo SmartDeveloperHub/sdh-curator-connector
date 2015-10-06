@@ -52,7 +52,7 @@ final class ImmutableFailure extends ImmutableResponse implements Failure {
 		Long subcode,
 		String reason,
 		String detail) {
-		super(messageId, submittedOn, agent, null, responseTo,responseNumber);
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
 		this.code=code;
 		this.subcode=Optional.fromNullable(subcode);
 		this.reason=reason;

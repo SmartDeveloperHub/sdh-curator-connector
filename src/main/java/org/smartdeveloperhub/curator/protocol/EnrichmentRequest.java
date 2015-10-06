@@ -28,10 +28,10 @@ package org.smartdeveloperhub.curator.protocol;
 
 import java.net.URI;
 
-public interface EnrichmentRequest extends Message {
+public interface EnrichmentRequest extends Request {
 
 	URI targetResource();
-	
+
 	Policy apply();
 
 }

@@ -29,7 +29,14 @@ package org.smartdeveloperhub.curator.connector.io;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.fail;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAccepted;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAgent;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newBroker;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDeliveryChannel;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDisconnect;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentRequest;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentResponse;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFailure;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -46,10 +53,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
@@ -162,11 +169,6 @@ public class MessageUtilTest {
 
 		@Override
 		public Agent submittedBy() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public DeliveryChannel replyTo() {
 			throw new UnsupportedOperationException();
 		}
 

@@ -43,7 +43,6 @@ abstract class MessageParser<T extends Message, B extends MessageBuilder<T,B>> e
 			updateMessageId();
 			updateSubmittedOn();
 			updateSubmittedBy();
-			updateReplyTo();
 		}
 
 		private void updateMessageId() {
@@ -74,17 +73,6 @@ abstract class MessageParser<T extends Message, B extends MessageBuilder<T,B>> e
 					@Override
 					protected void consumeResource(B builder, Resource resource) {
 						builder.withSubmittedBy(AgentParser.fromModel(model(), resource));
-					}
-				}
-			);
-		}
-
-		private void updateReplyTo() {
-			optional(
-				new ResourceConsumer("replyTo","curator:replyTo") {
-					@Override
-					protected void consumeResource(B builder, Resource resource) {
-						builder.withReplyTo(DeliveryChannelParser.fromModel(model(), resource));
 					}
 				}
 			);

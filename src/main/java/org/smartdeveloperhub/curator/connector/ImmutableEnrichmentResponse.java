@@ -50,7 +50,7 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 		URI targetResource,
 		URI additionTarget,
 		URI removalTarget) {
-		super(messageId, submittedOn, agent, null, responseTo,responseNumber);
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
 		this.targetResource=targetResource;
 		this.additionTarget=additionTarget;
 		this.removalTarget=removalTarget;

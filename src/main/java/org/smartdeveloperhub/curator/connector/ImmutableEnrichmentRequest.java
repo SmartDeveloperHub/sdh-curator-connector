@@ -37,7 +37,7 @@ import org.smartdeveloperhub.curator.protocol.Policy;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
 
-final class ImmutableEnrichmentRequest extends ImmutableMessage implements EnrichmentRequest {
+final class ImmutableEnrichmentRequest extends ImmutableRequest implements EnrichmentRequest {
 
 	private final URI targetResource;
 
@@ -63,6 +63,7 @@ final class ImmutableEnrichmentRequest extends ImmutableMessage implements Enric
 
 	@Override
 	protected void toString(ToStringHelper helper) {
+		super.toString(helper);
 		helper.add("targetResource", this.targetResource);
 	}
 
