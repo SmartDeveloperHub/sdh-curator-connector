@@ -27,7 +27,7 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAccepted;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAgent;
@@ -62,6 +62,7 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Message;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 
 @RunWith(JMockit.class)
 public class MessageUtilTest {
@@ -228,8 +229,11 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString("",Accepted.class);
 			fail("Should not parse input with no definition");
-		} catch (MessageConversionException e) {
+		} catch (NoDefinitionFoundException e) {
 			assertThat(e.getMessage(),equalTo("No <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found"));
+			assertThat(e.getMissingDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+		} catch(MessageConversionException e) {
+			fail("Unexpected failure "+e.getMessage());
 		}
 	}
 
@@ -238,8 +242,25 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),Accepted.class);
 			fail("Should not parse input with multiple definitions");
-		} catch (MessageConversionException e) {
+		} catch (TooManyDefinitionsFoundException e) {
 			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found (2)"));
+			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+			assertThat(e.getDefinitionsFound(),equalTo(2));
+		} catch(MessageConversionException e) {
+			fail("Unexpected failure "+e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFromString$invalidDefinition() {
+		try {
+			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/bad_accepted.ttl"),Accepted.class);
+			fail("Should not parse input with multiple definitions");
+		} catch (InvalidDefinitionFoundException e) {
+			assertThat(e.getMessage(),equalTo("Invalid <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found: Value '-1' is not a valid http://www.w3.org/2001/XMLSchema#unsignedLong: Response number must be greater than 0 (-1)"));
+			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+		} catch(MessageConversionException e) {
+			fail("Unexpected failure "+e.getMessage());
 		}
 	}
 

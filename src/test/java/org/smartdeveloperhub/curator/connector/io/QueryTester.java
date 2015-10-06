@@ -34,8 +34,8 @@ import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
@@ -80,7 +80,7 @@ public class QueryTester {
 		ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
-					model.createProperty(Namespaces.rdf("type")),
+					model.createProperty(RDF.TYPE),
 					model.createResource(AMQP.BROKER_TYPE));
 		while(iterator.hasNext()) {
 			Resource resource = iterator.next();

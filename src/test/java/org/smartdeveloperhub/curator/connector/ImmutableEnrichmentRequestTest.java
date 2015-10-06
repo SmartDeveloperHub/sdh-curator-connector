@@ -26,54 +26,45 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import java.net.URI;
-import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
+import java.util.UUID;
 
-import org.junit.After;
-import org.junit.Before;
+import mockit.Injectable;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
+
+import org.joda.time.DateTime;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
-public class ConnectorTest {
+@RunWith(JMockit.class)
+public class ImmutableEnrichmentRequestTest {
+	@Injectable
+	private Agent agent;
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
+	@Injectable
+	private DeliveryChannel deliveryChannel;
 
-	private Phaser phaser=new Phaser(2);
-	private ExampleCurator curator;
+	@Injectable
+	private UUID messageId;
 
-	@Before
-	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(phaser);
-		this.curator.connect();
-	}
+	@Injectable
+	private DateTime submittedOn;
 
-	@After
-	public void tearDown() throws Exception {
-		this.curator.disconnect();
-	}
+	@Injectable
+	private URI targetResource;
+
+	@Tested
+	private ImmutableEnrichmentRequest sut;
 
 	@Test
-	public void testRequestEnrichment() throws Exception {
-		Connector connector =
-			Connector.
-				builder().
-					withConnectorChannel(
-						ProtocolFactory.
-							newDeliveryChannel().
-								withQueueName("connector").
-								build()).
-					build();
-		connector.connect();
-		try {
-			Future<Acknowledge> response=connector.requestEnrichment(URI.create("urn:message"));
-			LOGGER.info("Acknowledge: {}",response.get());
-		} finally {
-			connector.disconnect();
-		}
-		phaser.arriveAndAwaitAdvance();
-		LOGGER.info("Disconnection processed");
+	public void testApply() throws Exception {
+		assertThat(sut.apply(),nullValue());
 	}
 
 }

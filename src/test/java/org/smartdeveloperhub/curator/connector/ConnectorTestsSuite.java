@@ -32,10 +32,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+	ParsingUtilTest.class,
+	ValidationUtilTest.class,
+	ImmutableEnrichmentRequestTest.class,
 	ProtocolFactoryTest.class,
-	ValidationUtilsTest.class,
 	AcknowledgeTest.class,
-	CancelableExchangeTest.class,
 	ConnectorTest.class
 })
 public class ConnectorTestsSuite {

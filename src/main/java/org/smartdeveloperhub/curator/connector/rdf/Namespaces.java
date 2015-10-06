@@ -29,6 +29,8 @@ package org.smartdeveloperhub.curator.connector.rdf;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -36,23 +38,12 @@ import com.hp.hpl.jena.rdf.model.Model;
 
 public final class Namespaces {
 
-	private static final String RDF_NAMESPACE  = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-	private static final String RDFS_NAMESPACE = "http://www.w3.org/2000/01/rdf-schema#";
-
 	private Namespaces() {
 	}
 
-	public static String rdf(String localName) {
-		return RDF_NAMESPACE+localName;
-	}
-
-	public static String rdfs(String localName) {
-		return RDFS_NAMESPACE+localName;
-	}
-
 	public static void setUpNamespacePrefixes(Model model) {
-		model.setNsPrefix("rdf",RDF_NAMESPACE);
-		model.setNsPrefix("rdfs",RDFS_NAMESPACE);
+		model.setNsPrefix(RDF.PREFIX,RDF.NAMESPACE);
+		model.setNsPrefix(RDFS.PREFIX,RDFS.NAMESPACE);
 		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
 		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
 		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);

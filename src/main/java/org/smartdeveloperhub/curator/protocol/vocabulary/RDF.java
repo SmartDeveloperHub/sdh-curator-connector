@@ -24,56 +24,20 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.protocol.vocabulary;
 
-import java.net.URI;
-import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
+public final class RDF {
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+	public static final String NAMESPACE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+	public static final String PREFIX    = "rdf";
 
-public class ConnectorTest {
+	public static final String TYPE = term("type");
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
-
-	private Phaser phaser=new Phaser(2);
-	private ExampleCurator curator;
-
-	@Before
-	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(phaser);
-		this.curator.connect();
+	private RDF() {
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		this.curator.disconnect();
-	}
-
-	@Test
-	public void testRequestEnrichment() throws Exception {
-		Connector connector =
-			Connector.
-				builder().
-					withConnectorChannel(
-						ProtocolFactory.
-							newDeliveryChannel().
-								withQueueName("connector").
-								build()).
-					build();
-		connector.connect();
-		try {
-			Future<Acknowledge> response=connector.requestEnrichment(URI.create("urn:message"));
-			LOGGER.info("Acknowledge: {}",response.get());
-		} finally {
-			connector.disconnect();
-		}
-		phaser.arriveAndAwaitAdvance();
-		LOGGER.info("Disconnection processed");
+	private static String term(String localName) {
+		return NAMESPACE+localName;
 	}
 
 }

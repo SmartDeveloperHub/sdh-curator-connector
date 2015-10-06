@@ -55,7 +55,7 @@ final class ExampleCurator {
 				LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
 				Response response = createResponse(request);
 				reply(response);
-				LOGGER.info("Accepted enrichment request {} with {}",request.messageId(),response.messageId());
+				LOGGER.info("Accepted enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),response.messageId());
 			} else {
 				request=parsePayload(payload,Disconnect.class);
 				if(request==null) {

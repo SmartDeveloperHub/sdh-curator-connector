@@ -27,58 +27,61 @@
 package org.smartdeveloperhub.curator.connector;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
 import org.junit.Test;
 import org.ldp4j.commons.testing.Utils;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 
 import com.rabbitmq.client.ConnectionFactory;
 
-public class ValidationUtilsTest {
+public class ValidationUtilTest {
 
 	private void assertInvalidHostName(String hostname, String failure) {
 		try {
-			ValidationUtils.validateHostname(hostname);
+			ValidationUtil.validateHostname(hostname);
 			fail(failure);
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo(hostname));
-			assertThat(e.getType(),equalTo("types:Hostname"));
+			assertThat(e.getType(),equalTo(TYPES.HOSTNAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Host name '"+hostname+"' is not valid"));
 		}
 	}
 
 	private void assertInvalidRoutingKey(String routingKey, String failure,String description) {
 		try {
-			ValidationUtils.validateRoutingKey(routingKey);
+			ValidationUtil.validateRoutingKey(routingKey);
 			fail(failure);
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo(routingKey));
-			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo(description));
 		}
 	}
 
 	@Test
 	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(ValidationUtils.class),equalTo(true));
+		assertThat(Utils.isUtilityClass(ValidationUtil.class),equalTo(true));
 	}
 
 	@Test
 	public void testValidatePath$valid() throws Exception {
-		ValidationUtils.validatePath("valid path name");
+		ValidationUtil.validatePath("valid path name");
 	}
 
 	@Test
 	public void testValidatePath$invalid$null() throws Exception {
 		try {
-			ValidationUtils.validatePath(null);
+			ValidationUtil.validatePath(null);
 			fail("Should not accept a null path");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),nullValue());
-			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be null"));
 		}
 	}
@@ -86,11 +89,11 @@ public class ValidationUtilsTest {
 	@Test
 	public void testValidatePath$invalid$empty() throws Exception {
 		try {
-			ValidationUtils.validatePath("");
+			ValidationUtil.validatePath("");
 			fail("Should not accept an empty path");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo(""));
-			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be empty"));
 		}
 	}
@@ -101,28 +104,28 @@ public class ValidationUtilsTest {
 		Arrays.fill(chars, 'A');
 		String path = new String(chars);
 		try {
-			ValidationUtils.validatePath(path);
+			ValidationUtil.validatePath(path);
 			fail("Should not accept a long string");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo(path));
-			assertThat(e.getType(),equalTo("amqp:Path"));
+			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be larger than 127 octets (128)"));
 		}
 	}
 
 	@Test
 	public void testValidateName$valid() throws Exception {
-		ValidationUtils.validateName("a-valid.name.0001");
+		ValidationUtil.validateName("a-valid.name.0001");
 	}
 
 	@Test
 	public void testValidateName$null() throws Exception {
-		ValidationUtils.validateName(null);
+		ValidationUtil.validateName(null);
 	}
 
 	@Test
 	public void testValidateName$empty() throws Exception {
-		ValidationUtils.validateName("");
+		ValidationUtil.validateName("");
 	}
 
 	@Test
@@ -131,11 +134,11 @@ public class ValidationUtilsTest {
 		Arrays.fill(chars, 'A');
 		String name = new String(chars);
 		try {
-			ValidationUtils.validateName(name);
+			ValidationUtil.validateName(name);
 			fail("Should not accept a long string");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo(name));
-			assertThat(e.getType(),equalTo("amqp:Name"));
+			assertThat(e.getType(),equalTo(AMQP.NAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Name cannot be larger than 127 octets (128)"));
 		}
 	}
@@ -143,28 +146,28 @@ public class ValidationUtilsTest {
 	@Test
 	public void testValidateName$invalid$badChars() throws Exception {
 		try {
-			ValidationUtils.validateName("white spaces not allowed");
+			ValidationUtil.validateName("white spaces not allowed");
 			fail("Should not accept string with invalid characters");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo("white spaces not allowed"));
-			assertThat(e.getType(),equalTo("amqp:Name"));
+			assertThat(e.getType(),equalTo(AMQP.NAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid name syntax"));
 		}
 	}
 
 	@Test
 	public void testValidateRoutingKey$valid() throws Exception {
-		ValidationUtils.validateRoutingKey("valid.hostname");
+		ValidationUtil.validateRoutingKey("valid.hostname");
 	}
 
 	@Test
 	public void testValidateRoutingKey$null() throws Exception {
-		ValidationUtils.validateRoutingKey(null);
+		ValidationUtil.validateRoutingKey(null);
 	}
 
 	@Test
 	public void testValidateRoutingKey$empty() throws Exception {
-		ValidationUtils.validateRoutingKey("");
+		ValidationUtil.validateRoutingKey("");
 	}
 
 	@Test
@@ -197,7 +200,7 @@ public class ValidationUtilsTest {
 
 	@Test
 	public void testValidateHostname$ip4$valid() throws Exception {
-		ValidationUtils.validateHostname("219.120.22.23");
+		ValidationUtil.validateHostname("219.120.22.23");
 	}
 
 	@Test
@@ -207,7 +210,7 @@ public class ValidationUtilsTest {
 
 	@Test
 	public void testValidateHostname$ip6$valid() throws Exception {
-		ValidationUtils.validateHostname("::219.120.22.23");
+		ValidationUtil.validateHostname("::219.120.22.23");
 	}
 
 	@Test
@@ -217,12 +220,12 @@ public class ValidationUtilsTest {
 
 	@Test
 	public void testValidateHostname$domainName$valid() throws Exception {
-		ValidationUtils.validateHostname("valid.hostname");
+		ValidationUtil.validateHostname("valid.hostname");
 	}
 
 	@Test
 	public void testValidateHostname$domainName$valid$withHyphens() throws Exception {
-		ValidationUtils.validateHostname("valid.host-name.with-lots-of-labels");
+		ValidationUtil.validateHostname("valid.host-name.with-lots-of-labels");
 	}
 
 	@Test
@@ -257,17 +260,17 @@ public class ValidationUtilsTest {
 
 	@Test
 	public void testValidatePort$valid() {
-		ValidationUtils.validatePort(ConnectionFactory.DEFAULT_AMQP_PORT);
+		ValidationUtil.validatePort(ConnectionFactory.DEFAULT_AMQP_PORT);
 	}
 
 	@Test
 	public void testValidatePort$invalid$lowerThatZero() {
 		try {
-			ValidationUtils.validatePort(-1);
+			ValidationUtil.validatePort(-1);
 			fail("Should not accept a negative port");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo("-1"));
-			assertThat(e.getType(),equalTo("types:Port"));
+			assertThat(e.getType(),equalTo(TYPES.PORT_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid port number (-1 is lower than 0)"));
 		}
 	}
@@ -275,64 +278,23 @@ public class ValidationUtilsTest {
 	@Test
 	public void testValidatePort$invalid$greaterThanMaxPort() {
 		try {
-			ValidationUtils.validatePort(65536);
+			ValidationUtil.validatePort(65536);
 			fail("Should not accept a port over 65535");
 		} catch (ValidationException e) {
 			assertThat(e.getValue(),equalTo("65536"));
-			assertThat(e.getType(),equalTo("types:Port"));
+			assertThat(e.getType(),equalTo(TYPES.PORT_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid port number (65536 is greater than 65535)"));
 		}
 	}
 
 	@Test
-	public void testToDateTime$failure() throws Exception {
+	public void testCheckNotNull$null() throws Exception {
 		try {
-			ValidationUtils.toDateTime("not a valid date");
-			fail("Should not accept an invalid date");
+			ValidationUtil.checkNotNull(null, "type", "description");
 		} catch (ValidationException e) {
-			assertThat(e.getValue(),equalTo("not a valid date"));
-			assertThat(e.getType(),equalTo("xsd:dateTime"));
-			assertThat(e.getDescription(),equalTo("Not a valid date"));
+			assertThat(e.getDescription(),equalTo("description"));
+			assertThat(e.getType(),equalTo("type"));
+			assertThat(e.getValue(),nullValue());
 		}
 	}
-
-	@Test
-	public void testToURI$failure() throws Exception {
-		final String value = "http:/bad uri";
-		try {
-			ValidationUtils.toURI(value);
-			fail("Should not accept an invalid uri");
-		} catch (ValidationException e) {
-			assertThat(e.getValue(),equalTo(value));
-			assertThat(e.getType(),equalTo("xsd:anyURI"));
-			assertThat(e.getDescription(),equalTo("Not a valid URI"));
-		}
-	}
-
-	@Test
-	public void testToUnsignedLong$failure() throws Exception {
-		final String value = "not a number";
-		try {
-			ValidationUtils.toUnsignedLong(value);
-			fail("Should not accept an invalid long");
-		} catch (ValidationException e) {
-			assertThat(e.getValue(),equalTo(value));
-			assertThat(e.getType(),equalTo("xsd:unsignedLong"));
-			assertThat(e.getDescription(),equalTo("Not a valid number"));
-		}
-	}
-
-	@Test
-	public void testToPort$failure() throws Exception {
-		final String value = "not a number";
-		try {
-			ValidationUtils.toPort(value);
-			fail("Should not accept an invalid port");
-		} catch (ValidationException e) {
-			assertThat(e.getValue(),equalTo(value));
-			assertThat(e.getType(),equalTo("types:Port"));
-			assertThat(e.getDescription(),equalTo("Not a valid number"));
-		}
-	}
-
 }

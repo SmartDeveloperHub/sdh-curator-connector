@@ -28,7 +28,6 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
@@ -43,8 +42,12 @@ import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.Request;
 import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
-import com.google.common.base.Preconditions;
 import com.rabbitmq.client.ConnectionFactory;
 
 public final class ProtocolFactory {
@@ -64,27 +67,26 @@ public final class ProtocolFactory {
 		private BrokerBuilder() {
 		}
 
+		private void setPort(Integer port) {
+			this.port=port;
+		}
+
 		public BrokerBuilder withHost(String host) {
-			ValidationUtils.validateHostname(host);
 			this.host=host;
 			return this;
 		}
 
 		public BrokerBuilder withPort(String port) {
-			if(port==null) {
-				return this;
-			}
-			return withPort(ValidationUtils.toPort(port));
+			setPort(ParsingUtil.toPort(port));
+			return this;
 		}
 
 		public BrokerBuilder withPort(int port) {
-			ValidationUtils.validatePort(port);
-			this.port=port;
+			setPort(port);
 			return this;
 		}
 
 		public BrokerBuilder withVirtualHost(String virtualHost) {
-			ValidationUtils.validatePath(virtualHost);
 			this.virtualHost = virtualHost;
 			return this;
 		}
@@ -93,9 +95,9 @@ public final class ProtocolFactory {
 		public Broker build() {
 			return
 				new ImmutableBroker(
-					this.host!=null?this.host:ConnectionFactory.DEFAULT_HOST,
-					this.port!=null?this.port:ConnectionFactory.DEFAULT_AMQP_PORT,
-					this.virtualHost!=null?this.virtualHost:ConnectionFactory.DEFAULT_VHOST);
+					this.host!=null?ValidationUtil.validateHostname(this.host):ConnectionFactory.DEFAULT_HOST,
+					this.port!=null?ValidationUtil.validatePort(this.port):ConnectionFactory.DEFAULT_AMQP_PORT,
+					this.virtualHost!=null?ValidationUtil.validatePath(this.virtualHost):ConnectionFactory.DEFAULT_VHOST);
 		}
 
 	}
@@ -113,17 +115,14 @@ public final class ProtocolFactory {
 		}
 
 		public AgentBuilder withAgentId(String agentId) {
-			if(agentId==null) {
-				return this;
-			}
-			return withAgentId(ValidationUtils.toUUID(agentId));
+			return withAgentId(ParsingUtil.toUUID(agentId));
 		}
 
 		@Override
 		public Agent build() {
 			return
 				new ImmutableAgent(
-					Objects.requireNonNull(this.agentId,"Agent id cannot be null"));
+					ValidationUtil.checkNotNull(this.agentId,RDFS.RESOURCE_TYPE,"Agent identifier cannot be null"));
 		}
 
 	}
@@ -148,19 +147,16 @@ public final class ProtocolFactory {
 		}
 
 		public DeliveryChannelBuilder withExchangeName(String exchangeName) {
-			ValidationUtils.validateName(exchangeName);
 			this.exchangeName = exchangeName;
 			return this;
 		}
 
 		public DeliveryChannelBuilder withQueueName(String queueName) {
-			ValidationUtils.validateName(queueName);
 			this.queueName = queueName;
 			return this;
 		}
 
 		public DeliveryChannelBuilder withRoutingKey(String routingKey) {
-			ValidationUtils.validateRoutingKey(routingKey);
 			this.routingKey = routingKey;
 			return this;
 		}
@@ -170,9 +166,9 @@ public final class ProtocolFactory {
 			return
 				new ImmutableDeliveryChannel(
 					this.broker,
-					this.exchangeName,
-					this.queueName,
-					this.routingKey);
+					ValidationUtil.validateName(this.exchangeName),
+					ValidationUtil.validateName(this.queueName),
+					ValidationUtil.validateRoutingKey(this.routingKey));
 		}
 
 	}
@@ -190,15 +186,15 @@ public final class ProtocolFactory {
 		}
 
 		protected UUID id() {
-			return Objects.requireNonNull(this.messageId,"Message identifier cannot be null");
+			return ValidationUtil.checkNotNull(this.messageId,TYPES.UUID_TYPE,"Message identifier cannot be null");
 		}
 
 		protected DateTime submissionDate() {
-			return Objects.requireNonNull(this.submittedOn,"Submission date cannot be null");
+			return ValidationUtil.checkNotNull(this.submittedOn,XSD.DATE_TIME_TYPE,"Submission date cannot be null");
 		}
 
 		protected Agent agent() {
-			return this.agent;
+			return ValidationUtil.checkNotNull(this.agent,FOAF.AGENT_TYPE,"Agent cannot be null");
 		}
 
 		protected B builder() {
@@ -211,10 +207,7 @@ public final class ProtocolFactory {
 		}
 
 		public B withMessageId(String messageId) {
-			if(messageId!=null) {
-				this.messageId=ValidationUtils.toUUID(messageId);
-			}
-			return this.builder;
+			return withMessageId(ParsingUtil.toUUID(messageId));
 		}
 
 		public B withSubmittedOn(DateTime submittedOn) {
@@ -223,17 +216,11 @@ public final class ProtocolFactory {
 		}
 
 		public B withSubmittedOn(Date submittedOn) {
-			if(submittedOn==null) {
-				return this.builder;
-			}
-			return withSubmittedOn(new DateTime(submittedOn));
+			return withSubmittedOn(ParsingUtil.toDateTime(submittedOn));
 		}
 
 		public B withSubmittedOn(String submittedOn) {
-			if(submittedOn==null) {
-				return this.builder;
-			}
-			return withSubmittedOn(ValidationUtils.toDateTime(submittedOn));
+			return withSubmittedOn(ParsingUtil.toDateTime(submittedOn));
 		}
 
 		public B withSubmittedBy(Agent agent) {
@@ -275,6 +262,7 @@ public final class ProtocolFactory {
 		}
 
 	}
+
 	public static final class EnrichmentRequestBuilder extends RequestBuilder<EnrichmentRequest,EnrichmentRequestBuilder> {
 
 		private URI targetResource;
@@ -284,10 +272,7 @@ public final class ProtocolFactory {
 		}
 
 		public EnrichmentRequestBuilder withTargetResource(String targetResource) {
-			if(targetResource==null) {
-				return this;
-			}
-			return withTargetResource(ValidationUtils.toURI(targetResource));
+			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
 		public EnrichmentRequestBuilder withTargetResource(URI targetResource) {
@@ -302,8 +287,8 @@ public final class ProtocolFactory {
 					id(),
 					submissionDate(),
 					agent(),
-					Objects.requireNonNull(deliveryChannel(),"Reply delivery channel cannot be null"),
-					Objects.requireNonNull(this.targetResource,"Target resource cannot be null"));
+					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"Reply delivery channel cannot be null"),
+					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"));
 		}
 
 	}
@@ -334,21 +319,20 @@ public final class ProtocolFactory {
 			super(builderClass);
 		}
 
+		private void setResponseNumber(Long responseNumber) {
+			this.responseNumber = responseNumber;
+		}
+
 		protected UUID responseTo() {
-			return Objects.requireNonNull(this.responseTo,"ResponseTo Message identifier cannot be null");
+			return ValidationUtil.checkNotNull(this.responseTo,TYPES.UUID_TYPE,"ResponseTo message identifier cannot be null");
 		}
 
 		protected long responseNumber() {
-			Objects.requireNonNull(this.responseNumber,"Response number cannot be null");
-			Preconditions.checkArgument(this.responseNumber>=0,"Response number must be greater than 0 (%s)",this.responseNumber);
-			return this.responseNumber;
+			return ValidationUtil.validateÙnsignedLong(this.responseNumber,"Response number");
 		}
 
 		public final B withResponseTo(String messageId) {
-			if(messageId==null) {
-				return builder();
-			}
-			return withResponseTo(ValidationUtils.toUUID(messageId));
+			return withResponseTo(ParsingUtil.toUUID(messageId));
 		}
 
 		public final B withResponseTo(UUID messageId) {
@@ -357,15 +341,13 @@ public final class ProtocolFactory {
 		}
 
 		public final B withResponseNumber(long responseNumber) {
-			this.responseNumber = responseNumber;
+			setResponseNumber(responseNumber);
 			return builder();
 		}
 
 		public final B withResponseNumber(String responseNumber) {
-			if(responseNumber==null) {
-				return builder();
-			}
-			return withResponseNumber(ValidationUtils.toUnsignedLong(responseNumber));
+			setResponseNumber(ParsingUtil.toUnsignedLong(responseNumber));
+			return builder();
 		}
 
 	}
@@ -401,28 +383,32 @@ public final class ProtocolFactory {
 			super(FailureBuilder.class);
 		}
 
-		public FailureBuilder withCode(long code) {
+		private void setCode(long code) {
 			this.code=code;
+		}
+
+		private void setSubcode(long subcode) {
+			this.subcode=subcode;
+		}
+
+		public FailureBuilder withCode(long code) {
+			setCode(code);
 			return this;
 		}
 
 		public FailureBuilder withCode(String code) {
-			if(code==null) {
-				return this;
-			}
-			return withCode(ValidationUtils.toUnsignedLong(code));
+			setCode(ParsingUtil.toUnsignedLong(code));
+			return this;
 		}
 
 		public FailureBuilder withSubcode(long subcode) {
-			this.subcode = subcode;
+			setSubcode(subcode);
 			return this;
 		}
 
 		public FailureBuilder withSubcode(String subcode) {
-			if(subcode==null) {
-				return this;
-			}
-			return withSubcode(ValidationUtils.toUnsignedLong(subcode));
+			setSubcode(ParsingUtil.toUnsignedLong(subcode));
+			return this;
 		}
 
 
@@ -438,12 +424,6 @@ public final class ProtocolFactory {
 
 		@Override
 		public Failure build() {
-			Objects.requireNonNull(this.code,"Failure code cannot be null");
-			Preconditions.checkArgument(this.code>=0, "Failure code must be greater or equal than 0 (%s)",this.code);
-			if(this.subcode!=null) {
-				Preconditions.checkArgument(this.subcode>=0, "Failure subcode must be greater or equal than 0 (%s)",this.code);
-			}
-			Objects.requireNonNull(this.reason, "Failure reason cannot be null");
 			return
 				new ImmutableFailure(
 					id(),
@@ -451,9 +431,9 @@ public final class ProtocolFactory {
 					agent(),
 					responseTo(),
 					responseNumber(),
-					this.code,
-					this.subcode,
-					this.reason,
+					ValidationUtil.validateÙnsignedLong(this.code,"Failure code"),
+					this.subcode==null?null:ValidationUtil.validateÙnsignedLong(this.subcode,"Failure subcode"),
+					ValidationUtil.checkNotNull(this.reason,XSD.STRING_TYPE,"Failure reason cannot be null"),
 					this.detail);
 		}
 
@@ -475,10 +455,7 @@ public final class ProtocolFactory {
 		}
 
 		public EnrichmentResponseBuilder withTargetResource(String targetResource) {
-			if(targetResource==null) {
-				return this;
-			}
-			return withTargetResource(ValidationUtils.toURI(targetResource));
+			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
 		public EnrichmentResponseBuilder withAdditionTarget(URI additionTarget) {
@@ -487,10 +464,7 @@ public final class ProtocolFactory {
 		}
 
 		public EnrichmentResponseBuilder withAdditionTarget(String additionTarget) {
-			if(additionTarget==null) {
-				return this;
-			}
-			return withAdditionTarget(ValidationUtils.toURI(additionTarget));
+			return withAdditionTarget(ParsingUtil.toURI(additionTarget));
 		}
 
 		public EnrichmentResponseBuilder withRemovalTarget(URI removalTarget) {
@@ -499,15 +473,14 @@ public final class ProtocolFactory {
 		}
 
 		public EnrichmentResponseBuilder withRemovalTarget(String removalTarget) {
-			if(removalTarget==null) {
-				return this;
-			}
-			return withAdditionTarget(ValidationUtils.toURI(removalTarget));
+			return withRemovalTarget(ParsingUtil.toURI(removalTarget));
 		}
 
 		@Override
 		public EnrichmentResponse build() {
-			Preconditions.checkArgument(this.additionTarget!=this.removalTarget || this.additionTarget==null,"Addition target and removal target resources must be different");
+			if(this.additionTarget!=null && this.additionTarget.equals(this.removalTarget)) {
+				throw new ValidationException(this.removalTarget,RDFS.RESOURCE_TYPE,"Addition target and removal target resources must be different");
+			}
 			return
 				new ImmutableEnrichmentResponse(
 					id(),
@@ -515,7 +488,7 @@ public final class ProtocolFactory {
 					agent(),
 					responseTo(),
 					responseNumber(),
-					Objects.requireNonNull(this.targetResource,"Target resource cannot be null"),
+					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"),
 					this.additionTarget,
 					this.removalTarget);
 		}

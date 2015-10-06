@@ -36,7 +36,9 @@ import org.junit.runners.Suite.SuiteClasses;
 	CURATORTest.class,
 	FOAFTest.class,
 	TYPESTest.class,
-	XSDTest.class
+	XSDTest.class,
+	RDFSTest.class,
+	RDFTest.class
 })
 public class VocabularyTestsSuite {
 

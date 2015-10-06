@@ -35,10 +35,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RiotException;
+import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
 import org.smartdeveloperhub.curator.protocol.Message;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -52,7 +54,7 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 		ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
-					model.createProperty(Namespaces.rdf("type")),
+					model.createProperty(RDF.TYPE),
 					model.createResource(messageType()));
 		List<Resource> resources = Lists.newArrayList(iterator);
 		if(resources.isEmpty()) {
@@ -74,10 +76,10 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 							"http://www.smartdeveloperhub.org/base#",
 							"TURTLE");
 			return parse(model,getTargetResource(model));
-		} catch (ConversionException e) {
-			throw new InvalidDefinitionFoundException(messageType(),e);
 		} catch (RiotException e) {
 			throw new MessageConversionException("Could not parse body '"+body+"' as Turtle",e);
+		} catch (ValidationException e) {
+			throw new InvalidDefinitionFoundException(messageType(),e);
 		}
 	}
 

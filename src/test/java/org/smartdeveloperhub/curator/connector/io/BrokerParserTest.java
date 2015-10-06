@@ -29,10 +29,10 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.io.StringReader;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -47,7 +47,7 @@ public class BrokerParserTest {
 		ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
-					model.createProperty(Namespaces.rdf("type")),
+					model.createProperty(RDF.TYPE),
 					model.createResource(AMQP.BROKER_TYPE));
 		while(iterator.hasNext()) {
 			Resource resource = iterator.next();

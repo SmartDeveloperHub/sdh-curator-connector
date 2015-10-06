@@ -28,8 +28,8 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.io.StringReader;
 
-import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
@@ -58,7 +58,7 @@ abstract class ParserTester {
 		ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
-					model.createProperty(Namespaces.rdf("type")),
+					model.createProperty(RDF.TYPE),
 					model.createResource(this.type));
 		while(iterator.hasNext()) {
 			Resource resource = iterator.next();

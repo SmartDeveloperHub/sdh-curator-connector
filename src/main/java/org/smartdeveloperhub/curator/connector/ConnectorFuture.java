@@ -26,54 +26,17 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.net.URI;
+import java.util.UUID;
 import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.protocol.Message;
 
-public class ConnectorTest {
+abstract class ConnectorFuture implements Future<Acknowledge> {
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
+	abstract UUID messageId();
 
-	private Phaser phaser=new Phaser(2);
-	private ExampleCurator curator;
+	abstract void start();
 
-	@Before
-	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(phaser);
-		this.curator.connect();
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		this.curator.disconnect();
-	}
-
-	@Test
-	public void testRequestEnrichment() throws Exception {
-		Connector connector =
-			Connector.
-				builder().
-					withConnectorChannel(
-						ProtocolFactory.
-							newDeliveryChannel().
-								withQueueName("connector").
-								build()).
-					build();
-		connector.connect();
-		try {
-			Future<Acknowledge> response=connector.requestEnrichment(URI.create("urn:message"));
-			LOGGER.info("Acknowledge: {}",response.get());
-		} finally {
-			connector.disconnect();
-		}
-		phaser.arriveAndAwaitAdvance();
-		LOGGER.info("Disconnection processed");
-	}
+	abstract boolean complete(Message message) throws InterruptedException;
 
 }

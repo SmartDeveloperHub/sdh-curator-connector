@@ -53,6 +53,7 @@ abstract class ImmutableRequest extends ImmutableMessage implements Request {
 		return this.deliveryChannel;
 	}
 
+	@Override
 	protected void toString(ToStringHelper helper) {
 		helper.add("replyTo",this.deliveryChannel);
 	}

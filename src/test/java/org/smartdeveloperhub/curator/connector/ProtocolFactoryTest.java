@@ -27,11 +27,20 @@
 package org.smartdeveloperhub.curator.connector;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
+
+import java.util.Date;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.ldp4j.commons.testing.Utils;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.DeliveryChannelBuilder;
 import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 
 public class ProtocolFactoryTest {
 
@@ -51,4 +60,63 @@ public class ProtocolFactoryTest {
 		System.out.println(build);
 	}
 
+	@Test
+	public void testNewEnrichmentResponse$sameAdditionAndRemovalTarget() throws Exception {
+		try {
+			ProtocolFactory.
+				newEnrichmentResponse().
+					withSubmittedBy(ProtocolFactory.newAgent().withAgentId(UUID.randomUUID())).
+					withSubmittedOn(new Date()).
+					withMessageId(UUID.randomUUID()).
+					withResponseTo(UUID.randomUUID()).
+					withResponseNumber(3).
+					withTargetResource("target").
+					withAdditionTarget("addition").
+					withRemovalTarget("addition").
+					build();
+			fail("Should not create an enrichment response with the same addition and removal target");
+		} catch (ValidationException e) {
+			assertThat(e.getDescription(),equalTo("Addition target and removal target resources must be different"));
+			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
+			assertThat(e.getValue(),equalTo("addition"));
+		}
+	}
+
+	@Test
+	public void testMessageBuilder$WithSubmittedBy$nullBuilder() throws Exception {
+		try {
+			ProtocolFactory.
+				newEnrichmentRequest().
+					withSubmittedBy((AgentBuilder)null).
+					withSubmittedOn(new Date()).
+					withMessageId(UUID.randomUUID()).
+					withTargetResource("target").
+					withReplyTo(ProtocolFactory.newDeliveryChannel()).
+					build();
+			fail("Should not create a message with no agent");
+		} catch (ValidationException e) {
+			assertThat(e.getDescription(),equalTo("Agent cannot be null"));
+			assertThat(e.getType(),equalTo(FOAF.AGENT_TYPE));
+			assertThat(e.getValue(),nullValue());
+		}
+	}
+
+	@Test
+	public void testRequestBuilder$WithReplyTo$nullBuilder() throws Exception {
+		try {
+			ProtocolFactory.
+				newEnrichmentRequest().
+					withSubmittedBy(ProtocolFactory.newAgent().withAgentId(UUID.randomUUID())).
+						withSubmittedOn(new Date()).
+						withMessageId(UUID.randomUUID()).
+						withTargetResource("target").
+						withReplyTo((DeliveryChannelBuilder)null).
+						build();
+			fail("Should not create a request with no delivery channel");
+		} catch (ValidationException e) {
+			assertThat(e.getDescription(),equalTo("Reply delivery channel cannot be null"));
+			assertThat(e.getType(),equalTo(CURATOR.DELIVERY_CHANNEL_TYPE));
+			assertThat(e.getValue(),nullValue());
+		}
+	}
 }
