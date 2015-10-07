@@ -74,10 +74,14 @@ final class ExampleCurator {
 
 	private final Phaser disconnectable;
 
+	@SuppressWarnings("unused")
+	private final Phaser answered;
+
 	private CuratorController controller;
 
-	ExampleCurator(Phaser disconnectable) {
+	ExampleCurator(Phaser disconnectable, Phaser answered) {
 		this.disconnectable = disconnectable;
+		this.answered = answered;
 	}
 
 	void connect() throws IOException, ControllerException {

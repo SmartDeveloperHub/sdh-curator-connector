@@ -55,6 +55,10 @@ final class CuratorController {
 		return this.brokerController;
 	}
 
+	CuratorConfiguration curatorConfiguration() {
+		return this.configuration;
+	}
+
 	void connect() throws ControllerException {
 		this.brokerController.connect();
 		configureBroker();
@@ -71,7 +75,7 @@ final class CuratorController {
 	void handleResponses(final MessageHandler handler) throws IOException {
 		Channel channel = this.brokerController.channel();
 		channel.basicConsume(
-			this.configuration.responseQueueName(),
+			this.curatorConfiguration().responseQueueName(),
 			true,
 			new MessageHandlerConsumer(channel, handler)
 		);
@@ -80,7 +84,7 @@ final class CuratorController {
 	void handleRequests(final MessageHandler handler) throws IOException {
 		Channel channel = this.brokerController.channel();
 		channel.basicConsume(
-			this.configuration.requestQueueName(),
+			this.curatorConfiguration().requestQueueName(),
 			true,
 			new MessageHandlerConsumer(channel, handler)
 		);
@@ -92,9 +96,9 @@ final class CuratorController {
 
 	private void configureBroker() throws ControllerException {
 		Channel channel = this.brokerController.channel();
-		prepareExchange(channel, this.configuration.exchangeName());
-		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.requestQueueName(), CURATOR_REQUEST_ROUTING_KEY);
-		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.responseQueueName(), CURATOR_RESPONSE_ROUTING_KEY);
+		prepareExchange(channel, this.curatorConfiguration().exchangeName());
+		prepareQueue(channel, this.curatorConfiguration().exchangeName(), this.curatorConfiguration().requestQueueName(), CURATOR_REQUEST_ROUTING_KEY);
+		prepareQueue(channel, this.curatorConfiguration().exchangeName(), this.curatorConfiguration().responseQueueName(), CURATOR_RESPONSE_ROUTING_KEY);
 	}
 
 	private void prepareExchange(Channel channel, String exchangeName) throws ControllerException {
@@ -124,7 +128,7 @@ final class CuratorController {
 			this.brokerController.
 				channel().
 					basicPublish(
-						this.configuration.exchangeName(),
+						this.curatorConfiguration().exchangeName(),
 						routingKey,
 						null,
 						MessageUtil.

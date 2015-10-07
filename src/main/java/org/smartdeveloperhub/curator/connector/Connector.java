@@ -43,14 +43,12 @@ import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.rabbitmq.client.Channel;
 
 public final class Connector {
 
@@ -143,53 +141,44 @@ public final class Connector {
 					MessageUtil.
 						newInstance().
 							fromString(payload, EnrichmentResponse.class);
-				LOGGER.info("Should process EnrichmentResponse {}",response);
+				EnrichmentResponseHandler handler=
+						activeRequests.get(response.responseTo());
+				if(handler!=null) {
+					LOGGER.debug("Handling processing of response {}...",response);
+					handler.onResponse(response);
+				} else {
+					LOGGER.debug("Discarded response {}.",response);
+				}
 			} catch (MessageConversionException e) {
-				LOGGER.warn("Could not process EnrichmentResponse:\n{}\n. Full stacktrace follows",e);
+				LOGGER.warn("Could not process message:\n{}\n. Full stacktrace follows",e);
 			}
-		}
-
-	}
-
-	private final class NullMessageHandler implements MessageHandler {
-
-		@Override
-		public void handlePayload(String payload) {
-			// NO IMPLEMENTATION REQUIRED YET
-			// AS THIS TYPE IS TO BE REPLACED
 		}
 
 	}
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(Connector.class);
 
-	private static final String NL = System.lineSeparator();
-
-	private final CuratorConfiguration curatorConfiguration;
-	private final Agent agent;
 	private final CuratorController curatorController;
-	private final BrokerController connectorController;
+	private final ConnectorController connectorController;
 
 	private final Lock read;
 	private final Lock write;
 
 	private final ConcurrentMap<UUID,ConnectorFuture> pendingAcknowledgements;
-	private final ConcurrentMap<UUID,MessageHandler> activeRequests;
-
-	private DeliveryChannel connectorConfiguration;
+	private final ConcurrentMap<UUID,EnrichmentResponseHandler> activeRequests;
 
 	private boolean connected;
 
-	private Connector(CuratorConfiguration configuration, Agent agent, DeliveryChannel connectorChannel) {
-		this.curatorConfiguration = configuration;
-		this.agent = agent;
-		this.connectorConfiguration = connectorChannel;
-		this.curatorController = new CuratorController(this.curatorConfiguration,"connector-curator");
-		if(usesDifferentBrokers()) {
-			this.connectorController=new BrokerController(this.connectorConfiguration.broker(),"connector-custom");
-		} else {
-			this.connectorController = this.curatorController.brokerController();
-		}
+	private final ConnectorConfiguration configuration;
+
+	private Connector(CuratorConfiguration curatorConfiguration, Agent agent, DeliveryChannel connectorChannel) {
+		this.configuration =
+			new ConnectorConfiguration().
+				withCuratorConfiguration(curatorConfiguration).
+				withConnectorChannel(connectorChannel).
+				withAgent(agent);
+		this.curatorController = new CuratorController(curatorConfiguration,"connector-curator");
+		this.connectorController=new ConnectorController(connectorChannel,this.curatorController);
 		ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
@@ -217,113 +206,7 @@ public final class Connector {
 		this.activeRequests.remove(future.messageId());
 	}
 
-	private boolean usesDifferentBrokers() {
-		final Broker connectorBroker = this.connectorConfiguration.broker();
-		return
-			connectorBroker!=null &&
-			!connectorBroker.equals(this.curatorConfiguration.broker());
-	}
-
-	private boolean connectorUsesSameQueueAsCurator(String connectorQueueName) {
-		return
-			this.curatorConfiguration.requestQueueName().equals(connectorQueueName) ||
-			this.curatorConfiguration.responseQueueName().equals(connectorQueueName);
-	}
-
-	private DeliveryChannel configureConnectorQueue() throws ConnectorException {
-		this.connectorController.connect();
-		Channel channel = this.connectorController.channel();
-		String exchangeName = declareConnectorExchange(channel);
-		String queueName = declareConnectorQueue(channel);
-		String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
-		return
-			ProtocolFactory.
-				newDeliveryChannel().
-					withBroker(this.connectorController.broker()).
-					withExchangeName(exchangeName).
-					withQueueName(queueName).
-					withRoutingKey(routingKey).
-					build();
-	}
-
-	private String bindConnectorQueue(Channel channel, String exchangeName, String queueName) throws ConnectorException {
-		String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
-		try {
-			channel.queueBind(queueName,exchangeName,routingKey);
-		} catch (IOException e) {
-			throw new ConnectorException("Could not bind connector queue '"+queueName+"' using routing key '"+routingKey+"' to exchange '"+exchangeName+"'",e);
-		}
-		return routingKey;
-	}
-
-	private String declareConnectorQueue(Channel channel) throws ConnectorException {
-		String queueName = this.connectorConfiguration.queueName();
-		if(!usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
-			if(queueName!=null) {
-				try {
-					channel.queueDeclare(queueName,true,false,false,null);
-				} catch (IOException e) {
-					throw new ConnectorException("Could not declare connector queue named '"+queueName+"'",e);
-				}
-			} else {
-				try {
-					queueName=channel.queueDeclare().getQueue();
-				} catch (IOException e) {
-					throw new ConnectorException("Could not declare anonymous connector queue",e);
-				}
-			}
-		}
-		return queueName;
-	}
-
-	private String declareConnectorExchange(Channel channel) throws ConnectorException {
-		String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), this.curatorConfiguration.exchangeName());
-		if(!usesDifferentBrokers() || !exchangeName.equals(this.curatorConfiguration.exchangeName())) {
-			try {
-				channel.exchangeDeclare(exchangeName,"direct");
-			} catch (IOException e) {
-				throw new ConnectorException("Could not declare connector exchange named '"+exchangeName+"'",e);
-			}
-		}
-		return exchangeName;
-	}
-
-	private String firstNonNull(String providedValue, String defaultValue) {
-		return providedValue!=null?providedValue:defaultValue;
-	}
-
-	private void logConnectionDetails() {
-		StringBuilder builder=new StringBuilder();
-		builder.append("-- Connector details:").append(NL);
-		builder.append("   + Curator configuration:").append(NL);
-		appendBrokerDetails(builder, this.curatorConfiguration.broker());
-		appendExchangeName(builder, this.curatorConfiguration.exchangeName());
-		builder.append("     - Request queue name.: ").append(this.curatorConfiguration.requestQueueName()).append(NL);
-		appendResponseQueueDetails(builder, this.curatorConfiguration.responseQueueName());
-		builder.append("   + Connector configuration:").append(NL);
-		appendBrokerDetails(builder, this.connectorConfiguration.broker());
-		appendExchangeName(builder, this.connectorConfiguration.exchangeName());
-		appendResponseQueueDetails(builder, this.connectorConfiguration.queueName());
-		builder.append("     - Routing key........: ").append(this.connectorConfiguration.routingKey());
-		LOGGER.info(builder.toString());
-	}
-
-	private void appendResponseQueueDetails(StringBuilder builder, String responseQueueName) {
-		builder.append("     - Response queue name: ").append(responseQueueName).append(NL);
-	}
-
-	private void appendExchangeName(StringBuilder builder, String exchangeName) {
-		builder.append("     - Exchange name......: ").append(exchangeName).append(NL);
-	}
-
-	private void appendBrokerDetails(StringBuilder builder, Broker broker) {
-		builder.append("     - Broker").append(NL);
-		builder.append("       + Host.............: ").append(broker.host()).append(NL);
-		builder.append("       + Port.............: ").append(broker.port()).append(NL);
-		builder.append("       + Virtual host.....: ").append(broker.virtualHost()).append(NL);
-	}
-
-	private ConnectorFuture addRequest(EnrichmentRequest message, MessageHandler handler) {
+	private ConnectorFuture addRequest(EnrichmentRequest message, EnrichmentResponseHandler handler) {
 		ConnectorFuture future= new LoggedConnectorFuture(new DefaultConnectorFuture(this,message));
 		this.pendingAcknowledgements.put(future.messageId(),future);
 		this.activeRequests.put(future.messageId(), handler);
@@ -346,7 +229,7 @@ public final class Connector {
 						newDisconnect().
 							withMessageId(UUID.randomUUID()).
 							withSubmittedOn(new Date()).
-							withSubmittedBy(this.agent).
+							withSubmittedBy(this.configuration.agent()).
 							build());
 		} catch (IOException e) {
 			LOGGER.warn("Could not send disconnect to curator",e);
@@ -364,13 +247,8 @@ public final class Connector {
 
 	private void addConnectorResponseHandler(MessageHandler handler) throws ConnectorException {
 		try {
-			Channel channel = this.connectorController.channel();
-			channel.basicConsume(
-				this.connectorConfiguration.queueName(),
-				true,
-				new MessageHandlerConsumer(channel, handler)
-			);
-		} catch (IOException e) {
+			this.connectorController.handleMessage(handler);
+		} catch (Exception e) {
 			throw new ConnectorException("Could not setup the connector response message handler",e);
 		}
 	}
@@ -381,13 +259,24 @@ public final class Connector {
 			Preconditions.checkState(!this.connected,"Already connected");
 			LOGGER.info("-->> CONNECTING <<--");
 			this.curatorController.connect();
-			this.connectorConfiguration=configureConnectorQueue();
-			addCuratorResponseHandler(new CuratorResponseListener());
-			addConnectorResponseHandler(new ConnectorResponseListener());
-			this.connected=true;
-			logConnectionDetails();
-			LOGGER.info("-->> CONNECTED <<--");
-		} catch (ConnectorException e) {
+			try {
+				this.connectorController.connect();
+				try {
+					this.configuration.withConnectorChannel(this.connectorController.effectiveConfiguration());
+					addCuratorResponseHandler(new CuratorResponseListener());
+					addConnectorResponseHandler(new ConnectorResponseListener());
+					this.connected=true;
+					LOGGER.info(this.configuration.toString());
+					LOGGER.info("-->> CONNECTED <<--");
+				} catch (Exception e) {
+					this.connectorController.disconnect();
+					throw e;
+				}
+			} catch (Exception e) {
+				this.curatorController.disconnect();
+				throw e;
+			}
+		} catch (Exception e) {
 			LOGGER.error("-->> CONNECTION FAILED <<--",e);
 			throw e;
 		} finally {
@@ -395,7 +284,7 @@ public final class Connector {
 		}
 	}
 
-	public Future<Acknowledge> requestEnrichment(URI targetResource) throws IOException {
+	public Future<Acknowledge> requestEnrichment(URI targetResource, EnrichmentResponseHandler handler) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
@@ -404,11 +293,11 @@ public final class Connector {
 					newEnrichmentRequest().
 						withMessageId(UUID.randomUUID()).
 						withSubmittedOn(new Date()).
-						withSubmittedBy(this.agent).
-						withReplyTo(this.connectorConfiguration).
+						withSubmittedBy(this.configuration.agent()).
+						withReplyTo(this.configuration.connectorChannel()).
 						withTargetResource(targetResource).
 						build();
-			ConnectorFuture future = addRequest(message, new NullMessageHandler());
+			ConnectorFuture future = addRequest(message,handler);
 			this.curatorController.publishRequest(message);
 			future.start();
 			return future;
@@ -422,7 +311,7 @@ public final class Connector {
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
 			LOGGER.info("-->> DISCONNECTING <<--");
-			logConnectionDetails();
+			LOGGER.info(this.configuration.toString());
 			try {
 				publishDisconnectMessage();
 			} finally {

@@ -35,17 +35,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 public class ConnectorTest {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
 
-	private Phaser phaser=new Phaser(2);
+	private Phaser disconnected=new Phaser(2);
+	private Phaser answered=new Phaser(3);
 	private ExampleCurator curator;
 
 	@Before
 	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(phaser);
+		this.curator=new ExampleCurator(disconnected,answered);
 		this.curator.connect();
 	}
 
@@ -67,12 +69,24 @@ public class ConnectorTest {
 					build();
 		connector.connect();
 		try {
-			Future<Acknowledge> response=connector.requestEnrichment(URI.create("urn:message"));
+			Future<Acknowledge> response=
+				connector.
+					requestEnrichment(
+						URI.create("urn:message"),
+						new EnrichmentResponseHandler() {
+							@Override
+							public void onResponse(EnrichmentResponse response) {
+								LOGGER.debug("Received: {}",response);
+								answered.arrive();
+							}
+						}
+					);
 			LOGGER.info("Acknowledge: {}",response.get());
+//			answered.arriveAndAwaitAdvance();
 		} finally {
 			connector.disconnect();
 		}
-		phaser.arriveAndAwaitAdvance();
+		disconnected.arriveAndAwaitAdvance();
 		LOGGER.info("Disconnection processed");
 	}
 
