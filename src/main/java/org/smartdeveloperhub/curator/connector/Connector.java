@@ -256,29 +256,37 @@ public final class Connector {
 		try {
 			Preconditions.checkState(!this.connected,"Already connected");
 			LOGGER.info("-->> CONNECTING <<--");
-			this.curatorController.connect();
-			try {
-				this.connectorController.connect();
-				try {
-					this.configuration.withConnectorChannel(this.connectorController.effectiveConfiguration());
-					addCuratorResponseHandler(new CuratorResponseListener());
-					addConnectorResponseHandler(new ConnectorResponseListener());
-					this.connected=true;
-					LOGGER.info(this.configuration.toString());
-					LOGGER.info("-->> CONNECTED <<--");
-				} catch (Exception e) {
-					this.connectorController.disconnect();
-					throw e;
-				}
-			} catch (Exception e) {
-				this.curatorController.disconnect();
-				throw e;
-			}
+			connectToCurator();
+			this.connected=true;
+			LOGGER.info(this.configuration.toString());
+			LOGGER.info("-->> CONNECTED <<--");
 		} catch (Exception e) {
 			LOGGER.error("-->> CONNECTION FAILED <<--",e);
 			throw e;
 		} finally {
 			this.write.unlock();
+		}
+	}
+
+	private void connectToCurator() throws ConnectorException {
+		this.curatorController.connect();
+		try {
+			connectController();
+		} catch (ConnectorException e) {
+			this.curatorController.disconnect();
+			throw e;
+		}
+	}
+
+	private void connectController() throws ConnectorException {
+		this.connectorController.connect();
+		try {
+			this.configuration.withConnectorChannel(this.connectorController.effectiveConfiguration());
+			addCuratorResponseHandler(new CuratorResponseListener());
+			addConnectorResponseHandler(new ConnectorResponseListener());
+		} catch (Exception e) {
+			this.connectorController.disconnect();
+			throw e;
 		}
 	}
 

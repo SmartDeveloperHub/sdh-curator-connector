@@ -36,7 +36,7 @@ import com.rabbitmq.client.Channel;
 abstract class ConnectorController {
 
 	private final CuratorController curatorController;
-	private final BrokerController connectorController;
+	private final BrokerController brokerController;
 	private final DeliveryChannel connectorConfiguration;
 	private DeliveryChannel effectiveConfiguration;
 
@@ -44,22 +44,22 @@ abstract class ConnectorController {
 		this.connectorConfiguration = connectorConfiguration;
 		this.curatorController = curatorController;
 		if(usesDifferentBrokers()) {
-			this.connectorController=new BrokerController(this.connectorConfiguration.broker(),"connector-custom");
+			this.brokerController=new BrokerController(this.connectorConfiguration.broker(),"connector-custom");
 		} else {
-			this.connectorController=this.curatorController.brokerController();
+			this.brokerController=this.curatorController.brokerController();
 		}
 	}
 
 	final void connect() throws ControllerException {
-		this.connectorController.connect();
-		Channel channel = this.connectorController.channel();
+		this.brokerController.connect();
+		Channel channel = this.brokerController.channel();
 		String exchangeName = declareConnectorExchange(channel);
 		String queueName = declareConnectorQueue(channel);
 		String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
 		this.effectiveConfiguration=
 			ProtocolFactory.
 				newDeliveryChannel().
-					withBroker(this.connectorController.broker()).
+					withBroker(this.brokerController.broker()).
 					withExchangeName(exchangeName).
 					withQueueName(queueName).
 					withRoutingKey(routingKey).
@@ -70,12 +70,12 @@ abstract class ConnectorController {
 		return this.effectiveConfiguration;
 	}
 
-	final BrokerController connectorController() {
-		return this.connectorController;
+	final BrokerController brokerController() {
+		return this.brokerController;
 	}
 
 	final void disconnect() {
-		this.connectorController.disconnect();
+		this.brokerController.disconnect();
 	}
 
 	private boolean usesDifferentBrokers() {

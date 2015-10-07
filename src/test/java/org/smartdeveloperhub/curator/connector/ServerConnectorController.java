@@ -47,7 +47,7 @@ final class ServerConnectorController extends ConnectorController {
 		final String routingKey = effectiveConfiguration().routingKey();
 		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
 		try {
-			connectorController().
+			brokerController().
 				channel().
 					basicPublish(
 						effectiveConfiguration().exchangeName(),

@@ -39,7 +39,7 @@ final class ClientConnectorController extends ConnectorController {
 	}
 
 	void handleMessage(MessageHandler handler) throws IOException {
-		Channel channel = connectorController().channel();
+		Channel channel = brokerController().channel();
 		channel.basicConsume(
 			effectiveConfiguration().queueName(),
 			true,
