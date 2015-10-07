@@ -28,26 +28,36 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Message;
+import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Request;
+import org.smartdeveloperhub.curator.protocol.Resource;
 import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.Value;
+import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
+import com.google.common.collect.Lists;
 import com.rabbitmq.client.ConnectionFactory;
 
 public final class ProtocolFactory {
@@ -265,10 +275,15 @@ public final class ProtocolFactory {
 
 	public static final class EnrichmentRequestBuilder extends RequestBuilder<EnrichmentRequest,EnrichmentRequestBuilder> {
 
+		private final List<Filter> filters;
+		private final List<Constraint> constraints;
+
 		private URI targetResource;
 
 		private EnrichmentRequestBuilder() {
 			super(EnrichmentRequestBuilder.class);
+			this.filters=Lists.newArrayList();
+			this.constraints=Lists.newArrayList();
 		}
 
 		public EnrichmentRequestBuilder withTargetResource(String targetResource) {
@@ -280,15 +295,54 @@ public final class ProtocolFactory {
 			return this;
 		}
 
+		public EnrichmentRequestBuilder withFilter(Filter filter) {
+			if(filter!=null) {
+				this.filters.add(filter);
+			}
+			return this;
+		}
+
+		public EnrichmentRequestBuilder withFilter(FilterBuilder builder) {
+			if(builder!=null) {
+				return withFilter(builder.build());
+			}
+			return this;
+		}
+
+		public EnrichmentRequestBuilder withConstraint(Constraint constraint) {
+			if(constraint!=null) {
+				this.constraints.add(constraint);
+			}
+			return this;
+		}
+
+		public EnrichmentRequestBuilder withConstraint(Builder<Constraint> builder) {
+			if(builder==null) {
+				return this;
+			}
+			return withConstraint(builder.build());
+		}
+
+
 		@Override
 		public EnrichmentRequest build() {
+/** UNCOMMENT WHEN PARSER IS READY
+			if(this.filters.isEmpty()) {
+				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No filters specified");
+			}
+			if(this.constraints.isEmpty()) {
+				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No constraints specified");
+			}
+**/
 			return
 				new ImmutableEnrichmentRequest(
 					id(),
 					submissionDate(),
 					agent(),
 					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"Reply delivery channel cannot be null"),
-					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"));
+					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"),
+					this.filters,
+					this.constraints);
 		}
 
 	}
@@ -495,6 +549,157 @@ public final class ProtocolFactory {
 
 	}
 
+	public static final class LiteralBuilder implements Builder<Literal> {
+
+		private String lexicalForm;
+		private URI datatype;
+		private String language;
+
+		private LiteralBuilder() {
+		}
+
+		public LiteralBuilder withLexicalForm(Object object) {
+			if(object!=null) {
+				this.lexicalForm=object.toString();
+			}
+			return this;
+		}
+
+		public LiteralBuilder withDatatype(String datatype) {
+			return withDatatype(ParsingUtil.toURI(datatype));
+		}
+
+		public LiteralBuilder withDatatype(URI datatype) {
+			this.datatype = datatype;
+			return this;
+		}
+
+		public LiteralBuilder withLanguage(String language) {
+			this.language = language;
+			return this;
+		}
+
+		@Override
+		public Literal build() {
+			return
+				new ImmutableLiteral(
+					ValidationUtil.checkNotNull(this.lexicalForm,XSD.STRING_TYPE,"Lexical form cannot be null"),
+					this.datatype,
+					this.language
+				);
+		}
+
+	}
+
+	public static final class BindingBuilder implements Builder<Binding> {
+
+		private URI property;
+		private Value value;
+
+		public BindingBuilder withProperty(String property) {
+			return withProperty(ParsingUtil.toURI(property));
+		}
+
+		public BindingBuilder withProperty(URI property) {
+			this.property = property;
+			return this;
+		}
+
+		public BindingBuilder withValue(Value value) {
+			this.value=value;
+			return this;
+		}
+
+		public BindingBuilder withValue(Builder<? extends Value> builder) {
+			if(builder==null) {
+				return this;
+			}
+			return withValue(builder.build());
+		}
+
+		@Override
+		public Binding build() {
+			return new ImmutableBinding(
+				ValidationUtil.checkNotNull(this.property,RDFS.RESOURCE_TYPE,"Binding property cannot be null"),
+				ValidationUtil.checkNotNull(this.value,RDFS.RESOURCE_TYPE,"Binding value cannot be null")
+			);
+		}
+
+	}
+
+	public static final class ConstraintBuilder implements Builder<Constraint> {
+
+		private NamedValue target;
+		private List<Binding> bindings;
+
+		private ConstraintBuilder() {
+			this.bindings=Lists.newArrayList();
+		}
+
+		public ConstraintBuilder withTarget(NamedValue target) {
+			this.target = target;
+			return this;
+		}
+
+		public ConstraintBuilder withBinding(Binding binding) {
+			if(binding!=null) {
+				this.bindings.add(binding);
+			}
+			return this;
+		}
+
+		public ConstraintBuilder withBinding(Builder<Binding> builder) {
+			if(builder==null) {
+				return this;
+			}
+			return withBinding(builder.build());
+		}
+
+		@Override
+		public Constraint build() {
+			if(this.bindings.isEmpty()) {
+				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No constraint bindings specified");
+			}
+			return new ImmutableConstraint(
+				ValidationUtil.checkNotNull(this.target,RDFS.RESOURCE_TYPE,"Constraint target cannot be null"),
+				this.bindings
+			);
+		}
+
+	}
+
+	public static final class FilterBuilder implements Builder<Filter> {
+
+		private URI property;
+		private Variable variable;
+
+		private FilterBuilder() {
+		}
+
+		public FilterBuilder withVariable(Variable variable) {
+			this.variable = variable;
+			return this;
+		}
+
+		public FilterBuilder withProperty(String property) {
+			return withProperty(ParsingUtil.toURI(property));
+		}
+
+		public FilterBuilder withProperty(URI property) {
+			this.property = property;
+			return this;
+		}
+
+		@Override
+		public Filter build() {
+			return new ImmutableFilter(
+				ValidationUtil.checkNotNull(this.property,RDFS.RESOURCE_TYPE,"Filter property cannot be null"),
+				ValidationUtil.checkNotNull(this.variable,RDFS.RESOURCE_TYPE,"Filter variable cannot be null")
+			);
+		}
+
+	}
+
 	private ProtocolFactory() {
 	}
 
@@ -528,6 +733,36 @@ public final class ProtocolFactory {
 
 	public static EnrichmentResponseBuilder newEnrichmentResponse() {
 		return new EnrichmentResponseBuilder();
+	}
+
+	public static Variable newVariable(final String name) {
+		ValidationUtil.checkNotNull(name, XSD.STRING_TYPE,"Variable name cannot be null");
+		return new ImmutableVariable(name);
+	}
+
+	public static Resource newResource(final String name) {
+		return newResource(ParsingUtil.toURI(name));
+	}
+
+	public static Resource newResource(final URI name) {
+		ValidationUtil.checkNotNull(name, RDFS.RESOURCE_TYPE,"Resource name cannot be null");
+		return new ImmutableResource(name);
+	}
+
+	public static LiteralBuilder newLiteral() {
+		return new LiteralBuilder();
+	}
+
+	public static BindingBuilder newBinding() {
+		return new BindingBuilder();
+	}
+
+	public static ConstraintBuilder newConstraint() {
+		return new ConstraintBuilder();
+	}
+
+	public static FilterBuilder newFilter() {
+		return new FilterBuilder();
 	}
 
 }

@@ -24,24 +24,16 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.protocol;
 
+import java.net.URI;
 
-public final class XSD {
+public interface Literal extends Value {
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+	String lexicalForm();
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+	URI datatype();
 
-	private XSD() {
-	}
-
-	public static String term(String localName) {
-		return NAMESPACE+localName;
-	}
+	String language();
 
 }

@@ -27,11 +27,16 @@
 package org.smartdeveloperhub.curator.protocol;
 
 import java.net.URI;
+import java.util.List;
 
 public interface EnrichmentRequest extends Request {
 
+	Policy apply();
+
 	URI targetResource();
 
-	Policy apply();
+	List<Filter> filters();
+
+	List<Constraint> constraints();
 
 }

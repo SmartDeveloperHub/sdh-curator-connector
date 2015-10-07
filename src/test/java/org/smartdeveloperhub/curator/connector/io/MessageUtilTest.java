@@ -27,16 +27,22 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.fail;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAccepted;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAgent;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newBinding;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newBroker;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newConstraint;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDeliveryChannel;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDisconnect;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentRequest;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentResponse;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFailure;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFilter;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newLiteral;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newResource;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newVariable;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -63,9 +69,51 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 @RunWith(JMockit.class)
 public class MessageUtilTest {
+
+	private static class UnknownMessage implements Message {
+
+		@Override
+		public UUID messageId() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public DateTime submittedOn() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Agent submittedBy() {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	private static class UnknownMessageConverter implements MessageConverter<UnknownMessage> {
+
+		private UnknownMessageConverter() {
+		}
+
+		@Override
+		public UnknownMessage fromString(ConversionContext context, String body) throws MessageConversionException {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String toString(ConversionContext context, UnknownMessage message) throws MessageConversionException {
+			throw new UnsupportedOperationException();
+		}
+
+	}
+
+	private static final String DOAP = "http://usefulinc.com/ns/doap#";
+	private static final String SCM = "http://www.smartdeveloperhub.org/vocabulary/scm#";
+	private static final String CI = "http://www.smartdeveloperhub.org/vocabulary/ci#";
 
 	private EnrichmentRequest request(boolean full) {
 		final EnrichmentRequestBuilder builder =
@@ -75,7 +123,67 @@ public class MessageUtilTest {
 				withSubmittedBy(
 					newAgent().
 						withAgentId(UUID.randomUUID())).
-				withTargetResource(URI.create("urn:example"));
+				withTargetResource(URI.create("execution")).
+				withFilter(
+					newFilter().
+						withProperty(CI+"forBranch").
+						withVariable(newVariable("branch"))).
+				withFilter(
+					newFilter().
+						withProperty(CI+"forCommit").
+						withVariable(newVariable("commit"))).
+				withConstraint(
+					newConstraint().
+						withTarget(newVariable("repository")).
+						withBinding(
+							newBinding().
+								withProperty(RDF.TYPE).
+								withValue(newResource(SCM+"Repository"))).
+						withBinding(
+							newBinding().
+								withProperty(SCM+"hasBranch").
+								withValue(newVariable("branch"))).
+						withBinding(
+							newBinding().
+								withProperty(SCM+"location").
+								withValue(
+									newLiteral().
+										withLexicalForm("git://github.com/ldp4j/ldp4j.git").
+											withDatatype(XSD.ANY_URI_TYPE)))
+						).
+				withConstraint(
+					newConstraint().
+						withTarget(newVariable("branch")).
+						withBinding(
+							newBinding().
+								withProperty(RDF.TYPE).
+								withValue(newResource(SCM+"Branch"))).
+						withBinding(
+							newBinding().
+								withProperty(SCM+"hasCommit").
+								withValue(newVariable("commit"))).
+						withBinding(
+							newBinding().
+								withProperty(DOAP+"name").
+								withValue(
+									newLiteral().
+										withLexicalForm("develop").
+										withDatatype(XSD.STRING_TYPE)))
+					).
+				withConstraint(
+					newConstraint().
+						withTarget(newVariable("commit")).
+						withBinding(
+							newBinding().
+								withProperty(RDF.TYPE).
+								withValue(newResource(SCM+"Commit"))).
+						withBinding(
+							newBinding().
+								withProperty(SCM+"commitId").
+								withValue(
+									newLiteral().
+										withLexicalForm("f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44").
+										withDatatype(XSD.STRING_TYPE))));
 		if(full) {
 			builder.withReplyTo(
 				newDeliveryChannel().
@@ -156,40 +264,14 @@ public class MessageUtilTest {
 				build();
 	}
 
-	private static class UnknownMessage implements Message {
-
-		@Override
-		public UUID messageId() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public DateTime submittedOn() {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Agent submittedBy() {
-			throw new UnsupportedOperationException();
-		}
-
-	}
-
-	private static class UnknownMessageConverter implements MessageConverter<UnknownMessage> {
-
-		private UnknownMessageConverter() {
-		}
-
-		@Override
-		public UnknownMessage fromString(String body) throws MessageConversionException {
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public String toString(UnknownMessage message) throws MessageConversionException {
-			throw new UnsupportedOperationException();
-		}
-
+	private ConversionContext context() {
+		return
+			ConversionContext.
+				newInstance().
+					withBase(URI.create("urn:curator:")).
+					withNamespacePrefix(CI,"ci").
+					withNamespacePrefix(SCM,"scm").
+					withNamespacePrefix(DOAP,"doap");
 	}
 
 	@Test
@@ -282,7 +364,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentRequest() throws Exception {
-		String strRequest = MessageUtil.newInstance().toString(request(true));
+		String strRequest = MessageUtil.newInstance().withConversionContext(context()).toString(request(true));
 		System.out.println(strRequest);
 		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
 		System.out.println();

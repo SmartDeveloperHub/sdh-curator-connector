@@ -65,6 +65,11 @@ final class ImmutablePropertyHelper extends DelegatedModelHelper<ImmutableResour
 	}
 
 	@Override
+	public <T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, URI type) {
+		return withTypedLiteral(value,type.toString());
+	}
+
+	@Override
 	public <T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, String type) {
 		return addStatement(model().createTypedLiteral(value.toString(),type));
 	}

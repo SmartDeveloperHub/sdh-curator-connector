@@ -27,28 +27,38 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Policy;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.ImmutableList;
 
 final class ImmutableEnrichmentRequest extends ImmutableRequest implements EnrichmentRequest {
 
 	private final URI targetResource;
+	private final ImmutableList<Filter> filters;
+	private final ImmutableList<Constraint> constraints;
 
 	ImmutableEnrichmentRequest(
 			UUID messageId,
 			DateTime submittedOn,
 			Agent agent,
 			DeliveryChannel deliveryChannel,
-			URI targetResource) {
+			URI targetResource,
+			List<Filter> filters,
+			List<Constraint> constraints) {
 		super(messageId,submittedOn,agent,deliveryChannel);
 		this.targetResource = targetResource;
+		this.filters=ImmutableList.copyOf(filters);
+		this.constraints=ImmutableList.copyOf(constraints);
 	}
 
 	@Override
@@ -62,9 +72,22 @@ final class ImmutableEnrichmentRequest extends ImmutableRequest implements Enric
 	}
 
 	@Override
+	public List<Filter> filters() {
+		return this.filters;
+	}
+
+	@Override
+	public List<Constraint> constraints() {
+		return this.constraints;
+	}
+
+	@Override
 	protected void toString(ToStringHelper helper) {
 		super.toString(helper);
-		helper.add("targetResource", this.targetResource);
+		helper.
+			add("targetResource", this.targetResource).
+			add("filters",this.filters).
+			add("constraints",this.constraints);
 	}
 
 }

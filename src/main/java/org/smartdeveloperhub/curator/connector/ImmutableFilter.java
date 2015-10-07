@@ -24,24 +24,44 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector;
 
+import java.net.URI;
 
-public final class XSD {
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Variable;
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+import com.google.common.base.MoreObjects;
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+final class ImmutableFilter implements Filter {
 
-	private XSD() {
+	private final URI property;
+	private final Variable variable;
+
+	ImmutableFilter(URI property, Variable variable) {
+		this.property=property;
+		this.variable=variable;
 	}
 
-	public static String term(String localName) {
-		return NAMESPACE+localName;
+	@Override
+	public URI property() {
+		return this.property;
+	}
+
+	@Override
+	public Variable variable() {
+		return this.variable;
+	}
+
+	@Override
+	public String toString() {
+		return
+			MoreObjects.
+				toStringHelper(getClass()).
+					omitNullValues().
+					add("property",this.property).
+					add("variable",this.variable).
+					toString();
 	}
 
 }

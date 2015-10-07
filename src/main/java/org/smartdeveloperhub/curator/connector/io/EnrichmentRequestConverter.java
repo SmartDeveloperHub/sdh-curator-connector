@@ -26,10 +26,18 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+import java.net.URI;
+import java.util.List;
+
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.connector.rdf.ResourceHelper;
+import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
@@ -41,9 +49,9 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentRequest> {
 
-	private static final String REQUEST_BNODE = "request";
-	private static final String AGENT_BNODE = "agent";
-	private static final String BROKER_BNODE = "broker";
+	private static final String REQUEST_BNODE          = "request";
+	private static final String AGENT_BNODE            = "agent";
+	private static final String BROKER_BNODE           = "broker";
 	private static final String DELIVERY_CHANNEL_BNODE = "deliveryChannel";
 
 	@Override
@@ -68,7 +76,45 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 			blankNode(DELIVERY_CHANNEL_BNODE).
 				type(CURATOR.DELIVERY_CHANNEL_TYPE);
 
-		DeliveryChannel deliveryChannel = message.replyTo();
+		serializeReplyTo(helper, message.replyTo());
+		// TODO: ensure that there are no variable/blank node clashes
+		// TODO: check that there is danger triple (i.e., ?x a curator:EnrichmentRequest)
+		serializeFilters(helper,message.targetResource(),message.filters());
+		serializeConstraints(helper,message.constraints());
+	}
+
+	@Override
+	protected EnrichmentRequest parse(Model model, Resource resource) {
+		return EnrichmentRequestParser.fromModel(model, resource);
+	}
+
+	@Override
+	protected String messageType() {
+		return CURATOR.ENRICHMENT_REQUEST_TYPE;
+	}
+
+	private void serializeConstraints(ModelHelper helper, List<Constraint> constraints) {
+		for(Constraint constraint:constraints) {
+			NamedValue variable=constraint.target();
+			BindingSerializer serializer=
+				BindingSerializer.newInstance(helper, variable);
+			for(Binding binding:constraint.bindings()) {
+				serializer.serialize(binding);
+			}
+		}
+	}
+
+	private void serializeFilters(ModelHelper helper, URI targetResource, List<Filter> filters) {
+		final ResourceHelper resource=helper.resource(targetResource);
+		for(final Filter filter:filters) {
+			resource.
+				property(filter.property()).
+					withBlankNode(filter.variable().name());
+		}
+	}
+
+	private void serializeReplyTo(ModelHelper helper,
+			DeliveryChannel deliveryChannel) {
 		Broker broker = deliveryChannel.broker();
 		if(broker!=null) {
 			helper.
@@ -84,6 +130,7 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 					property(AMQP.VIRTUAL_HOST).
 						withTypedLiteral(broker.virtualHost(),AMQP.PATH_TYPE);
 		}
+
 		deliveryChannelProperty(helper, AMQP.EXCHANGE_NAME, deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
 		deliveryChannelProperty(helper, AMQP.QUEUE_NAME, deliveryChannel.queueName(), AMQP.NAME_TYPE);
 		deliveryChannelProperty(helper, AMQP.ROUTING_KEY, deliveryChannel.routingKey(), AMQP.PATH_TYPE);
@@ -96,16 +143,6 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 					property(property).
 						withTypedLiteral(value,type);
 		}
-	}
-
-	@Override
-	protected EnrichmentRequest parse(Model model, Resource resource) {
-		return EnrichmentRequestParser.fromModel(model, resource);
-	}
-
-	@Override
-	protected String messageType() {
-		return CURATOR.ENRICHMENT_REQUEST_TYPE;
 	}
 
 }

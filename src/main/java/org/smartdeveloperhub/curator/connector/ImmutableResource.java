@@ -24,24 +24,34 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector;
 
+import java.net.URI;
 
-public final class XSD {
+import org.smartdeveloperhub.curator.protocol.Resource;
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+import com.google.common.base.MoreObjects;
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+final class ImmutableResource implements Resource {
 
-	private XSD() {
+	private final URI name;
+
+	ImmutableResource(URI name) {
+		this.name = name;
 	}
 
-	public static String term(String localName) {
-		return NAMESPACE+localName;
+	@Override
+	public URI name() {
+		return this.name;
 	}
 
+	@Override
+	public String toString() {
+		return 
+			MoreObjects.
+				toStringHelper(getClass()).
+					add("name",this.name).
+					toString();
+	}
+	
 }

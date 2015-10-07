@@ -24,24 +24,46 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector;
 
+import java.util.List;
 
-public final class XSD {
+import org.smartdeveloperhub.curator.protocol.Binding;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.NamedValue;
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+final class ImmutableConstraint implements Constraint {
 
-	private XSD() {
+	private final NamedValue target;
+	private final ImmutableList<Binding> bindings;
+
+	ImmutableConstraint(NamedValue namedValue, List<Binding> bindings) {
+		this.target=namedValue;
+		this.bindings=ImmutableList.copyOf(bindings);
 	}
 
-	public static String term(String localName) {
-		return NAMESPACE+localName;
+	@Override
+	public NamedValue target() {
+		return this.target;
+	}
+
+	@Override
+	public List<Binding> bindings() {
+		return this.bindings;
+	}
+
+	@Override
+	public String toString() {
+		return
+			MoreObjects.
+				toStringHelper(getClass()).
+					omitNullValues().
+					add("target",this.target).
+					add("bindings",this.bindings).
+					toString();
 	}
 
 }

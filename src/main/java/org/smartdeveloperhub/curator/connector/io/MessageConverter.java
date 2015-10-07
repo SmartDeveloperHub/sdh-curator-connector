@@ -30,8 +30,8 @@ import org.smartdeveloperhub.curator.protocol.Message;
 
 public interface MessageConverter<T extends Message> {
 
-	T fromString(String body) throws MessageConversionException;
+	T fromString(ConversionContext context, String body) throws MessageConversionException;
 
-	String toString(T message) throws MessageConversionException;
+	String toString(ConversionContext context, T message) throws MessageConversionException;
 
 }

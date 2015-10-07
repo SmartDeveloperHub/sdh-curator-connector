@@ -50,15 +50,26 @@ public final class MessageUtil {
 		MessageUtil.registerConverter(Failure.class,FailureConverter.class);
 	}
 
+	private volatile ConversionContext context;
+
 	private MessageUtil() {
+		this.context=ConversionContext.newInstance();
+	}
+
+	public MessageUtil withConversionContext(ConversionContext context) {
+		this.context=
+			context==null?
+				ConversionContext.newInstance():
+				context;
+		return this;
 	}
 
 	public <T extends Message> T fromString(String body, Class<? extends T> messageClass) throws MessageConversionException {
-		return converter(messageClass).fromString(body);
+		return converter(messageClass).fromString(this.context,body);
 	}
 
 	public <T extends Message> String toString(T message) throws MessageConversionException {
-		return converter(message.getClass()).toString(message);
+		return converter(message.getClass()).toString(this.context,message);
 	}
 
 	private <T extends Message> MessageConverter<T> converter(Class<? extends T> messageClass) throws MessageConversionException {

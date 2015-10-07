@@ -35,6 +35,8 @@ public interface PropertyHelper {
 
 	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withLanguageLiteral(Object value, String lang);
 
+	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, URI type);
+
 	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withTypedLiteral(Object value, String type);
 
 	<T extends PropertyHelper & ResourceHelper & ModelHelper> T withResource(String value);

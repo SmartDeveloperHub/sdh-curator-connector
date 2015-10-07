@@ -24,24 +24,44 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector;
 
+import java.net.URI;
 
-public final class XSD {
+import org.smartdeveloperhub.curator.protocol.Binding;
+import org.smartdeveloperhub.curator.protocol.Value;
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+import com.google.common.base.MoreObjects;
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+final class ImmutableBinding implements Binding {
 
-	private XSD() {
+	private final Value value;
+	private final URI property;
+
+	ImmutableBinding(URI property, Value value) {
+		this.property = property;
+		this.value = value;
 	}
 
-	public static String term(String localName) {
-		return NAMESPACE+localName;
+	@Override
+	public URI property() {
+		return this.property;
+	}
+
+	@Override
+	public Value value() {
+		return this.value;
+	}
+
+	@Override
+	public String toString() {
+		return
+			MoreObjects.
+				toStringHelper(getClass()).
+					omitNullValues().
+					add("property",this.property).
+					add("value",this.value).
+					toString();
 	}
 
 }

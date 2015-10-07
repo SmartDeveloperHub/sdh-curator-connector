@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
@@ -50,6 +51,8 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 abstract class ModelMessageConverter<T extends Message> implements MessageConverter<T> {
 
+	private static final RDFFormat FORMAT = RDFFormat.TURTLE;
+
 	private Resource getTargetResource(Model model) throws MessageConversionException {
 		ResIterator iterator=
 			model.
@@ -66,15 +69,15 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 	}
 
 	@Override
-	public final T fromString(String body) throws MessageConversionException {
+	public final T fromString(ConversionContext context, String body) throws MessageConversionException {
 		try {
-			Model model=
-				ModelFactory.
-					createDefaultModel().
-						read(
-							new StringReader(body),
-							"http://www.smartdeveloperhub.org/base#",
-							"TURTLE");
+			Model model=ModelFactory.createDefaultModel();
+			RDFDataMgr.
+				read(
+					model,
+					new StringReader(body),
+					context.base().toString(),
+					FORMAT.getLang());
 			return parse(model,getTargetResource(model));
 		} catch (RiotException e) {
 			throw new MessageConversionException("Could not parse body '"+body+"' as Turtle",e);
@@ -84,19 +87,35 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 	}
 
 	@Override
-	public final String toString(T message) throws MessageConversionException {
+	public final String toString(ConversionContext context, T message) throws MessageConversionException {
 		StringWriter out = new StringWriter();
 		try {
 			Model model=ModelFactory.createDefaultModel();
-			Namespaces.setUpNamespacePrefixes(model);
+			setUpNamespaces(context, model);
 			ModelHelper helper=ModelUtil.createHelper(model);
 			toString(message,helper);
-			RDFDataMgr.write(out,model,RDFFormat.TURTLE);
+			RDFDataMgr.write(out,model,FORMAT);
 			out.close();
 			return out.toString();
 		} catch (IOException e) {
 			IOUtils.closeQuietly(out);
 			throw new MessageConversionException("Could not serialize message",e);
+		}
+	}
+
+	private void setUpNamespaces(ConversionContext context, Model model) {
+		Namespaces.setUpNamespacePrefixes(model);
+		int prefixCounter=0;
+		for(Entry<String,String> entry:context.namespacePrefixes().entrySet()) {
+			final String namespace = entry.getKey();
+			if(model.getNsPrefixURI(namespace)==null) {
+				String prefix = entry.getValue();
+				if(model.getNsPrefixURI(prefix)!=null) {
+					prefixCounter++;
+					prefix="pr"+prefixCounter;
+				}
+				model.setNsPrefix(prefix,namespace);
+			}
 		}
 	}
 

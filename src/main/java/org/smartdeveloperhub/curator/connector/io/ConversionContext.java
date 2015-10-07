@@ -24,24 +24,53 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol.vocabulary;
+package org.smartdeveloperhub.curator.connector.io;
 
+import java.net.URI;
+import java.util.Map;
 
-public final class XSD {
+import com.google.common.collect.ImmutableMap;
 
-	public static final String NAMESPACE = "http://www.w3.org/2001/XMLSchema#";
-	public static final String PREFIX    = "xsd";
+final class ConversionContext {
 
-	public static final String DATE_TIME_TYPE = term("dateTime");
-	public static final String UNSIGNED_LONG_TYPE = term("unsignedLong");
-	public static final String STRING_TYPE = term("string");
-	public static final String ANY_URI_TYPE = term("anyURI");
+	private static final URI NULL_BASE = URI.create("");
 
-	private XSD() {
+	private final URI base;
+	private final ImmutableMap<String, String> namespacePrefixes;
+
+	private ConversionContext(URI base, ImmutableMap<String, String> namespacePrefixes) {
+		this.base=base;
+		this.namespacePrefixes=namespacePrefixes;
 	}
 
-	public static String term(String localName) {
-		return NAMESPACE+localName;
+	URI base() {
+		return this.base;
+	}
+
+	Map<String,String> namespacePrefixes() {
+		return this.namespacePrefixes;
+	}
+
+	ConversionContext withBase(URI base) {
+		return
+			new ConversionContext(
+				base==null?NULL_BASE:base,
+				this.namespacePrefixes);
+	}
+
+	ConversionContext withNamespacePrefix(String namespace, String prefix) {
+		return
+			new ConversionContext(
+				this.base,
+				ImmutableMap.
+					<String,String>builder().
+						putAll(this.namespacePrefixes).
+						put(namespace,prefix).
+						build());
+	}
+
+	static ConversionContext newInstance() {
+		return new ConversionContext(NULL_BASE,ImmutableMap.<String,String>builder().build());
 	}
 
 }
