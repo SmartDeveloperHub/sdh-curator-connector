@@ -141,14 +141,7 @@ public final class Connector {
 					MessageUtil.
 						newInstance().
 							fromString(payload, EnrichmentResponse.class);
-				EnrichmentResponseHandler handler=
-						activeRequests.get(response.responseTo());
-				if(handler!=null) {
-					LOGGER.debug("Handling processing of response {}...",response);
-					handler.onResponse(response);
-				} else {
-					LOGGER.debug("Discarded response {}.",response);
-				}
+				processEnrichmentResponse(response);
 			} catch (MessageConversionException e) {
 				LOGGER.warn("Could not process message:\n{}\n. Full stacktrace follows",e);
 			}
@@ -158,8 +151,8 @@ public final class Connector {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(Connector.class);
 
-	private final CuratorController curatorController;
-	private final ConnectorController connectorController;
+	private final ClientCuratorController curatorController;
+	private final ClientConnectorController connectorController;
 
 	private final Lock read;
 	private final Lock write;
@@ -167,9 +160,9 @@ public final class Connector {
 	private final ConcurrentMap<UUID,ConnectorFuture> pendingAcknowledgements;
 	private final ConcurrentMap<UUID,EnrichmentResponseHandler> activeRequests;
 
-	private boolean connected;
-
 	private final ConnectorConfiguration configuration;
+
+	private boolean connected;
 
 	private Connector(CuratorConfiguration curatorConfiguration, Agent agent, DeliveryChannel connectorChannel) {
 		this.configuration =
@@ -177,8 +170,8 @@ public final class Connector {
 				withCuratorConfiguration(curatorConfiguration).
 				withConnectorChannel(connectorChannel).
 				withAgent(agent);
-		this.curatorController = new CuratorController(curatorConfiguration,"connector-curator");
-		this.connectorController=new ConnectorController(connectorChannel,this.curatorController);
+		this.curatorController = new ClientCuratorController(curatorConfiguration,"connector-curator");
+		this.connectorController=new ClientConnectorController(connectorChannel,this.curatorController);
 		ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
@@ -187,7 +180,7 @@ public final class Connector {
 		this.activeRequests=Maps.newConcurrentMap();
 	}
 
-	void processAcceptance(Accepted response) {
+	private void processAcceptance(Accepted response) {
 		ConnectorFuture future=this.pendingAcknowledgements.get(response.responseTo());
 		if(future==null) {
 			LOGGER.warn("Could not process curator response {}: unknown curator request {}",response,response.responseTo());
@@ -201,9 +194,14 @@ public final class Connector {
 		}
 	}
 
-	void cancelRequest(ConnectorFuture future) {
-		this.pendingAcknowledgements.remove(future.messageId(),future);
-		this.activeRequests.remove(future.messageId());
+	private void processEnrichmentResponse(EnrichmentResponse response) {
+		EnrichmentResponseHandler handler=this.activeRequests.get(response.responseTo());
+		if(handler!=null) {
+			LOGGER.trace("Handling processing of response {} to request {} to handler {}...",response.messageId(),response.responseTo(),handler);
+			handler.onResponse(response);
+		} else {
+			LOGGER.debug("Discarded response {}.",response);
+		}
 	}
 
 	private ConnectorFuture addRequest(EnrichmentRequest message, EnrichmentResponseHandler handler) {
@@ -324,6 +322,11 @@ public final class Connector {
 		} finally {
 			this.write.unlock();
 		}
+	}
+
+	void cancelRequest(ConnectorFuture future) {
+		this.pendingAcknowledgements.remove(future.messageId(),future);
+		this.activeRequests.remove(future.messageId());
 	}
 
 	public static ConnectorBuilder builder() {

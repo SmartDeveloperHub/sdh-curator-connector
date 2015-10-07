@@ -39,62 +39,62 @@ import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.connector.io.NoDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.TooManyDefinitionsFoundException;
+import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.Request;
 import org.smartdeveloperhub.curator.protocol.Response;
 
-final class ExampleCurator {
-
-	private final class CuratorMessageHandler implements MessageHandler {
-
-		@Override
-		public void handlePayload(String payload) {
-			Request request=parsePayload(payload, EnrichmentRequest.class);
-			if(request!=null) {
-				LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
-				Response response = createResponse(request);
-				reply(response);
-				LOGGER.info("Accepted enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),response.messageId());
-			} else {
-				request=parsePayload(payload,Disconnect.class);
-				if(request==null) {
-					LOGGER.error("Could not understand request:\n{}",payload);
-				} else {
-					LOGGER.info("Received disconnect from {}",request.submittedBy().agentId());
-					if(!ExampleCurator.this.disconnectable.isTerminated()) {
-						ExampleCurator.this.disconnectable.arriveAndAwaitAdvance();
-					}
-				}
-			}
-		}
-	}
+final class ExampleCurator implements MessageHandler {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(ExampleCurator.class);
 
+	private final DeliveryChannel connectorConfiguration;
 	private final Phaser disconnectable;
-
-	@SuppressWarnings("unused")
 	private final Phaser answered;
 
-	private CuratorController controller;
+	private ServerCuratorController curatorController;
+	private ServerConnectorController connectorController;
 
-	ExampleCurator(Phaser disconnectable, Phaser answered) {
+	ExampleCurator(DeliveryChannel connectorConfiguration, Phaser disconnectable, Phaser answered) {
+		this.connectorConfiguration = connectorConfiguration;
 		this.disconnectable = disconnectable;
 		this.answered = answered;
 	}
 
 	void connect() throws IOException, ControllerException {
-		this.controller = new CuratorController(CuratorConfiguration.newInstance(),"example-curator");
-		this.controller.connect();
-		this.controller.handleRequests(new CuratorMessageHandler());
+		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"example-curator");
+		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController);
+		this.curatorController.connect();
+		this.curatorController.handleRequests(this);
+		this.connectorController.connect();
 	}
 
 	void disconnect() throws ControllerException {
+		if(!this.answered.isTerminated()) {
+			this.answered.arrive();
+		}
 		if(!this.disconnectable.isTerminated()) {
 			this.disconnectable.arrive();
 		}
-		this.controller.disconnect();
+		this.connectorController.disconnect();
+		this.curatorController.disconnect();
+	}
+
+	@Override
+	public void handlePayload(String payload) {
+		EnrichmentRequest erRequest=parsePayload(payload, EnrichmentRequest.class);
+		if(erRequest!=null) {
+			processEnrichmentRequest(erRequest);
+			return;
+		}
+		Disconnect dRequest=parsePayload(payload,Disconnect.class);
+		if(dRequest!=null) {
+			processDisconnect(dRequest);
+			return;
+		}
+		LOGGER.error("Could not understand request:\n{}",payload);
 	}
 
 	private <T extends Request> T parsePayload(String payload, final Class<? extends T> messageClass) {
@@ -114,9 +114,51 @@ final class ExampleCurator {
 			LOGGER.trace("Failed to parse the payload:\n{}",payload,e);
 		}
 		return request;
+
 	}
 
-	private Response createResponse(Request request) {
+	private void processDisconnect(Disconnect request) {
+		LOGGER.info("Received disconnect from {}",request.submittedBy().agentId());
+		if(!this.disconnectable.isTerminated()) {
+			this.disconnectable.arrive();
+		}
+	}
+
+	private void processEnrichmentRequest(EnrichmentRequest request) {
+		LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
+		Response acknowledgement = createAcknowledgement(request);
+		acknowledgeRequest(acknowledgement);
+		if(acknowledgement instanceof Accepted) {
+			LOGGER.info("Accepted enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
+			Response enrichment = createEnrichmentResponse(request);
+			replyToEnrichment(enrichment);
+		} else {
+			LOGGER.info("Rejected enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
+		}
+	}
+
+	private void acknowledgeRequest(Response response) {
+		try {
+			sleep(TimeUnit.MILLISECONDS,150);
+			this.curatorController.publishResponse(response);
+		} catch (IOException e) {
+			LOGGER.error("Could not acknowledge {}",response,e);
+		}
+	}
+
+	private void replyToEnrichment(Response response) {
+		try {
+			sleep(TimeUnit.MILLISECONDS,150);
+			this.connectorController.publishMessage(response);
+			if(!this.answered.isTerminated()) {
+				this.answered.arrive();
+			}
+		} catch (IOException e) {
+			LOGGER.error("Could not reply {}",response,e);
+		}
+	}
+
+	private Response createAcknowledgement(Request request) {
 		return
 			ProtocolFactory.
 				newAccepted().
@@ -131,15 +173,29 @@ final class ExampleCurator {
 					build();
 	}
 
-	private void reply(Response response) {
+	private Response createEnrichmentResponse(EnrichmentRequest request) {
+		return
+			ProtocolFactory.
+				newEnrichmentResponse().
+					withMessageId(UUID.randomUUID()).
+					withSubmittedOn(new Date()).
+					withSubmittedBy(
+						ProtocolFactory.
+							newAgent().
+								withAgentId(UUID.randomUUID())).
+					withResponseTo(request.messageId()).
+					withResponseNumber(1).
+					withTargetResource(request.targetResource()).
+					withAdditionTarget("addition").
+					withRemovalTarget("removal").
+					build();
+	}
+
+	private void sleep(final TimeUnit unit, final int timeout) {
 		try {
-			try {
-				TimeUnit.MILLISECONDS.sleep(150);
-			} catch (InterruptedException e) {
-			}
-			this.controller.publishResponse(response);
-		} catch (IOException e) {
-			LOGGER.error("Could not reply {}",response,e);
+			unit.sleep(timeout);
+		} catch (InterruptedException e) {
+			// IGNORE INTERRUPTION
 		}
 	}
 

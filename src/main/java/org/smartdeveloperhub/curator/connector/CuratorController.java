@@ -36,10 +36,7 @@ import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.rabbitmq.client.Channel;
 
-final class CuratorController {
-
-	private static final String CURATOR_REQUEST_ROUTING_KEY = "curator.request";
-	private static final String CURATOR_RESPONSE_ROUTING_KEY = "curator.response";
+abstract class CuratorController {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(CuratorController.class);
 
@@ -51,54 +48,67 @@ final class CuratorController {
 		this.brokerController=new BrokerController(configuration.broker(),name);
 	}
 
-	BrokerController brokerController() {
+	final void registerMessageHandler(final MessageHandler handler, final String queueName) throws IOException {
+		Channel channel = this.brokerController.channel();
+		channel.basicConsume(
+			queueName,
+			true,
+			new MessageHandlerConsumer(channel, handler)
+		);
+	}
+
+	final void publishMessage(Message message, String routingKey) throws IOException {
+		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
+		try {
+			publishMessage(
+				MessageUtil.
+					newInstance().
+						toString(message),
+				routingKey);
+		} catch (MessageConversionException e) {
+			LOGGER.error("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
+			throw new IOException("Could not serialize message",e);
+		}
+	}
+
+	final void publishMessage(final String message, final String routingKey) throws IOException {
+		LOGGER.trace("Publishing message {} to routing key {}...",message,routingKey);
+		try {
+			this.brokerController.
+				channel().
+					basicPublish(
+						this.curatorConfiguration().exchangeName(),
+						routingKey,
+						null,
+						message.getBytes());
+		} catch (Exception e) {
+			LOGGER.debug("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
+			throw e;
+		}
+	}
+
+	final BrokerController brokerController() {
 		return this.brokerController;
 	}
 
-	CuratorConfiguration curatorConfiguration() {
+	final CuratorConfiguration curatorConfiguration() {
 		return this.configuration;
 	}
 
-	void connect() throws ControllerException {
+	final void connect() throws ControllerException {
 		this.brokerController.connect();
 		configureBroker();
 	}
 
-	void publishRequest(Message message) throws IOException {
-		publishMessage(message, CURATOR_REQUEST_ROUTING_KEY);
-	}
-
-	void publishResponse(Message message) throws IOException {
-		publishMessage(message, CURATOR_RESPONSE_ROUTING_KEY);
-	}
-
-	void handleResponses(final MessageHandler handler) throws IOException {
-		Channel channel = this.brokerController.channel();
-		channel.basicConsume(
-			this.curatorConfiguration().responseQueueName(),
-			true,
-			new MessageHandlerConsumer(channel, handler)
-		);
-	}
-
-	void handleRequests(final MessageHandler handler) throws IOException {
-		Channel channel = this.brokerController.channel();
-		channel.basicConsume(
-			this.curatorConfiguration().requestQueueName(),
-			true,
-			new MessageHandlerConsumer(channel, handler)
-		);
-	}
-
-	void disconnect() {
+	final void disconnect() {
 		this.brokerController.disconnect();
 	}
 
 	private void configureBroker() throws ControllerException {
 		Channel channel = this.brokerController.channel();
-		prepareExchange(channel, this.curatorConfiguration().exchangeName());
-		prepareQueue(channel, this.curatorConfiguration().exchangeName(), this.curatorConfiguration().requestQueueName(), CURATOR_REQUEST_ROUTING_KEY);
-		prepareQueue(channel, this.curatorConfiguration().exchangeName(), this.curatorConfiguration().responseQueueName(), CURATOR_RESPONSE_ROUTING_KEY);
+		prepareExchange(channel, this.configuration.exchangeName());
+		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.requestQueueName(), this.configuration.requestRoutingKey());
+		prepareQueue(channel, this.configuration.exchangeName(), this.configuration.responseQueueName(), this.configuration.responseRoutingKey());
 	}
 
 	private void prepareExchange(Channel channel, String exchangeName) throws ControllerException {
@@ -119,28 +129,6 @@ final class CuratorController {
 			channel.queueBind(queueName,exchangeName,routingKey);
 		} catch (IOException e) {
 			throw new ControllerException("Could not bind curator queue '"+queueName+"' to exchange '"+exchangeName+"' using routing key '"+routingKey+"'",e);
-		}
-	}
-
-	private void publishMessage(Message message, String routingKey) throws IOException {
-		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
-		try {
-			this.brokerController.
-				channel().
-					basicPublish(
-						this.curatorConfiguration().exchangeName(),
-						routingKey,
-						null,
-						MessageUtil.
-							newInstance().
-								toString(message).
-									getBytes());
-		} catch (IOException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw e;
-		} catch (MessageConversionException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw new IOException("Could not serialize message",e);
 		}
 	}
 

@@ -28,19 +28,12 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
-import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.rabbitmq.client.Channel;
 
-final class ConnectorController {
-
-	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorController.class);
+abstract class ConnectorController {
 
 	private final CuratorController curatorController;
 	private final BrokerController connectorController;
@@ -57,7 +50,7 @@ final class ConnectorController {
 		}
 	}
 
-	void connect() throws ControllerException {
+	final void connect() throws ControllerException {
 		this.connectorController.connect();
 		Channel channel = this.connectorController.channel();
 		String exchangeName = declareConnectorExchange(channel);
@@ -73,43 +66,15 @@ final class ConnectorController {
 					build();
 	}
 
-	DeliveryChannel effectiveConfiguration() {
+	final DeliveryChannel effectiveConfiguration() {
 		return this.effectiveConfiguration;
 	}
 
-	void publishMessage(Message message) throws IOException {
-		final String routingKey = this.effectiveConfiguration.routingKey();
-		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
-		try {
-			this.connectorController.
-				channel().
-					basicPublish(
-						this.effectiveConfiguration.exchangeName(),
-						routingKey,
-						null,
-						MessageUtil.
-							newInstance().
-								toString(message).
-									getBytes());
-		} catch (IOException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw e;
-		} catch (MessageConversionException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw new IOException("Could not serialize message",e);
-		}
+	final BrokerController connectorController() {
+		return this.connectorController;
 	}
 
-	void handleMessage(MessageHandler handler) throws IOException {
-		Channel channel = this.connectorController.channel();
-		channel.basicConsume(
-			this.connectorConfiguration.queueName(),
-			true,
-			new MessageHandlerConsumer(channel, handler)
-		);
-	}
-
-	void disconnect() {
+	final void disconnect() {
 		this.connectorController.disconnect();
 	}
 
