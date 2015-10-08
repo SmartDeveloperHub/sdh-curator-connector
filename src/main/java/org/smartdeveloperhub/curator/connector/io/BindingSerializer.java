@@ -36,6 +36,7 @@ import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Resource;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 
 final class BindingSerializer {
 
@@ -49,13 +50,16 @@ final class BindingSerializer {
 
 	private void serialize(URI property, Value value) {
 		if(value instanceof Resource) {
+			final URI name = ((Resource)value).name();
 			resourceHelper().
 				property(property).
-					withResource(((Resource)value).name());
+					withResource(name);
 		} else if(value instanceof Variable) {
+			final String name = ((Variable)value).name();
 			resourceHelper().
 				property(property).
-					withBlankNode(((Variable)value).name());
+					withBlankNode(name);
+			this.helper.blankNode(name).type(CURATOR.VARIABLE_TYPE);
 		} else { // MUST BE LITERAL
 			Literal literal=(Literal)value;
 			resourceHelper().
@@ -72,7 +76,9 @@ final class BindingSerializer {
 			resourceHelper=this.helper.resource(((Resource)this.target).name());
 		} else {
 			resourceHelper=this.helper.blankNode(((Variable)this.target).name());
+			resourceHelper.type(CURATOR.VARIABLE_TYPE);
 		}
+
 		return resourceHelper;
 	}
 

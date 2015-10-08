@@ -53,6 +53,7 @@ public final class CURATOR {
 	public static final String DETAIL = term("detail");
 	public static final String MESSAGE_TYPE = term("Message");
 	public static final String DISCONNECT_TYPE = term("Disconnect");
+	public static final String VARIABLE_TYPE = term("Variable");
 
 	private CURATOR() {
 	}

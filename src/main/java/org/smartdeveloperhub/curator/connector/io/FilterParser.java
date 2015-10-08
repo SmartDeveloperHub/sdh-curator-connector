@@ -29,55 +29,37 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.FilterBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.Filter;
-import org.smartdeveloperhub.curator.protocol.Variable;
 
-import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, EnrichmentRequestBuilder> {
+final class FilterParser extends Parser<Filter, FilterBuilder> {
 
-	private final class EnrichmentRequestWorker extends RequestWorker {
+	private final class FilterWorker extends Worker {
 
 		@Override
 		public void parse() {
-			super.parse();
-			Resource targetResource=
-				mandatory(
-					new ResourceProvider<Resource>("targetResource","curator:targetResource") {
-						@Override
-						protected Resource consumeResource(EnrichmentRequestBuilder builder, Resource resource) {
-							builder.withTargetResource(resource.getURI());
-							return resource;
-						}
+			mandatory(
+				new ResourceConsumer("filterProperty") {
+					@Override
+					protected void consumeResource(FilterBuilder builder, Resource resource) {
+						builder.withProperty(resource.getURI());
 					}
-				);
-			List<Variable> variables = parseFilters();
-			parseConstraints(targetResource, variables);
-		}
-
-		private void parseConstraints(Resource targetResource, List<Variable> variables) {
-			List<Constraint> constraints=ConstraintParser.fromModel(model(),targetResource,variables);
-			for(Constraint constraint:constraints) {
-				builder().withConstraint(constraint);
-			}
-		}
-
-		private List<Variable> parseFilters() {
-			List<Variable> variables=Lists.newArrayList();
-			List<Filter> filters = FilterParser.fromModel(model(), resource());
-			for(Filter filter:filters) {
-				builder().withFilter(filter);
-				variables.add(filter.variable());
-			}
-			return variables;
+				}
+			);
+			mandatory(
+				new ResourceConsumer("filterVariable") {
+					@Override
+					protected void consumeResource(FilterBuilder builder, Resource resource) {
+						builder.withVariable(ProtocolFactory.newVariable(resource.getId().getLabelString()));
+					}
+				}
+			);
 		}
 
 	}
@@ -86,25 +68,25 @@ final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, Enr
 		QueryFactory.create(
 			ResourceUtil.
 				loadResource(
-					EnrichmentRequestParser.class,
-					"enrichmentRequest.sparql"));
+					FilterParser.class,
+					"filters.sparql"));
 
-	private EnrichmentRequestParser(Model model, Resource resource) {
+	private FilterParser(Model model, Resource resource) {
 		super(model, resource, "curator:EnrichmentRequest", "enrichmentRequest", QUERY);
 	}
 
 	@Override
-	protected RequestWorker solutionParser() {
-		return new EnrichmentRequestWorker();
+	protected Worker solutionParser() {
+		return new FilterWorker();
 	}
 
 	@Override
-	protected EnrichmentRequestBuilder newBuilder() {
-		return ProtocolFactory.newEnrichmentRequest();
+	protected FilterBuilder newBuilder() {
+		return ProtocolFactory.newFilter();
 	}
 
-	static EnrichmentRequest fromModel(Model model, Resource resource) {
-		return new EnrichmentRequestParser(model, resource).parse();
+	static List<Filter> fromModel(Model model, Resource resource) {
+		return new FilterParser(model, resource).parseCollection();
 	}
 
 }

@@ -27,7 +27,7 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAccepted;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAgent;
@@ -50,6 +50,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
 
+import mockit.Deencapsulation;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.integration.junit4.JMockit;
@@ -114,6 +115,7 @@ public class MessageUtilTest {
 	private static final String DOAP = "http://usefulinc.com/ns/doap#";
 	private static final String SCM = "http://www.smartdeveloperhub.org/vocabulary/scm#";
 	private static final String CI = "http://www.smartdeveloperhub.org/vocabulary/ci#";
+	private static final String ORG = "http://www.smartdeveloperhub.org/vocabulary/organization#";
 
 	private EnrichmentRequest request(boolean full) {
 		final EnrichmentRequestBuilder builder =
@@ -132,6 +134,18 @@ public class MessageUtilTest {
 					newFilter().
 						withProperty(CI+"forCommit").
 						withVariable(newVariable("commit"))).
+				withConstraint(
+					newConstraint().
+						withTarget(newResource("project")).
+						withBinding(
+							newBinding().
+								withProperty(RDF.TYPE).
+								withValue(newResource(ORG+"Project"))).
+						withBinding(
+							newBinding().
+								withProperty(ORG+"hasRepository").
+								withValue(newVariable("repository")))
+						).
 				withConstraint(
 					newConstraint().
 						withTarget(newVariable("repository")).
@@ -271,7 +285,15 @@ public class MessageUtilTest {
 					withBase(URI.create("urn:curator:")).
 					withNamespacePrefix(CI,"ci").
 					withNamespacePrefix(SCM,"scm").
-					withNamespacePrefix(DOAP,"doap");
+					withNamespacePrefix(DOAP,"doap").
+					withNamespacePrefix(ORG, "ci"). // DUPLICATED PREFIX
+					withNamespacePrefix(CURATOR.NAMESPACE, "ci"); // DUPLICATED NAMESPACE
+	}
+
+	@Test
+	public void testWithConversionContext$neverUpdateNull() throws Exception {
+		MessageUtil sut = MessageUtil.newInstance().withConversionContext(null);
+		assertThat(Deencapsulation.getField(sut,"context"),notNullValue());
 	}
 
 	@Test

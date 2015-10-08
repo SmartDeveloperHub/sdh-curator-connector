@@ -46,31 +46,47 @@ abstract class Parser<T, B extends Builder<T>> {
 
 	protected abstract class Worker {
 
-		protected abstract class Consumer {
+		protected abstract class Provider<V> {
 
 			private final String varName;
 			private final String propertyName;
 			private boolean optional;
 
-			private Consumer(String varName, String propertyName) {
+			private Provider(String varName, String propertyName) {
 				this.varName = varName;
 				this.propertyName = propertyName;
 			}
 
-			private void setOptional(boolean optional) {
+			protected void setOptional(boolean optional) {
 				this.optional = optional;
 			}
 
-			private final String variableName() {
+			protected final String variableName() {
 				return this.varName;
 			}
 
-			private final String propertyName() {
+			protected final String propertyName() {
 				return this.propertyName;
 			}
 
-			private final boolean isOptional() {
+			protected final boolean isOptional() {
 				return this.optional;
+			}
+
+			protected abstract V provide(QuerySolution solution);
+
+		}
+
+		protected abstract class Consumer extends Provider<Void> {
+
+			private Consumer(String varName, String propertyName) {
+				super(varName,propertyName);
+			}
+
+			@Override
+			protected Void provide(QuerySolution solution) {
+				consume(solution);
+				return null;
 			}
 
 			protected abstract void consume(QuerySolution solution);
@@ -105,6 +121,10 @@ abstract class Parser<T, B extends Builder<T>> {
 				super(varName,propertyName);
 			}
 
+			protected ResourceConsumer(String varName) {
+				super(varName,"");
+			}
+
 			@Override
 			protected final void consume(QuerySolution solution) {
 				Resource resourceValue=resource(super.variableName(), super.propertyName(), super.isOptional());
@@ -118,6 +138,29 @@ abstract class Parser<T, B extends Builder<T>> {
 			}
 
 			protected abstract void consumeResource(B builder, Resource resource);
+
+		}
+
+		protected abstract class ResourceProvider<V> extends Provider<V> {
+
+			protected ResourceProvider(String varName, String propertyName) {
+				super(varName,propertyName);
+			}
+
+			@Override
+			protected final V provide(QuerySolution solution) {
+				Resource resourceValue=resource(super.variableName(), super.propertyName(), super.isOptional());
+				if(resourceValue!=null) {
+					try {
+						return consumeResource(Worker.this.builder,resourceValue);
+					} catch (ValidationException e) {
+						throw failConversion(super.propertyName(),e);
+					}
+				}
+				return null;
+			}
+
+			protected abstract V consumeResource(B builder, Resource resource);
 
 		}
 
@@ -144,14 +187,27 @@ abstract class Parser<T, B extends Builder<T>> {
 			return Parser.this.model;
 		}
 
+		protected final Resource resource() {
+			return Parser.this.resource;
+		}
+
+		protected final B builder() {
+			return this.builder;
+		}
+
 		protected final void optional(Consumer consumer) {
 			consumer.setOptional(true);
-			consumer.consume(this.solution);
+			consumer.provide(this.solution);
 		}
 
 		protected final void mandatory(Consumer consumer) {
 			consumer.setOptional(false);
-			consumer.consume(this.solution);
+			consumer.provide(this.solution);
+		}
+
+		protected final <V> V mandatory(Provider<V> provider) {
+			provider.setOptional(false);
+			return provider.provide(this.solution);
 		}
 
 		private Literal literal(String varName, String property, boolean nullable) {
@@ -190,17 +246,22 @@ abstract class Parser<T, B extends Builder<T>> {
 	}
 
 	final T parse() {
+		return firstResult(parseCollection());
+	}
+
+	final List<T> parseCollection() {
+		List<T> result=null;
 		QuerySolutionMap parameters = new QuerySolutionMap();
 		parameters.add(this.targetVariable,this.resource);
 		QueryExecution queryExecution=QueryExecutionFactory.create(this.query,this.model);
 		queryExecution.setInitialBinding(parameters);
 		try {
 			ResultSet results = queryExecution.execSelect();
-			List<T> result=processResults(results);
-			return firstResult(result);
+			result=processResults(results);
 		} finally {
 			queryExecution.close();
 		}
+		return result;
 	}
 
 	private List<T> processResults(ResultSet results) {

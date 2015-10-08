@@ -26,21 +26,23 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	EnrichmentRequestParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+import java.net.URI;
+
+import org.junit.Test;
+
+public class ConversionContextTest {
+
+	@Test
+	public void testBase$defaultNotNull() {
+		assertThat(ConversionContext.newInstance().base(),equalTo(URI.create("")));
+	}
+
+	@Test
+	public void testBaseIsNeverNull() {
+		assertThat(ConversionContext.newInstance().withBase(null).base(),equalTo(URI.create("")));
+	}
 
 }

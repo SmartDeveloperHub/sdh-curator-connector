@@ -108,7 +108,7 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 		int prefixCounter=0;
 		for(Entry<String,String> entry:context.namespacePrefixes().entrySet()) {
 			final String namespace = entry.getKey();
-			if(model.getNsPrefixURI(namespace)==null) {
+			if(model.getNsURIPrefix(namespace)==null) {
 				String prefix = entry.getValue();
 				if(model.getNsPrefixURI(prefix)!=null) {
 					prefixCounter++;

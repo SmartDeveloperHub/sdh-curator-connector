@@ -41,6 +41,7 @@ import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -110,11 +111,15 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 			resource.
 				property(filter.property()).
 					withBlankNode(filter.variable().name());
+
+			helper.
+				blankNode(filter.variable().name()).
+					property(RDF.TYPE).
+						withResource(CURATOR.VARIABLE_TYPE);
 		}
 	}
 
-	private void serializeReplyTo(ModelHelper helper,
-			DeliveryChannel deliveryChannel) {
+	private void serializeReplyTo(ModelHelper helper, DeliveryChannel deliveryChannel) {
 		Broker broker = deliveryChannel.broker();
 		if(broker!=null) {
 			helper.
