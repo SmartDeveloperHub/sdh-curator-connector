@@ -496,11 +496,13 @@ public final class ProtocolFactory {
 	public static final class EnrichmentResponseBuilder extends ResponseBuilder<EnrichmentResponse,EnrichmentResponseBuilder> {
 
 		private URI targetResource;
-		private URI additionTarget;
-		private URI removalTarget;
+		private List<Binding> additions;
+		private List<Binding> removals;
 
 		private EnrichmentResponseBuilder() {
 			super(EnrichmentResponseBuilder.class);
+			this.additions=Lists.newArrayList();
+			this.removals=Lists.newArrayList();
 		}
 
 		public EnrichmentResponseBuilder withTargetResource(URI targetResource) {
@@ -512,29 +514,36 @@ public final class ProtocolFactory {
 			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
-		public EnrichmentResponseBuilder withAdditionTarget(URI additionTarget) {
-			this.additionTarget = additionTarget;
+		public EnrichmentResponseBuilder withAddition(Binding binding) {
+			if(binding!=null) {
+				this.additions.add(binding);
+			}
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withAdditionTarget(String additionTarget) {
-			return withAdditionTarget(ParsingUtil.toURI(additionTarget));
+		public EnrichmentResponseBuilder withAddition(Builder<Binding> builder) {
+			if(builder==null) {
+				return this;
+			}
+			return withAddition(builder.build());
 		}
 
-		public EnrichmentResponseBuilder withRemovalTarget(URI removalTarget) {
-			this.removalTarget = removalTarget;
+		public EnrichmentResponseBuilder withRemoval(Binding binding) {
+			if(binding!=null) {
+				this.removals.add(binding);
+			}
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withRemovalTarget(String removalTarget) {
-			return withRemovalTarget(ParsingUtil.toURI(removalTarget));
+		public EnrichmentResponseBuilder withRemoval(Builder<Binding> builder) {
+			if(builder==null) {
+				return this;
+			}
+			return withRemoval(builder.build());
 		}
 
 		@Override
 		public EnrichmentResponse build() {
-			if(this.additionTarget!=null && this.additionTarget.equals(this.removalTarget)) {
-				throw new ValidationException(this.removalTarget,RDFS.RESOURCE_TYPE,"Addition target and removal target resources must be different");
-			}
 			return
 				new ImmutableEnrichmentResponse(
 					id(),
@@ -543,8 +552,8 @@ public final class ProtocolFactory {
 					responseTo(),
 					responseNumber(),
 					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"),
-					this.additionTarget,
-					this.removalTarget);
+					this.additions,
+					this.removals);
 		}
 
 	}
@@ -735,6 +744,7 @@ public final class ProtocolFactory {
 		return new EnrichmentResponseBuilder();
 	}
 
+	// TODO: Improve validation message
 	public static Variable newVariable(final String name) {
 		ValidationUtil.checkNotNull(name, XSD.STRING_TYPE,"Variable name cannot be null");
 		return new ImmutableVariable(name);
@@ -744,6 +754,7 @@ public final class ProtocolFactory {
 		return newResource(ParsingUtil.toURI(name));
 	}
 
+	// TODO: Improve validation message
 	public static Resource newResource(final URI name) {
 		ValidationUtil.checkNotNull(name, RDFS.RESOURCE_TYPE,"Resource name cannot be null");
 		return new ImmutableResource(name);

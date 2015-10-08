@@ -127,4 +127,9 @@ public class ParsingUtilTest {
 		assertThat(ParsingUtil.toUnsignedLong((String)null),nullValue());
 	}
 
+	@Test
+	public void testToVariable$null() throws Exception {
+		assertThat(ParsingUtil.toVariable((String)null),nullValue());
+	}
+
 }

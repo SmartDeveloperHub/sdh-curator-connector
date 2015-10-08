@@ -26,24 +26,58 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import com.hp.hpl.jena.rdf.model.Literal;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+final class BindingValidatorFactory {
 
+	private BindingValidatorFactory() {
+	}
+
+	static BindingValidator<Resource> resourceValidator() {
+		return new BindingValidator<Resource>() {
+			@Override
+			public boolean isValid(RDFNode node) {
+				return node.isResource();
+			}
+			@Override
+			public Resource cast(RDFNode node) {
+				return node.asResource();
+			}
+			@Override
+			public String toString() {
+				return "resource";
+			}
+		};
+	}
+
+	static BindingValidator<Literal> literalValidator() {
+		return new BindingValidator<Literal>() {
+			@Override
+			public boolean isValid(RDFNode node) {
+				return node.isLiteral();
+			}
+			@Override
+			public Literal cast(RDFNode node) {
+				return node.asLiteral();
+			}
+			@Override
+			public String toString() {
+				return "literal";
+			}
+		};
+	}
+	static BindingValidator<RDFNode> nodeValidator() {
+		return new BindingValidator<RDFNode>() {
+			@Override
+			public boolean isValid(RDFNode node) {
+				return true;
+			}
+			@Override
+			public RDFNode cast(RDFNode node) {
+				return node;
+			}
+		};
+	}
 }

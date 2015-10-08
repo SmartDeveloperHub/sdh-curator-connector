@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector.rdf;
 
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 
 public final class ModelUtil {
 
@@ -35,6 +36,22 @@ public final class ModelUtil {
 
 	public static ModelHelper createHelper(Model model) {
 		return new ImmutableModelHelper(model);
+	}
+
+	public static String nodeType(RDFNode resource) {
+		if(resource==null) {
+			return "unknown";
+		} else if(resource.isLiteral()) {
+			return "literal";
+		} else if(resource.isAnon()) {
+			return "blank node";
+		} else {
+			return "URIRef";
+		}
+	}
+
+	public static String toString(RDFNode resource) {
+		return resource+" ("+nodeType(resource)+")";
 	}
 
 }

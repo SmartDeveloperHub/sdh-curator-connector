@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
 import org.smartdeveloperhub.curator.connector.io.InvalidDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
@@ -43,6 +44,7 @@ import org.smartdeveloperhub.curator.protocol.Accepted;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Request;
 import org.smartdeveloperhub.curator.protocol.Response;
 
@@ -174,7 +176,7 @@ final class ExampleCurator implements MessageHandler {
 	}
 
 	private Response createEnrichmentResponse(EnrichmentRequest request) {
-		return
+		final EnrichmentResponseBuilder builder =
 			ProtocolFactory.
 				newEnrichmentResponse().
 					withMessageId(UUID.randomUUID()).
@@ -185,10 +187,18 @@ final class ExampleCurator implements MessageHandler {
 								withAgentId(UUID.randomUUID())).
 					withResponseTo(request.messageId()).
 					withResponseNumber(1).
-					withTargetResource(request.targetResource()).
-					withAdditionTarget("addition").
-					withRemovalTarget("removal").
-					build();
+					withTargetResource(request.targetResource());
+		int counter=0;
+		for(Filter filter:request.filters()) {
+			final int id = counter++;
+			builder.
+				withAddition(
+					ProtocolFactory.
+						newBinding().
+							withProperty(filter.property()).
+							withValue(ProtocolFactory.newResource("value_"+id+"_"+filter.variable().name())));
+		}
+		return	builder.build();
 	}
 
 	private void sleep(final TimeUnit unit, final int timeout) {

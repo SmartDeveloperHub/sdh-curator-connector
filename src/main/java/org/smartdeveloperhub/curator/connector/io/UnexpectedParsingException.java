@@ -26,24 +26,41 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+import com.hp.hpl.jena.rdf.model.Resource;
+
+public class UnexpectedParsingException extends ConversionException {
+
+	private static final long serialVersionUID = -967853803406009751L;
+
+	private final String varName;
+	private final String property;
+	private final String type;
+	private final String resource;
+
+	public UnexpectedParsingException(String varName, String property, Resource resource, String type, String message) {
+		super(message);
+		this.varName = varName;
+		this.property = property;
+		this.type=type;
+		this.resource=ModelUtil.toString(resource);
+	}
+
+	public final String variableName() {
+		return this.varName;
+	}
+
+	public final String property() {
+		return this.property;
+	}
+
+	public final String variableType() {
+		return this.type;
+	}
+
+	public final String resource() {
+		return resource;
+	}
 
 }

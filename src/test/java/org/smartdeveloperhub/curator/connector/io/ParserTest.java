@@ -32,9 +32,12 @@ import static org.junit.Assert.fail;
 
 
 
+
+
 import org.junit.Test;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
 import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 
@@ -42,6 +45,7 @@ import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 public class ParserTest {
@@ -98,6 +102,14 @@ public class ParserTest {
 						}
 					);
 					optional(
+						new ResourceProvider<Resource>("providerFailure","rdfs:comment") {
+							@Override
+							protected Resource consumeResource(CustomBuilder builder, Resource resource) {
+								throw new ValidationException(resource,"Failure");
+							}
+						}
+					);
+					optional(
 						new LiteralConsumer("optionalLiteral","rdfs:label") {
 							@Override
 							protected void consumeLiteral(CustomBuilder builder, Literal literal) {
@@ -110,6 +122,14 @@ public class ParserTest {
 							@Override
 							protected void consumeResource(CustomBuilder builder, Resource resource) {
 								throw new ValidationException(resource,"curator:DeliveryChannel");
+							}
+						}
+					);
+					optional(
+						new NodeConsumer("optionalNode","rdfs:isDefinedBy") {
+							@Override
+							protected void consumeNode(CustomBuilder builder, RDFNode node) {
+								throw new ValidationException(node,"xsd:string");
 							}
 						}
 					);
@@ -138,8 +158,11 @@ public class ParserTest {
 				try {
 					CustomParser.fromModel(model, target);
 					fail("Should not parse invalid input");
-				} catch (ConversionException e) {
-					assertThat(e.getMessage(),equalTo("Could not find required property curator:messageId for resource '"+target+"'"));
+				} catch (VariableNotBoundException e) {
+					assertThat(e.variableName(),equalTo("mandatoryLiteral"));
+					assertThat(e.variableType(),equalTo("literal"));
+					assertThat(e.property(),equalTo("curator:messageId"));
+					assertThat(e.resource(),equalTo(ModelUtil.toString(target)));
 				}
 			}
 		}.verify();
@@ -153,8 +176,11 @@ public class ParserTest {
 				try {
 					CustomParser.fromModel(model, target);
 					fail("Should not parse invalid input");
-				} catch (ConversionException e) {
-					assertThat(e.getMessage(),equalTo("Could not find required property curator:submittedBy for resource '"+target+"'"));
+				} catch (VariableNotBoundException e) {
+					assertThat(e.variableName(),equalTo("mandatoryResource"));
+					assertThat(e.variableType(),equalTo("resource"));
+					assertThat(e.property(),equalTo("curator:submittedBy"));
+					assertThat(e.resource(),equalTo(ModelUtil.toString(target)));
 				}
 			}
 		}.verify();
@@ -189,4 +215,54 @@ public class ParserTest {
 			}
 		}.verify();
 	}
+
+	@Test
+	public void testFromModel$failure$badNode() {
+		new ParserTester("data/custom/bad_node.ttl",CURATOR.MESSAGE_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				try {
+					CustomParser.fromModel(model, target);
+					fail("Should not parse invalid input");
+				} catch (ConversionException e) {
+					assertThat(e.getMessage(),equalTo("Could not process rdfs:isDefinedBy property for resource '"+target+"'"));
+				}
+			}
+		}.verify();
+	}
+
+	@Test
+	public void testFromModel$failure$providerFailure() {
+		new ParserTester("data/custom/provider_failure.ttl",CURATOR.MESSAGE_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				try {
+					CustomParser.fromModel(model, target);
+					fail("Should not parse invalid input");
+				} catch (ConversionException e) {
+					assertThat(e.getMessage(),equalTo("Could not process rdfs:comment property for resource '"+target+"'"));
+				}
+			}
+		}.verify();
+	}
+
+	@Test
+	public void testFromModel$failure$cannotBindLiteral() {
+		new ParserTester("data/custom/cannot_bind_literal.ttl",CURATOR.MESSAGE_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				try {
+					CustomParser.fromModel(model, target);
+					fail("Should not parse invalid input");
+				} catch (InvalidVariableBindingException e) {
+					assertThat(e.variableName(),equalTo("optionalLiteral"));
+					assertThat(e.variableType(),equalTo("literal"));
+					assertThat(e.property(),equalTo("rdfs:label"));
+					assertThat(e.resource(),equalTo(ModelUtil.toString(target)));
+					assertThat(e.boundValue(),equalTo("http://www.smartdeveloperhub.org/failure (URIRef)"));
+				}
+			}
+		}.verify();
+	}
+
 }

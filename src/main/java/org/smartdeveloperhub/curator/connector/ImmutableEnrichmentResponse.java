@@ -27,19 +27,22 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.ImmutableList;
 
 final class ImmutableEnrichmentResponse extends ImmutableResponse implements EnrichmentResponse {
 
 	private final URI targetResource;
-	private final URI additionTarget;
-	private final URI removalTarget;
+	private final List<Binding> additions;
+	private final List<Binding> removals;
 
 	ImmutableEnrichmentResponse( // NOSONAR
 		UUID messageId,
@@ -48,12 +51,12 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 		UUID responseTo,
 		long responseNumber,
 		URI targetResource,
-		URI additionTarget,
-		URI removalTarget) {
+		List<Binding> additions,
+		List<Binding> removals) {
 		super(messageId, submittedOn, agent, responseTo,responseNumber);
 		this.targetResource=targetResource;
-		this.additionTarget=additionTarget;
-		this.removalTarget=removalTarget;
+		this.additions=ImmutableList.<Binding>copyOf(additions);
+		this.removals=ImmutableList.<Binding>copyOf(removals);
 	}
 
 	@Override
@@ -62,13 +65,13 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 	}
 
 	@Override
-	public URI additionTarget() {
-		return this.additionTarget;
+	public List<Binding> additions() {
+		return this.additions;
 	}
 
 	@Override
-	public URI removalTarget() {
-		return this.removalTarget;
+	public List<Binding> removals() {
+		return this.removals;
 	}
 
 	@Override
@@ -76,8 +79,8 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 		super.toString(helper);
 		helper.
 			add("targetResource",this.targetResource).
-			add("additionTarget",this.additionTarget).
-			add("removalTarget",this.removalTarget);
+			add("additions",this.additions).
+			add("removals",this.removals);
 	}
 
 

@@ -26,24 +26,18 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+import org.junit.Test;
+import org.ldp4j.commons.testing.Utils;
+
+
+public class BindingValidatorFactoryTest {
+
+	@Test
+	public void verifyIsValidUtilityClass() {
+		assertThat(Utils.isUtilityClass(BindingValidatorFactory.class),equalTo(true));
+	}
 
 }

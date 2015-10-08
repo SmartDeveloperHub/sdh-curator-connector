@@ -27,16 +27,14 @@
 package org.smartdeveloperhub.curator.protocol;
 
 import java.net.URI;
+import java.util.List;
 
-/**
- * TODO: Decouple the placeholders from the requirement of necessarily being a URIRef
- */
 public interface EnrichmentResponse extends Response {
 
 	URI targetResource();
 
-	URI additionTarget();
+	List<Binding> additions();
 
-	URI removalTarget();
+	List<Binding> removals();
 
 }

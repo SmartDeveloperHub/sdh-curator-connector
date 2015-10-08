@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -102,6 +103,13 @@ final class ParsingUtil {
 		} catch (NumberFormatException e) {
 			throw new ValidationException(value,XSD.UNSIGNED_LONG_TYPE,"Not a valid number",e);
 		}
+	}
+
+	static Variable toVariable(String value) {
+		if(value==null) {
+			return null;
+		}
+		return ProtocolFactory.newVariable(value);
 	}
 
 }

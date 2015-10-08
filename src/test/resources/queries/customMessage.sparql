@@ -33,11 +33,14 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT
   ?message
   ?mandatoryLiteral ?mandatoryResource
-  ?optionalLiteral ?optionalResource
+  ?optionalLiteral ?optionalResource ?optionalNode
+  ?providerFailure
 WHERE {
   ?message a curator:Message .
   OPTIONAL { ?message curator:messageId ?mandatoryLiteral . }
-  OPTIONAL { ?message  curator:submittedBy ?mandatoryResource . }
+  OPTIONAL { ?message curator:submittedBy ?mandatoryResource . }
   OPTIONAL { ?message curator:replyTo ?optionalResource . }
   OPTIONAL { ?message rdfs:label ?optionalLiteral . }
+  OPTIONAL { ?message rdfs:isDefinedBy ?optionalNode . }
+  OPTIONAL { ?message rdfs:comment ?providerFailure . }
 }

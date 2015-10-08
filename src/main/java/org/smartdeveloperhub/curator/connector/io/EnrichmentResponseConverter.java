@@ -26,9 +26,11 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.net.URI;
+import java.util.List;
 
+import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
@@ -41,6 +43,8 @@ import com.hp.hpl.jena.rdf.model.Resource;
 final class EnrichmentResponseConverter extends ModelMessageConverter<EnrichmentResponse> {
 
 	private static final String RESPONSE_BNODE = "response";
+	private static final String ADDITION_BNODE = "addition";
+	private static final String REMOVAL_BNODE = "removal";
 
 	@Override
 	protected void toString(EnrichmentResponse message, ModelHelper helper) {
@@ -63,16 +67,21 @@ final class EnrichmentResponseConverter extends ModelMessageConverter<Enrichment
 				type(FOAF.AGENT_TYPE).
 				property(CURATOR.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
-		target(helper,CURATOR.ADDITION_TARGET,message.additionTarget());
-		target(helper,CURATOR.REMOVAL_TARGET,message.removalTarget());
+		target(helper,CURATOR.ADDITION_TARGET,ADDITION_BNODE,message.additions());
+		target(helper,CURATOR.REMOVAL_TARGET,REMOVAL_BNODE,message.removals());
 	}
 
-	private void target(ModelHelper helper, String property, URI value) {
-		if(value!=null) {
+	private void target(ModelHelper helper, String property, String bnode, List<Binding> bindings) {
+		if(bindings!=null) {
 			helper.
 				blankNode(RESPONSE_BNODE).
 					property(property).
-						withResource(value);
+						withBlankNode(bnode);
+		}
+		// TODO: ENFORCE FRESH BNODES ARE CREATED
+		BindingSerializer serializer = BindingSerializer.newInstance(helper,ProtocolFactory.newVariable(bnode));
+		for(Binding binding:bindings) {
+			serializer.serialize(binding);
 		}
 	}
 

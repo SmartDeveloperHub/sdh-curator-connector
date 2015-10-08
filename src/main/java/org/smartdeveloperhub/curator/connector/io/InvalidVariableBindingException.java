@@ -26,24 +26,26 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
+
+public class InvalidVariableBindingException extends UnexpectedParsingException {
+
+	private static final long serialVersionUID = 7677175362187392854L;
+
+	private final String boundValue;
+
+	public InvalidVariableBindingException(String varName, String property, Resource resource, String type, RDFNode boundValue) {
+		super(
+			varName,property,resource,type,
+			"Variable "+varName+" was bound to "+boundValue+" ("+ModelUtil.nodeType(boundValue)+") instead of an expected "+type+" when resolving property "+property+" of resource "+resource);
+		this.boundValue=ModelUtil.toString(boundValue);
+	}
+
+	public String boundValue() {
+		return this.boundValue;
+	}
 
 }

@@ -26,24 +26,16 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+public class VariableNotBoundException extends UnexpectedParsingException {
+
+	private static final long serialVersionUID = -2882118635318295512L;
+
+	public VariableNotBoundException(String varName, String property, Resource resource, String type) {
+		super(
+			varName,property,resource,type,
+			"Variable "+varName+" ("+type+") not bound when resolving property "+property+" of resource "+resource);
+	}
 
 }

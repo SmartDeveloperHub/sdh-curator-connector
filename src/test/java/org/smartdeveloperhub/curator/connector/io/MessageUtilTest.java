@@ -58,6 +58,7 @@ import mockit.integration.junit4.JMockit;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureBuilder;
@@ -225,11 +226,29 @@ public class MessageUtilTest {
 						withAgentId(UUID.randomUUID())).
 				withResponseTo(UUID.randomUUID()).
 				withResponseNumber(2).
-				withTargetResource(URI.create("urn:example"));
+				withTargetResource(URI.create("execution"));
 		if(full) {
 			builder.
-				withAdditionTarget(URI.create("urn:add")).
-				withRemovalTarget(URI.create("urn:remove"));
+				withAddition(
+					ProtocolFactory.
+						newBinding().
+							withProperty(CI+"forBranch").
+							withValue(ProtocolFactory.newResource("newBranch"))).
+				withAddition(
+					ProtocolFactory.
+						newBinding().
+							withProperty(CI+"forCommit").
+							withValue(ProtocolFactory.newResource("newCommit"))).
+				withRemoval(
+					ProtocolFactory.
+						newBinding().
+							withProperty(CI+"forBranch").
+							withValue(ProtocolFactory.newResource("oldBranch"))).
+				withRemoval(
+					ProtocolFactory.
+						newBinding().
+							withProperty(CI+"forCommit").
+							withValue(ProtocolFactory.newResource("oldCommit")));
 		}
 		return builder.build();
 	}

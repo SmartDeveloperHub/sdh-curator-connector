@@ -25,17 +25,18 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-# Set root logger level to DEBUG and its only appender to A1.
-log4j.rootLogger=OFF
+PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-log4j.logger.org.smartdeveloperhub.curator.connector=TRACE, console
-
-log4j.logger.org.smartdeveloperhub.curator.connector.io.BindingParser=OFF
-log4j.additivity.org.smartdeveloperhub.curator.connector.io.BindingParser=false
-
-#log4j.logger.org.smartdeveloperhub.curator.connector.io.ConstraintParser=OFF
-#log4j.additivity.org.smartdeveloperhub.curator.connector.io.ConstraintParser=false
-
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=[%d][%-5.5p ][%-25.25t][%-80.80c] %m%n
+SELECT DISTINCT
+  ?bindingProperty ?bindingValue
+WHERE {
+  ?target
+    a curator:Variable ;
+    ?bindingProperty ?bindingValue .
+  FILTER (
+    !(?bindingProperty = rdf:type && ?bindingValue = curator:Variable)
+  )
+}

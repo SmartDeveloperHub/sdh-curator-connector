@@ -40,6 +40,8 @@ import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -117,15 +119,33 @@ final class ConstraintParser {
 		StmtIterator iterator=this.model.listStatements(resource, null,(RDFNode)null);
 		try {
 			while(iterator.hasNext()) {
-				bindings.add(createBinding(iterator.next()));
+				final Binding binding = createBinding(iterator.next());
+				String message="    + Rejected value {}";
+				if(!isProtected(binding)) {
+					message="    + Added value {}";
+					bindings.add(binding);
+				}
+				LOGGER.trace(message,binding.value());
 			}
 		} finally {
 			iterator.close();
 		}
 	}
 
+	private boolean isProtected(Binding binding) {
+		if(!binding.property().toString().equals(RDF.TYPE)) {
+			return false;
+		}
+		final Value rawValue = binding.value();
+		if(!(rawValue instanceof org.smartdeveloperhub.curator.protocol.Resource)) {
+			return false;
+		}
+		org.smartdeveloperhub.curator.protocol.Resource value=(org.smartdeveloperhub.curator.protocol.Resource)rawValue;
+		return value.name().toString().equals(CURATOR.VARIABLE_TYPE);
+	}
+
 	private void enqueueReferrals(Resource resource) {
-		StmtIterator iterator=this.model.listStatements(null, null,resource);
+		StmtIterator iterator=this.model.listStatements(null,null,resource);
 		try {
 			while(iterator.hasNext()) {
 				final Statement statement = iterator.next();
@@ -154,7 +174,7 @@ final class ConstraintParser {
 
 	private Binding createBinding(Statement statement) {
 		final String predicate = statement.getPredicate().getURI();
-		LOGGER.trace("  - Created binding for {}",predicate);
+		LOGGER.trace("  - Found binding for {}",predicate);
 		return
 			ProtocolFactory.
 				newBinding().

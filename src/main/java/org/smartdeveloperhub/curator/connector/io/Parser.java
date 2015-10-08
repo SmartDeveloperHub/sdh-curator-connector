@@ -40,6 +40,7 @@ import com.hp.hpl.jena.query.QuerySolutionMap;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Resource;
 
 abstract class Parser<T, B extends Builder<T>> {
@@ -141,6 +142,32 @@ abstract class Parser<T, B extends Builder<T>> {
 
 		}
 
+		protected abstract class NodeConsumer extends Consumer {
+
+			protected NodeConsumer(String varName, String propertyName) {
+				super(varName,propertyName);
+			}
+
+			protected NodeConsumer(String varName) {
+				super(varName,"");
+			}
+
+			@Override
+			protected final void consume(QuerySolution solution) {
+				RDFNode resourceValue=node(super.variableName(), super.propertyName(), super.isOptional());
+				if(resourceValue!=null) {
+					try {
+						consumeNode(Worker.this.builder,resourceValue);
+					} catch (ValidationException e) {
+						throw failConversion(super.propertyName(),e);
+					}
+				}
+			}
+
+			protected abstract void consumeNode(B builder, RDFNode node);
+
+		}
+
 		protected abstract class ResourceProvider<V> extends Provider<V> {
 
 			protected ResourceProvider(String varName, String propertyName) {
@@ -205,28 +232,44 @@ abstract class Parser<T, B extends Builder<T>> {
 			consumer.provide(this.solution);
 		}
 
+		protected final <V> V optional(Provider<V> provider) {
+			provider.setOptional(true);
+			return provider.provide(this.solution);
+		}
+
 		protected final <V> V mandatory(Provider<V> provider) {
 			provider.setOptional(false);
 			return provider.provide(this.solution);
 		}
 
 		private Literal literal(String varName, String property, boolean nullable) {
-			return acceptResolution(property, nullable, this.solution.getLiteral(varName));
+			return acceptResolution(property,nullable,varName,BindingValidatorFactory.literalValidator());
 		}
 
 		private Resource resource(String varName, String property, boolean nullable) {
-			return acceptResolution(property, nullable, this.solution.getResource(varName));
+			return acceptResolution(property,nullable,varName,BindingValidatorFactory.resourceValidator());
+		}
+
+		private RDFNode node(String varName, String property, boolean nullable) {
+			return acceptResolution(property,nullable,varName,BindingValidatorFactory.nodeValidator());
 		}
 
 		private ConversionException failConversion(String property, Throwable e) {
 			return new ConversionException("Could not process "+property+" property for resource '"+Parser.this.resource+"'",e);
 		}
 
-		private <V> V acceptResolution(String property, boolean nullable, V value) {
-			if(value==null && !nullable) {
-				throw new ConversionException("Could not find required property "+property+" for resource '"+Parser.this.resource+"'");
+		private <V extends RDFNode> V acceptResolution(String property, boolean nullable, String varName, BindingValidator<V> bindingValidator) {
+			RDFNode node = this.solution.get(varName);
+			if(node==null && !nullable) {
+				throw new VariableNotBoundException(varName,property,Parser.this.resource,bindingValidator.toString());
 			}
-			return value;
+			if(node==null) {
+				return null;
+			}
+			if(!bindingValidator.isValid(node)) {
+				throw new InvalidVariableBindingException(varName,property,Parser.this.resource,bindingValidator.toString(),node);
+			}
+			return bindingValidator.cast(node);
 		}
 
 	}

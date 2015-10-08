@@ -26,9 +26,13 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
+
+import java.util.List;
+
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
+import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 import com.hp.hpl.jena.query.Query;
@@ -44,8 +48,20 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 		public void parse() {
 			super.parse();
 			updateTargetResource();
-			updateAdditionTarget();
-			updateRemovalTarget();
+			Resource additionTarget=findAdditionTarget();
+			if(additionTarget!=null) {
+				List<Binding> bindings=BindingParser.fromModel(model(),additionTarget);
+				for(Binding binding:bindings) {
+					builder().withAddition(binding);
+				}
+			}
+			Resource removalTarget=findRemovalTarget();
+			if(removalTarget!=null) {
+				List<Binding> bindings=BindingParser.fromModel(model(),removalTarget);
+				for(Binding binding:bindings) {
+					builder().withRemoval(binding);
+				}
+			}
 		}
 
 		private void updateTargetResource() {
@@ -59,26 +75,28 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 			);
 		}
 
-		private void updateAdditionTarget() {
-			optional(
-				new ResourceConsumer("additionTarget","curator:additionTarget") {
-					@Override
-					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
-						builder.withAdditionTarget(resource.getURI());
+		private Resource findAdditionTarget() {
+			return
+				optional(
+					new ResourceProvider<Resource>("additionTarget","curator:additionTarget") {
+						@Override
+						protected Resource consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+							return resource;
+						}
 					}
-				}
-			);
+				);
 		}
 
-		private void updateRemovalTarget() {
-			optional(
-				new ResourceConsumer("removalTarget","curator:removalTarget") {
-					@Override
-					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
-						builder.withRemovalTarget(resource.getURI());
+		private Resource findRemovalTarget() {
+			return
+				optional(
+					new ResourceProvider<Resource>("removalTarget","curator:removalTarget") {
+						@Override
+						protected Resource consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+							return resource;
+						}
 					}
-				}
-			);
+				);
 		}
 
 	}

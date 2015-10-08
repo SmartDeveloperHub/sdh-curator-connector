@@ -43,8 +43,14 @@ WHERE {
     curator:responseTo ?responseTo ;
     curator:responseNumber ?responseNumber ;
     curator:targetResource ?targetResource .
-  OPTIONAL { ?enrichmentResponse curator:additionTarget ?additionTarget . }
-  OPTIONAL { ?enrichmentResponse curator:removalTarget ?removalTarget . }
+  OPTIONAL {
+    ?enrichmentResponse curator:additionTarget ?additionTarget .
+    ?additionTarget a curator:Variable .
+   }
+  OPTIONAL {
+    ?enrichmentResponse curator:removalTarget ?removalTarget .
+    ?removalTarget a curator:Variable .
+  }
   OPTIONAL { ?enrichmentResponse curator:replyTo ?replyTo . }
   FILTER (
     (datatype(?messageId) = types:UUID) &&
@@ -53,8 +59,8 @@ WHERE {
     (datatype(?responseTo) = types:UUID) &&
     (datatype(?responseNumber) = xsd:unsignedLong) &&
     isURI(?targetResource) &&
-    !(bound(?additionTarget) && !isURI(?additionTarget)) &&
-    !(bound(?removalTarget) && !isURI(?removalTarget)) &&
+    !(bound(?additionTarget) && !isBlank(?additionTarget)) &&
+    !(bound(?removalTarget) && !isBlank(?removalTarget)) &&
     !bound(?replyTo)
   )
 }
