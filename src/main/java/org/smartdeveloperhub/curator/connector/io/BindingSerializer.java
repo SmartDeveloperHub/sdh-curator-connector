@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.net.URI;
 
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.connector.rdf.PropertyHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ResourceHelper;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Literal;
@@ -36,58 +37,80 @@ import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Resource;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+
+import com.google.common.collect.ImmutableList;
 
 final class BindingSerializer {
 
+	private static final ImmutableList<String>
+	PROTECTED_NAMESPACES=ImmutableList.of(CURATOR.NAMESPACE,AMQP.NAMESPACE,TYPES.NAMESPACE);
 	private final ModelHelper helper;
-	private final NamedValue  target;
 
-	private BindingSerializer(ModelHelper helper, NamedValue target) {
+	private BindingSerializer(ModelHelper helper) {
 		this.helper = helper;
-		this.target = target;
 	}
 
-	private void serialize(URI property, Value value) {
+	private void serialize(NamedValue target, URI property, Value value) {
+		final PropertyHelper propertyHelper=
+				resourceHelper(target).
+					property(property);
 		if(value instanceof Resource) {
 			final URI name = ((Resource)value).name();
-			resourceHelper().
-				property(property).
-					withResource(name);
+			propertyHelper.withResource(name);
 		} else if(value instanceof Variable) {
 			final String name = ((Variable)value).name();
-			resourceHelper().
-				property(property).
-					withBlankNode(name);
+			propertyHelper.withBlankNode(name);
 			this.helper.blankNode(name).type(CURATOR.VARIABLE_TYPE);
 		} else { // MUST BE LITERAL
 			Literal literal=(Literal)value;
-			resourceHelper().
-				property(property).
-					withTypedLiteral(
-						literal.lexicalForm(),
-						literal.datatype());
+			propertyHelper.
+				withTypedLiteral(
+					literal.lexicalForm(),
+					literal.datatype());
 		}
 	}
 
-	private ResourceHelper resourceHelper() {
+	private ResourceHelper resourceHelper(NamedValue target) {
 		ResourceHelper resourceHelper=null;
-		if(this.target instanceof Resource) {
-			resourceHelper=this.helper.resource(((Resource)this.target).name());
+		if(target instanceof Resource) {
+			resourceHelper=this.helper.resource(((Resource)target).name());
 		} else {
-			resourceHelper=this.helper.blankNode(((Variable)this.target).name());
+			resourceHelper=this.helper.blankNode(((Variable)target).name());
 			resourceHelper.type(CURATOR.VARIABLE_TYPE);
 		}
-
 		return resourceHelper;
 	}
 
-	void serialize(Binding binding) {
-		serialize(binding.property(),binding.value());
+	private void verifySerializability(Binding binding) {
+		verifyNotProtected("property", binding.property());
+		if(binding.property().toString().equals(RDF.TYPE)) {
+			final Value value = binding.value();
+			if(value instanceof Resource) {
+				Resource resource=(Resource)value;
+				verifyNotProtected("value",resource.name());
+			}
+		}
 	}
 
-	static BindingSerializer newInstance(ModelHelper helper, NamedValue target) {
-		return new BindingSerializer(helper,target);
+	private void verifyNotProtected(final String type, final URI value) {
+		for(String protectedNamespace:PROTECTED_NAMESPACES) {
+			if(value.toString().startsWith(protectedNamespace)) {
+				throw new ForbiddenBindingException(value,type,protectedNamespace);
+			}
+		}
+	}
+
+	void serialize(NamedValue target, Binding binding) {
+		verifySerializability(binding);
+		serialize(target,binding.property(),binding.value());
+	}
+
+	static BindingSerializer newInstance(ModelHelper helper) {
+		return new BindingSerializer(helper);
 	}
 
 }

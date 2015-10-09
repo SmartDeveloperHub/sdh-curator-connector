@@ -26,26 +26,21 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.net.URI;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	EnrichmentUtilTest.class,
-	BindingValidatorFactoryTest.class,
-	ConversionContextTest.class,
-	ParserTest.class,
-	AgentParserTest.class,
-	BrokerParserTest.class,
-	DeliveryChannelParserTest.class,
-	ConstraintParserTest.class,
-	BindingSerializerTest.class,
-	EnrichmentRequestParserTest.class,
-	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
-	MessageUtilTest.class
-})
-public class IOTestsSuite {
+public class ForbiddenBindingException extends ConversionException {
+
+	private static final long serialVersionUID = -3319986531015600883L;
+
+	private final URI offendingTerm;
+
+	public ForbiddenBindingException(URI offendingTerm, String namespace, String type) {
+		super("Binding "+type+""+offendingTerm+" belongs to protected namespace "+namespace);
+		this.offendingTerm = offendingTerm;
+	}
+
+	public URI offendingTerm() {
+		return this.offendingTerm;
+	}
 
 }

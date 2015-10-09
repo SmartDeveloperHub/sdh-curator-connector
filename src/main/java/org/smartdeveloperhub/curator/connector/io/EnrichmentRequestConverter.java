@@ -41,7 +41,6 @@ import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
-import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -57,29 +56,33 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 
 	@Override
 	protected void toString(EnrichmentRequest message, ModelHelper helper) {
+		EnrichmentUtil util=
+			EnrichmentUtil.
+				builder().
+					withFilters(message.filters()).
+					withConstraints(message.constraints()).
+						build();
 		helper.
-			blankNode(REQUEST_BNODE).
+			blankNode(util.blankNode(REQUEST_BNODE)).
 				type(CURATOR.ENRICHMENT_REQUEST_TYPE).
 				property(CURATOR.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
 				property(CURATOR.SUBMITTED_BY).
-					withBlankNode(AGENT_BNODE).
+					withBlankNode(util.blankNode(AGENT_BNODE)).
 				property(CURATOR.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 				property(CURATOR.REPLY_TO).
-					withBlankNode(DELIVERY_CHANNEL_BNODE).
+					withBlankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
 				property(CURATOR.TARGET_RESOURCE).
 					withResource(message.targetResource()).
-			blankNode(AGENT_BNODE).
+			blankNode(util.blankNode(AGENT_BNODE)).
 				type(FOAF.AGENT_TYPE).
 				property(CURATOR.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE).
-			blankNode(DELIVERY_CHANNEL_BNODE).
+			blankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
 				type(CURATOR.DELIVERY_CHANNEL_TYPE);
 
-		serializeReplyTo(helper, message.replyTo());
-		// TODO: ensure that there are no variable/blank node clashes
-		// TODO: check that there is danger triple (i.e., ?x a curator:EnrichmentRequest)
+		serializeReplyTo(util,helper, message.replyTo());
 		serializeFilters(helper,message.targetResource(),message.filters());
 		serializeConstraints(helper,message.constraints());
 	}
@@ -95,12 +98,11 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 	}
 
 	private void serializeConstraints(ModelHelper helper, List<Constraint> constraints) {
+		final BindingSerializer serializer=BindingSerializer.newInstance(helper);
 		for(Constraint constraint:constraints) {
-			NamedValue variable=constraint.target();
-			BindingSerializer serializer=
-				BindingSerializer.newInstance(helper, variable);
+			NamedValue target=constraint.target();
 			for(Binding binding:constraint.bindings()) {
-				serializer.serialize(binding);
+				serializer.serialize(target,binding);
 			}
 		}
 	}
@@ -110,41 +112,41 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 		for(final Filter filter:filters) {
 			resource.
 				property(filter.property()).
-					withBlankNode(filter.variable().name());
-
-			helper.
+					withBlankNode(filter.variable().name()).
 				blankNode(filter.variable().name()).
-					property(RDF.TYPE).
-						withResource(CURATOR.VARIABLE_TYPE);
+					type(CURATOR.VARIABLE_TYPE);
 		}
 	}
 
-	private void serializeReplyTo(ModelHelper helper, DeliveryChannel deliveryChannel) {
-		Broker broker = deliveryChannel.broker();
-		if(broker!=null) {
-			helper.
-				blankNode(DELIVERY_CHANNEL_BNODE).
-					property(AMQP.BROKER).
-						withBlankNode(BROKER_BNODE).
-				blankNode(BROKER_BNODE).
-					type(AMQP.BROKER_TYPE).
-					property(AMQP.HOST).
-						withTypedLiteral(broker.host(),TYPES.HOSTNAME_TYPE).
-					property(AMQP.PORT).
-						withTypedLiteral(broker.port(),TYPES.PORT_TYPE).
-					property(AMQP.VIRTUAL_HOST).
-						withTypedLiteral(broker.virtualHost(),AMQP.PATH_TYPE);
-		}
-
-		deliveryChannelProperty(helper, AMQP.EXCHANGE_NAME, deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
-		deliveryChannelProperty(helper, AMQP.QUEUE_NAME, deliveryChannel.queueName(), AMQP.NAME_TYPE);
-		deliveryChannelProperty(helper, AMQP.ROUTING_KEY, deliveryChannel.routingKey(), AMQP.PATH_TYPE);
+	private void serializeReplyTo(EnrichmentUtil util, ModelHelper helper, DeliveryChannel deliveryChannel) {
+		serializeBroker(util, helper, deliveryChannel.broker());
+		deliveryChannelProperty(util,helper,AMQP.EXCHANGE_NAME,deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
+		deliveryChannelProperty(util,helper,AMQP.QUEUE_NAME,deliveryChannel.queueName(), AMQP.NAME_TYPE);
+		deliveryChannelProperty(util,helper,AMQP.ROUTING_KEY,deliveryChannel.routingKey(), AMQP.PATH_TYPE);
 	}
 
-	private void deliveryChannelProperty(ModelHelper helper, String property, String value, String type) {
+	private void serializeBroker(EnrichmentUtil util, ModelHelper helper, Broker broker) {
+		if(broker==null) {
+			return;
+		}
+		helper.
+			blankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
+				property(AMQP.BROKER).
+					withBlankNode(util.blankNode(BROKER_BNODE)).
+			blankNode(util.blankNode(BROKER_BNODE)).
+				type(AMQP.BROKER_TYPE).
+				property(AMQP.HOST).
+					withTypedLiteral(broker.host(),TYPES.HOSTNAME_TYPE).
+				property(AMQP.PORT).
+					withTypedLiteral(broker.port(),TYPES.PORT_TYPE).
+				property(AMQP.VIRTUAL_HOST).
+					withTypedLiteral(broker.virtualHost(),AMQP.PATH_TYPE);
+	}
+
+	private void deliveryChannelProperty(EnrichmentUtil util, ModelHelper helper, String property, String value, String type) {
 		if(value!=null) {
 			helper.
-				blankNode(DELIVERY_CHANNEL_BNODE).
+				blankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
 					property(property).
 						withTypedLiteral(value,type);
 		}
