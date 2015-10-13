@@ -26,10 +26,16 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import java.util.UUID;
 
-public interface EnrichmentResponseHandler {
+public interface ResponseProvider {
 
-	void onResponse(EnrichmentResponse response);
+	boolean isExpected(UUID messageId);
+
+	boolean isAccepted(UUID messageId);
+
+	FailureDescription getFailure(UUID messageId);
+
+	EnrichmentResult getResult(UUID messageId);
 
 }

@@ -460,6 +460,13 @@ public final class ProtocolFactory {
 			return this;
 		}
 
+		public FailureBuilder withSubcode(Long subcode) {
+			if(subcode!=null) {
+				setSubcode(subcode);
+			}
+			return this;
+		}
+
 		public FailureBuilder withSubcode(String subcode) {
 			setSubcode(ParsingUtil.toUnsignedLong(subcode));
 			return this;
@@ -744,9 +751,8 @@ public final class ProtocolFactory {
 		return new EnrichmentResponseBuilder();
 	}
 
-	// TODO: Improve validation message
 	public static Variable newVariable(final String name) {
-		ValidationUtil.checkNotNull(name, XSD.STRING_TYPE,"Variable name cannot be null");
+		ValidationUtil.checkNotNull(name, CURATOR.VARIABLE_TYPE,"Variable name cannot be null");
 		return new ImmutableVariable(name);
 	}
 
@@ -754,7 +760,6 @@ public final class ProtocolFactory {
 		return newResource(ParsingUtil.toURI(name));
 	}
 
-	// TODO: Improve validation message
 	public static Resource newResource(final URI name) {
 		ValidationUtil.checkNotNull(name, RDFS.RESOURCE_TYPE,"Resource name cannot be null");
 		return new ImmutableResource(name);

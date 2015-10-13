@@ -27,14 +27,17 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.Notifier;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.BindingBuilder;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseBuilder;
 import org.smartdeveloperhub.curator.connector.io.InvalidDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
@@ -47,39 +50,34 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Request;
 import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.Value;
 
-final class ExampleCurator implements MessageHandler {
+public final class SimpleCurator implements MessageHandler {
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ExampleCurator.class);
+	private static final Logger LOGGER=LoggerFactory.getLogger(SimpleCurator.class);
 
 	private final DeliveryChannel connectorConfiguration;
-	private final Phaser disconnectable;
-	private final Phaser answered;
+	private final Notifier notifier;
+	private final ResponseProvider provider;
 
 	private ServerCuratorController curatorController;
 	private ServerConnectorController connectorController;
 
-	ExampleCurator(DeliveryChannel connectorConfiguration, Phaser disconnectable, Phaser answered) {
+	public SimpleCurator(DeliveryChannel connectorConfiguration, Notifier notifier, ResponseProvider provider) {
 		this.connectorConfiguration = connectorConfiguration;
-		this.disconnectable = disconnectable;
-		this.answered = answered;
+		this.notifier = notifier;
+		this.provider = provider;
 	}
 
-	void connect() throws IOException, ControllerException {
-		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"example-curator");
+	public void connect() throws IOException, ControllerException {
+		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator");
 		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController);
 		this.curatorController.connect();
 		this.curatorController.handleRequests(this);
 		this.connectorController.connect();
 	}
 
-	void disconnect() throws ControllerException {
-		if(!this.answered.isTerminated()) {
-			this.answered.arrive();
-		}
-		if(!this.disconnectable.isTerminated()) {
-			this.disconnectable.arrive();
-		}
+	public void disconnect() throws ControllerException {
 		this.connectorController.disconnect();
 		this.curatorController.disconnect();
 	}
@@ -121,12 +119,11 @@ final class ExampleCurator implements MessageHandler {
 
 	private void processDisconnect(Disconnect request) {
 		LOGGER.info("Received disconnect from {}",request.submittedBy().agentId());
-		if(!this.disconnectable.isTerminated()) {
-			this.disconnectable.arrive();
-		}
+		this.notifier.onRequest(request);
 	}
 
 	private void processEnrichmentRequest(EnrichmentRequest request) {
+		this.notifier.onRequest(request);
 		LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
 		Response acknowledgement = createAcknowledgement(request);
 		acknowledgeRequest(acknowledgement);
@@ -143,6 +140,7 @@ final class ExampleCurator implements MessageHandler {
 		try {
 			sleep(TimeUnit.MILLISECONDS,150);
 			this.curatorController.publishResponse(response);
+			this.notifier.onResponse(response);
 		} catch (IOException e) {
 			LOGGER.error("Could not acknowledge {}",response,e);
 		}
@@ -152,30 +150,41 @@ final class ExampleCurator implements MessageHandler {
 		try {
 			sleep(TimeUnit.MILLISECONDS,150);
 			this.connectorController.publishMessage(response);
-			if(!this.answered.isTerminated()) {
-				this.answered.arrive();
-			}
+			this.notifier.onResponse(response);
 		} catch (IOException e) {
 			LOGGER.error("Could not reply {}",response,e);
 		}
 	}
 
 	private Response createAcknowledgement(Request request) {
+		ResponseBuilder<?,?> builder=null;
+		if(this.provider.isAccepted(request.messageId())) {
+			builder=ProtocolFactory.newAccepted();
+		} else {
+			final FailureDescription failure = this.provider.getFailure(request.messageId());
+			builder=
+				ProtocolFactory.
+					newFailure().
+						withCode(failure.code()).
+						withSubcode(failure.subcode().orNull()).
+						withReason(failure.reason()).
+						withDetail(failure.details());
+		}
 		return
-			ProtocolFactory.
-				newAccepted().
-					withMessageId(UUID.randomUUID()).
-					withSubmittedOn(new Date()).
-					withSubmittedBy(
-						ProtocolFactory.
-							newAgent().
-								withAgentId(UUID.randomUUID())).
-					withResponseTo(request.messageId()).
-					withResponseNumber(1).
-					build();
+			builder.
+				withMessageId(UUID.randomUUID()).
+				withSubmittedOn(new Date()).
+				withSubmittedBy(
+					ProtocolFactory.
+						newAgent().
+							withAgentId(UUID.randomUUID())).
+				withResponseTo(request.messageId()).
+				withResponseNumber(1).
+				build();
 	}
 
 	private Response createEnrichmentResponse(EnrichmentRequest request) {
+		final EnrichmentResult result = this.provider.getResult(request.messageId());
 		final EnrichmentResponseBuilder builder =
 			ProtocolFactory.
 				newEnrichmentResponse().
@@ -186,8 +195,16 @@ final class ExampleCurator implements MessageHandler {
 							newAgent().
 								withAgentId(UUID.randomUUID())).
 					withResponseTo(request.messageId()).
-					withResponseNumber(1).
-					withTargetResource(request.targetResource());
+					withResponseNumber(1);
+		if(result==null) {
+			generateResult(request,builder);
+		} else {
+			populateResult(result, builder);
+		}
+		return	builder.build();
+	}
+
+	private void generateResult(EnrichmentRequest request, EnrichmentResponseBuilder builder) {
 		int counter=0;
 		for(Filter filter:request.filters()) {
 			final int id = counter++;
@@ -198,7 +215,29 @@ final class ExampleCurator implements MessageHandler {
 							withProperty(filter.property()).
 							withValue(ProtocolFactory.newResource("value_"+id+"_"+filter.variable().name())));
 		}
-		return	builder.build();
+		builder.withTargetResource(request.targetResource());
+	}
+
+	private void populateResult(EnrichmentResult result, EnrichmentResponseBuilder builder) {
+		builder.withTargetResource(result.targetResource());
+		for(URI property:result.addedProperties()) {
+			builder.
+			withAddition(
+				createBinding(property, result.addedValue(property)));
+		}
+		for(URI property:result.removedProperties()) {
+			builder.
+				withRemoval(
+					createBinding(property, result.removedValue(property)));
+		}
+	}
+
+	private BindingBuilder createBinding(URI property, final Value value) {
+		return
+			ProtocolFactory.
+				newBinding().
+					withProperty(property).
+					withValue(value);
 	}
 
 	private void sleep(final TimeUnit unit, final int timeout) {

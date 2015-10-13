@@ -42,6 +42,17 @@ final class ParsingUtil {
 	private ParsingUtil() {
 	}
 
+	private static DateTime newDateTime(Object value) {
+		if(value==null) {
+			return null;
+		}
+		try {
+			return new DateTime(value);
+		} catch (IllegalArgumentException e) {
+			throw new ValidationException(value,XSD.DATE_TIME_TYPE,"Not a valid date",e);
+		}
+	}
+
 	static UUID toUUID(String value) {
 		if(value==null) {
 			return null;
@@ -50,17 +61,6 @@ final class ParsingUtil {
 			return UUID.fromString(value);
 		} catch (IllegalArgumentException e) {
 			throw new ValidationException(value,TYPES.UUID_TYPE,"Not a valid UUID",e);
-		}
-	}
-
-	static DateTime newDateTime(Object value) {
-		if(value==null) {
-			return null;
-		}
-		try {
-			return new DateTime(value);
-		} catch (IllegalArgumentException e) {
-			throw new ValidationException(value,XSD.DATE_TIME_TYPE,"Not a valid date",e);
 		}
 	}
 

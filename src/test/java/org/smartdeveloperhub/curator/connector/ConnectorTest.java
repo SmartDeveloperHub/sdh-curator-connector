@@ -35,7 +35,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.Curator;
+import org.smartdeveloperhub.curator.Notifier;
+import org.smartdeveloperhub.curator.RandomMessageIdentifierFactory;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Disconnect;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
 
 public class ConnectorTest {
@@ -50,11 +54,37 @@ public class ConnectorTest {
 
 	private Phaser disconnected=new Phaser(2);
 	private Phaser answered=new Phaser(3);
-	private ExampleCurator curator;
+
+	private Curator curator;
+
+	private RandomMessageIdentifierFactory factory;
+
+	private class CustomNotifier extends Notifier {
+
+		@Override
+		public void onDisconnect(Disconnect response) {
+			disconnected.arrive();
+		}
+
+		@Override
+		public void onEnrichmentResponse(EnrichmentResponse response) {
+			answered.arrive();
+		}
+
+	}
 
 	@Before
 	public void setUp() throws Exception {
-		this.curator=new ExampleCurator(this.deliveryChannel,this.disconnected,this.answered);
+		this.factory=RandomMessageIdentifierFactory.create(2);
+		this.curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		this.curator.accept(
+			this.factory.generated(0),
+			EnrichmentResult.
+				newInstance().
+					withTargetResource(URI.create("urn:example")).
+					withAddition(
+						URI.create("urn:property"),
+						ProtocolFactory.newResource("urn:result")));
 		this.curator.connect();
 	}
 
@@ -68,18 +98,20 @@ public class ConnectorTest {
 		Connector connector =
 			Connector.
 				builder().
-					withConnectorChannel(
-						deliveryChannel).
+					withConnectorChannel(this.deliveryChannel).
+					withMessageIdentifierFactory(this.factory).
 					build();
 		connector.connect();
 		try {
 			Future<Acknowledge> response=
 				connector.
 					requestEnrichment(
-						URI.create("urn:message"),
-						new EnrichmentResponseHandler() {
+						EnrichmentSpecification.
+							newInstance().
+								withTargetResource(URI.create("urn:message")),
+						new EnrichmentResultHandler() {
 							@Override
-							public void onResponse(EnrichmentResponse response) {
+							public void onResult(EnrichmentResult response) {
 								LOGGER.debug("Received: {}",response);
 								ConnectorTest.this.answered.arrive();
 							}
@@ -90,7 +122,7 @@ public class ConnectorTest {
 		} finally {
 			connector.disconnect();
 		}
-		disconnected.arriveAndAwaitAdvance();
+		this.disconnected.arriveAndAwaitAdvance();
 		LOGGER.info("Disconnection processed");
 	}
 

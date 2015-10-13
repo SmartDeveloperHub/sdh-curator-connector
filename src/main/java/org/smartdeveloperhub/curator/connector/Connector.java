@@ -27,7 +27,6 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -57,9 +56,18 @@ public final class Connector {
 		private CuratorConfiguration curatorConfiguration;
 		private DeliveryChannel connectorChannel;
 		private Agent agent;
+		private MessageIdentifierFactory factory;
+
+		private ConnectorBuilder() {
+		}
 
 		public ConnectorBuilder withCuratorConfiguration(CuratorConfiguration configuration) {
 			this.curatorConfiguration = configuration;
+			return this;
+		}
+
+		public ConnectorBuilder withMessageIdentifierFactory(MessageIdentifierFactory factory) {
+			this.factory = factory;
 			return this;
 		}
 
@@ -82,7 +90,8 @@ public final class Connector {
 				new Connector(
 					curatorConfiguration(),
 					agent(),
-					connectorChannel());
+					connectorChannel(),
+					this.factory!=null?this.factory:new DefaultMessageIdentifierFactory());
 		}
 
 		private DeliveryChannel connectorChannel() {
@@ -158,13 +167,15 @@ public final class Connector {
 	private final Lock write;
 
 	private final ConcurrentMap<UUID,ConnectorFuture> pendingAcknowledgements;
-	private final ConcurrentMap<UUID,EnrichmentResponseHandler> activeRequests;
+	private final ConcurrentMap<UUID,EnrichmentResultHandler> activeRequests;
 
 	private final ConnectorConfiguration configuration;
+	private final MessageIdentifierFactory factory;
 
 	private boolean connected;
 
-	private Connector(CuratorConfiguration curatorConfiguration, Agent agent, DeliveryChannel connectorChannel) {
+	private Connector(CuratorConfiguration curatorConfiguration, Agent agent, DeliveryChannel connectorChannel, MessageIdentifierFactory factory) {
+		this.factory = factory;
 		this.configuration =
 			new ConnectorConfiguration().
 				withCuratorConfiguration(curatorConfiguration).
@@ -195,16 +206,17 @@ public final class Connector {
 	}
 
 	private void processEnrichmentResponse(EnrichmentResponse response) {
-		EnrichmentResponseHandler handler=this.activeRequests.get(response.responseTo());
+		EnrichmentResultHandler handler=this.activeRequests.get(response.responseTo());
 		if(handler!=null) {
-			LOGGER.trace("Handling processing of response {} to request {} to handler {}...",response.messageId(),response.responseTo(),handler);
-			handler.onResponse(response);
+			LOGGER.trace("Handling processing of response {} for request {} to handler {}...",response.messageId(),response.responseTo(),handler);
+			final EnrichmentResult result = ProtocolUtil.toResult(response);
+			handler.onResult(result);
 		} else {
 			LOGGER.debug("Discarded response {}.",response);
 		}
 	}
 
-	private ConnectorFuture addRequest(EnrichmentRequest message, EnrichmentResponseHandler handler) {
+	private ConnectorFuture addRequest(EnrichmentRequest message, EnrichmentResultHandler handler) {
 		ConnectorFuture future= new LoggedConnectorFuture(new DefaultConnectorFuture(this,message));
 		this.pendingAcknowledgements.put(future.messageId(),future);
 		this.activeRequests.put(future.messageId(), handler);
@@ -225,7 +237,7 @@ public final class Connector {
 				publishRequest(
 					ProtocolFactory.
 						newDisconnect().
-							withMessageId(UUID.randomUUID()).
+							withMessageId(this.factory.nextIdentifier()).
 							withSubmittedOn(new Date()).
 							withSubmittedBy(this.configuration.agent()).
 							build());
@@ -290,18 +302,17 @@ public final class Connector {
 		}
 	}
 
-	public Future<Acknowledge> requestEnrichment(URI targetResource, EnrichmentResponseHandler handler) throws IOException {
+	public Future<Acknowledge> requestEnrichment(EnrichmentSpecification specification, EnrichmentResultHandler handler) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
 			EnrichmentRequest message=
-				ProtocolFactory.
-					newEnrichmentRequest().
-						withMessageId(UUID.randomUUID()).
+				ProtocolUtil.
+					toRequestBuilder(specification).
+						withMessageId(this.factory.nextIdentifier()).
 						withSubmittedOn(new Date()).
 						withSubmittedBy(this.configuration.agent()).
 						withReplyTo(this.configuration.connectorChannel()).
-						withTargetResource(targetResource).
 						build();
 			ConnectorFuture future = addRequest(message,handler);
 			this.curatorController.publishRequest(message);
