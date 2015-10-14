@@ -37,7 +37,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.smartdeveloperhub.curator.protocol.Message;
-import org.smartdeveloperhub.curator.protocol.Request;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
 
 final class DefaultConnectorFuture extends ConnectorFuture implements Future<Acknowledge> {
 
@@ -48,14 +48,14 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 	}
 
 	private final BlockingQueue<Acknowledge> replyQueue;
-	private final Request request;
+	private final RequestMessage request;
 	private final Connector connector;
 	private final Lock lock;
 
 	private volatile State state = State.WAITING;
 	private volatile Acknowledge acknowledge;
 
-	DefaultConnectorFuture(Connector connector, Request request) {
+	DefaultConnectorFuture(Connector connector, RequestMessage request) {
 		this.replyQueue= new ArrayBlockingQueue<>(1);
 		this.connector = connector;
 		this.request = request;

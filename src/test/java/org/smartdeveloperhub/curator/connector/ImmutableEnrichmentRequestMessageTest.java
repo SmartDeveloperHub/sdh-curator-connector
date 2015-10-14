@@ -24,19 +24,56 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
-public interface EnrichmentRequest extends Request {
+import mockit.Injectable;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
 
-	Policy apply();
+import org.joda.time.DateTime;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Filter;
 
-	URI targetResource();
+@RunWith(JMockit.class)
+public class ImmutableEnrichmentRequestMessageTest {
+	@Injectable
+	private Agent agent;
 
-	List<Filter> filters();
+	@Injectable
+	private DeliveryChannel deliveryChannel;
 
-	List<Constraint> constraints();
+	@Injectable
+	private UUID messageId;
+
+	@Injectable
+	private DateTime submittedOn;
+
+	@Injectable
+	private URI targetResource;
+
+	@Injectable
+	private List<Filter> filters;
+
+	@Injectable
+	private List<Constraint> constraints;
+
+	@Tested
+	private ImmutableEnrichmentRequestMessage sut;
+
+	@Test
+	public void testApply() throws Exception {
+		assertThat(sut.apply(),nullValue());
+	}
 
 }

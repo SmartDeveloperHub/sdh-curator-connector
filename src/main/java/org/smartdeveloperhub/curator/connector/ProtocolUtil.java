@@ -26,11 +26,11 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestMessageBuilder;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 
 final class ProtocolUtil {
@@ -38,7 +38,7 @@ final class ProtocolUtil {
 	private ProtocolUtil() {
 	}
 
-	static EnrichmentResult toEnrichmentResult(EnrichmentResponse response) {
+	static EnrichmentResult toEnrichmentResult(EnrichmentResponseMessage response) {
 		EnrichmentResult result=EnrichmentResult.newInstance().withTargetResource(response.targetResource());
 		for(Binding addition:response.additions()) {
 			result=result.withAddition(addition.property(),addition.value());
@@ -49,10 +49,10 @@ final class ProtocolUtil {
 		return result;
 	}
 
-	static EnrichmentRequestBuilder toRequestBuilder(EnrichmentSpecification specification) {
-		final EnrichmentRequestBuilder builder=
+	static EnrichmentRequestMessageBuilder toRequestBuilder(EnrichmentSpecification specification) {
+		final EnrichmentRequestMessageBuilder builder=
 			ProtocolFactory.
-				newEnrichmentRequest().
+				newEnrichmentRequestMessage().
 					withTargetResource(specification.targetResource());
 		for(Filter filter:specification.filters()) {
 			builder.withFilter(filter);
@@ -63,7 +63,7 @@ final class ProtocolUtil {
 		return builder;
 	}
 
-	static FailureDescription toFailureDescription(Failure message) {
+	static FailureDescription toFailureDescription(FailureMessage message) {
 		return
 			FailureDescription.
 				newInstance().

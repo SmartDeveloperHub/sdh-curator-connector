@@ -26,14 +26,14 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.RequestBuilder;
-import org.smartdeveloperhub.curator.protocol.Request;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.RequestMessageBuilder;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-abstract class RequestParser<T extends Request, B extends RequestBuilder<T,B>> extends MessageParser<T,B> {
+abstract class RequestMessageParser<T extends RequestMessage, B extends RequestMessageBuilder<T,B>> extends MessageParser<T,B> {
 
 	protected class RequestWorker extends MessageWorker {
 
@@ -56,7 +56,7 @@ abstract class RequestParser<T extends Request, B extends RequestBuilder<T,B>> e
 
 	}
 
-	RequestParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
+	RequestMessageParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
 		super(model,resource,parsedType,targetVariable,query);
 	}
 

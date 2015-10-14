@@ -26,6 +26,12 @@
  */
 package org.smartdeveloperhub.curator.protocol;
 
-public interface Accepted extends Response {
+import java.util.UUID;
+
+public interface ResponseMessage extends Message {
+
+	UUID responseTo();
+
+	long responseNumber();
 
 }

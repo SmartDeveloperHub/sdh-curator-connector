@@ -29,16 +29,16 @@ package org.smartdeveloperhub.curator.connector.io;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAccepted;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAcceptedMessage;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newAgent;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newBinding;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newBroker;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newConstraint;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDeliveryChannel;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDisconnect;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentRequest;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentResponse;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFailure;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newDisconnectMessage;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentRequestMessage;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newEnrichmentResponseMessage;
+import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFailureMessage;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newFilter;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newLiteral;
 import static org.smartdeveloperhub.curator.connector.ProtocolFactory.newResource;
@@ -59,16 +59,16 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestMessageBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseMessageBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
@@ -118,9 +118,9 @@ public class MessageUtilTest {
 	private static final String CI = "http://www.smartdeveloperhub.org/vocabulary/ci#";
 	private static final String ORG = "http://www.smartdeveloperhub.org/vocabulary/organization#";
 
-	private EnrichmentRequest request(boolean full) {
-		final EnrichmentRequestBuilder builder =
-			newEnrichmentRequest().
+	private EnrichmentRequestMessage request(boolean full) {
+		final EnrichmentRequestMessageBuilder builder =
+			newEnrichmentRequestMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -216,9 +216,9 @@ public class MessageUtilTest {
 		return builder.build();
 	}
 
-	private EnrichmentResponse response(boolean full) {
-		final EnrichmentResponseBuilder builder =
-			newEnrichmentResponse().
+	private EnrichmentResponseMessage response(boolean full) {
+		final EnrichmentResponseMessageBuilder builder =
+			newEnrichmentResponseMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -253,9 +253,9 @@ public class MessageUtilTest {
 		return builder.build();
 	}
 
-	private Accepted accepted() {
+	private AcceptedMessage accepted() {
 		return
-			newAccepted().
+			newAcceptedMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -266,9 +266,9 @@ public class MessageUtilTest {
 				build();
 	}
 
-	private Failure failure(boolean full) {
-		FailureBuilder builder=
-			newFailure().
+	private FailureMessage failure(boolean full) {
+		FailureMessageBuilder builder=
+			newFailureMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -286,9 +286,9 @@ public class MessageUtilTest {
 		return builder.build();
 	}
 
-	private Disconnect disconnect() {
+	private DisconnectMessage disconnect() {
 		return
-			newDisconnect().
+			newDisconnectMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -340,7 +340,7 @@ public class MessageUtilTest {
 	@Test
 	public void testFromString$badBody() {
 		try {
-			MessageUtil.newInstance().fromString("bad body",Accepted.class);
+			MessageUtil.newInstance().fromString("bad body",AcceptedMessage.class);
 			fail("Should not parse an bad body");
 		} catch (MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Could not parse body 'bad body' as Turtle"));
@@ -350,7 +350,7 @@ public class MessageUtilTest {
 	@Test
 	public void testFromString$noDefinition() {
 		try {
-			MessageUtil.newInstance().fromString("",Accepted.class);
+			MessageUtil.newInstance().fromString("",AcceptedMessage.class);
 			fail("Should not parse input with no definition");
 		} catch (NoDefinitionFoundException e) {
 			assertThat(e.getMessage(),equalTo("No <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found"));
@@ -363,7 +363,7 @@ public class MessageUtilTest {
 	@Test
 	public void testFromString$manyDefinitions() {
 		try {
-			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),Accepted.class);
+			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
 		} catch (TooManyDefinitionsFoundException e) {
 			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found (2)"));
@@ -377,7 +377,7 @@ public class MessageUtilTest {
 	@Test
 	public void testFromString$invalidDefinition() {
 		try {
-			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/bad_accepted.ttl"),Accepted.class);
+			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/bad_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
 		} catch (InvalidDefinitionFoundException e) {
 			assertThat(e.getMessage(),equalTo("Invalid <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found: Value '-1' is not a valid http://www.w3.org/2001/XMLSchema#unsignedLong: Response number must be greater than 0 (-1)"));
@@ -407,7 +407,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$enrichmentRequest() throws Exception {
 		String strRequest = MessageUtil.newInstance().withConversionContext(context()).toString(request(true));
 		System.out.println(strRequest);
-		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
+		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequestMessage.class));
 		System.out.println();
 	}
 
@@ -415,7 +415,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$enrichmentRequest$partialDeliveryChannel() throws Exception {
 		String strRequest = MessageUtil.newInstance().toString(request(false));
 		System.out.println(strRequest);
-		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequest.class));
+		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequestMessage.class));
 		System.out.println();
 	}
 
@@ -423,7 +423,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$enrichmentResponse() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(response(true));
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponseMessage.class));
 		System.out.println();
 	}
 
@@ -431,7 +431,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$enrichmentResponse$partial() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(response(false));
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponse.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponseMessage.class));
 		System.out.println();
 	}
 
@@ -439,7 +439,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$accepted() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(accepted());
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, Accepted.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, AcceptedMessage.class));
 		System.out.println();
 	}
 
@@ -447,7 +447,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$failure() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(failure(true));
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, FailureMessage.class));
 		System.out.println();
 	}
 
@@ -455,7 +455,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$failure$min() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(failure(false));
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, Failure.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, FailureMessage.class));
 		System.out.println();
 	}
 
@@ -463,7 +463,7 @@ public class MessageUtilTest {
 	public void testRoundtrip$disconnect() throws Exception {
 		String strResponse = MessageUtil.newInstance().toString(disconnect());
 		System.out.println(strResponse);
-		System.out.println(MessageUtil.newInstance().fromString(strResponse, Disconnect.class));
+		System.out.println(MessageUtil.newInstance().fromString(strResponse, DisconnectMessage.class));
 		System.out.println();
 	}
 

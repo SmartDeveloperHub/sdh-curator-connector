@@ -30,17 +30,17 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Binding;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, EnrichmentResponseBuilder> {
+final class EnrichmentResponseMessageParser extends ResponseMessageParser<EnrichmentResponseMessage, EnrichmentResponseMessageBuilder> {
 
 	private final class EnrichmentResponseWorker extends ResponseWorker {
 
@@ -68,7 +68,7 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 			mandatory(
 				new ResourceConsumer("targetResource","curator:targetResource") {
 					@Override
-					protected void consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+					protected void consumeResource(EnrichmentResponseMessageBuilder builder, Resource resource) {
 						builder.withTargetResource(resource.getURI());
 					}
 				}
@@ -80,7 +80,7 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 				optional(
 					new ResourceProvider<Resource>("additionTarget","curator:additionTarget") {
 						@Override
-						protected Resource consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+						protected Resource consumeResource(EnrichmentResponseMessageBuilder builder, Resource resource) {
 							return resource;
 						}
 					}
@@ -92,7 +92,7 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 				optional(
 					new ResourceProvider<Resource>("removalTarget","curator:removalTarget") {
 						@Override
-						protected Resource consumeResource(EnrichmentResponseBuilder builder, Resource resource) {
+						protected Resource consumeResource(EnrichmentResponseMessageBuilder builder, Resource resource) {
 							return resource;
 						}
 					}
@@ -105,10 +105,10 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 		QueryFactory.create(
 			ResourceUtil.
 				loadResource(
-					EnrichmentResponseParser.class,
+					EnrichmentResponseMessageParser.class,
 					"enrichmentResponse.sparql"));
 
-	private EnrichmentResponseParser(Model model, Resource resource) {
+	private EnrichmentResponseMessageParser(Model model, Resource resource) {
 		super(model, resource, "curator:EnrichmentResponse", "enrichmentResponse", QUERY);
 	}
 
@@ -118,12 +118,12 @@ final class EnrichmentResponseParser extends ResponseParser<EnrichmentResponse, 
 	}
 
 	@Override
-	protected EnrichmentResponseBuilder newBuilder() {
-		return ProtocolFactory.newEnrichmentResponse();
+	protected EnrichmentResponseMessageBuilder newBuilder() {
+		return ProtocolFactory.newEnrichmentResponseMessage();
 	}
 
-	static EnrichmentResponse fromModel(Model model, Resource resource) {
-		return new EnrichmentResponseParser(model, resource).parse();
+	static EnrichmentResponseMessage fromModel(Model model, Resource resource) {
+		return new EnrichmentResponseMessageParser(model, resource).parse();
 	}
 
 }

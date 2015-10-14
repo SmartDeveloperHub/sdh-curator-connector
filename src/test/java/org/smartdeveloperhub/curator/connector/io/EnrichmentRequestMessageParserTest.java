@@ -26,53 +26,44 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseBuilder;
-import org.smartdeveloperhub.curator.protocol.Response;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.rdf.model.Literal;
+import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-abstract class ResponseParser<T extends Response, B extends ResponseBuilder<T,B>> extends MessageParser<T,B> {
+public class EnrichmentRequestMessageParserTest {
 
-	protected class ResponseWorker extends MessageWorker {
-
-		@Override
-		public void parse() {
-			super.parse();
-			updateResponseTo();
-			updateResponseNumber();
-		}
-
-		private void updateResponseTo() {
-			mandatory(
-				new LiteralConsumer("responseTo", "curator:responseTo") {
-					@Override
-					protected void consumeLiteral(B builder, Literal literal) {
-						builder.withResponseTo(literal.getLexicalForm());
-					}
-				}
-			);
-		}
-
-		private void updateResponseNumber() {
-			mandatory(
-				new LiteralConsumer("responseNumber", "curator:responseNumber") {
-					@Override
-					protected void consumeLiteral(B builder, Literal literal) {
-						builder.withResponseNumber(literal.getLexicalForm());
-					}
-				}
-			);
-		}
+	@Test
+	public void testFromModel$happyPath() {
+		new ParserTester("messages/enrichment_request.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				EnrichmentRequestMessage result=EnrichmentRequestMessageParser.fromModel(model, target);
+				assertThat(result,notNullValue());
+				System.out.println(result);
+			}
+		}.verify();
 	}
 
-	ResponseParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
-		super(model,resource,parsedType,targetVariable,query);
-	}
-
-	@Override
-	protected abstract ResponseWorker solutionParser();
+//	@Test
+//	public void testFromModel$fail$multiple() {
+//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
+//			@Override
+//			protected void exercise(Model model, Resource target) {
+//				try {
+//					AgentParser.fromModel(model, target);
+//					fail("Should not return an agent when multiple are available");
+//				} catch (Exception e) {
+//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
+//					assertThat(e.getCause(),nullValue());
+//				}
+//			}
+//		}.verify();
+//	}
 
 }

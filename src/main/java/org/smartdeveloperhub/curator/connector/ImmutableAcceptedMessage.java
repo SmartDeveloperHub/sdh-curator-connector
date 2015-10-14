@@ -29,33 +29,18 @@ package org.smartdeveloperhub.curator.connector;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Request;
 
-import com.google.common.base.MoreObjects.ToStringHelper;
+final class ImmutableAcceptedMessage extends ImmutableResponseMessage implements AcceptedMessage {
 
-abstract class ImmutableRequest extends ImmutableMessage implements Request {
-
-	private final DeliveryChannel deliveryChannel;
-
-	ImmutableRequest(
-			UUID messageId,
-			DateTime submittedOn,
-			Agent agent,
-			DeliveryChannel deliveryChannel) {
-		super(messageId,submittedOn,agent);
-		this.deliveryChannel = deliveryChannel;
-	}
-
-	@Override
-	public final DeliveryChannel replyTo() {
-		return this.deliveryChannel;
-	}
-
-	@Override
-	protected void toString(ToStringHelper helper) {
-		helper.add("replyTo",this.deliveryChannel);
+	ImmutableAcceptedMessage(
+		UUID messageId,
+		DateTime submittedOn,
+		Agent agent,
+		UUID responseTo,
+		long responseNumber) {
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
 	}
 
 }

@@ -24,45 +24,21 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
-import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
-import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
-import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
+import java.util.UUID;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Resource;
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 
-final class DisconnectConverter extends ModelMessageConverter<Disconnect> {
+final class ImmutableDisconnectMessage extends ImmutableRequestMessage implements DisconnectMessage {
 
-	@Override
-	protected void toString(Disconnect message, ModelHelper helper) {
-		helper.
-			blankNode("response").
-				type(CURATOR.DISCONNECT_TYPE).
-				property(CURATOR.MESSAGE_ID).
-					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
-					withBlankNode("agent").
-				property(CURATOR.SUBMITTED_ON).
-					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-			blankNode("agent").
-				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
-					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
-	}
-
-	@Override
-	protected Disconnect parse(Model model, Resource resource) {
-		return DisconnectParser.fromModel(model, resource);
-	}
-
-	@Override
-	protected String messageType() {
-		return CURATOR.DISCONNECT_TYPE;
+	ImmutableDisconnectMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent) {
+		super(messageId, submittedOn, agent,null);
 	}
 
 }

@@ -64,7 +64,7 @@ public class ProtocolFactoryTest {
 	public void testMessageBuilder$WithSubmittedBy$nullBuilder() throws Exception {
 		try {
 			ProtocolFactory.
-				newEnrichmentRequest().
+				newEnrichmentRequestMessage().
 					withSubmittedBy((AgentBuilder)null).
 					withSubmittedOn(new Date()).
 					withMessageId(UUID.randomUUID()).
@@ -83,7 +83,7 @@ public class ProtocolFactoryTest {
 	public void testRequestBuilder$WithReplyTo$nullBuilder() throws Exception {
 		try {
 			ProtocolFactory.
-				newEnrichmentRequest().
+				newEnrichmentRequestMessage().
 					withSubmittedBy(ProtocolFactory.newAgent().withAgentId(UUID.randomUUID())).
 						withSubmittedOn(new Date()).
 						withMessageId(UUID.randomUUID()).

@@ -41,9 +41,9 @@ import org.junit.runners.Suite.SuiteClasses;
 	DeliveryChannelParserTest.class,
 	ConstraintParserTest.class,
 	BindingSerializerTest.class,
-	EnrichmentRequestParserTest.class,
+	EnrichmentRequestMessageParserTest.class,
 	BindingParserTest.class,
-	EnrichmentResponseParserTest.class,
+	EnrichmentResponseMessageParserTest.class,
 	MessageUtilTest.class
 })
 public class IOTestsSuite {

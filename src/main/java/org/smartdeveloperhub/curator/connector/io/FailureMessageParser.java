@@ -27,9 +27,9 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
@@ -37,7 +37,7 @@ import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
+final class FailureMessageParser extends ResponseMessageParser<FailureMessage, FailureMessageBuilder> {
 
 	private final class FailureWorker extends ResponseWorker {
 
@@ -54,7 +54,7 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 			optional(
 				new LiteralConsumer("detail","curator:detail") {
 					@Override
-					protected void consumeLiteral(FailureBuilder builder, Literal literal) {
+					protected void consumeLiteral(FailureMessageBuilder builder, Literal literal) {
 						builder.withDetail(literal.getLexicalForm());
 					}
 				}
@@ -65,7 +65,7 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 			mandatory(
 				new LiteralConsumer("reason","curator:reason") {
 					@Override
-					protected void consumeLiteral(FailureBuilder builder, Literal literal) {
+					protected void consumeLiteral(FailureMessageBuilder builder, Literal literal) {
 						builder.withReason(literal.getLexicalForm());
 					}
 				}
@@ -76,7 +76,7 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 			optional(
 				new LiteralConsumer("subcode","curator:subcode") {
 					@Override
-					protected void consumeLiteral(FailureBuilder builder, Literal literal) {
+					protected void consumeLiteral(FailureMessageBuilder builder, Literal literal) {
 						builder.withSubcode(literal.getLexicalForm());
 					}
 				}
@@ -87,7 +87,7 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 			mandatory(
 				new LiteralConsumer("code","curator:code") {
 					@Override
-					protected void consumeLiteral(FailureBuilder builder, Literal literal) {
+					protected void consumeLiteral(FailureMessageBuilder builder, Literal literal) {
 						builder.withCode(literal.getLexicalForm());
 					}
 				}
@@ -99,10 +99,10 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 		QueryFactory.create(
 			ResourceUtil.
 				loadResource(
-					FailureParser.class,
+					FailureMessageParser.class,
 					"failure.sparql"));
 
-	private FailureParser(Model model, Resource resource) {
+	private FailureMessageParser(Model model, Resource resource) {
 		super(model, resource,"curator:Failure","failure",QUERY);
 	}
 
@@ -112,12 +112,12 @@ final class FailureParser extends ResponseParser<Failure, FailureBuilder> {
 	}
 
 	@Override
-	protected FailureBuilder newBuilder() {
-		return ProtocolFactory.newFailure();
+	protected FailureMessageBuilder newBuilder() {
+		return ProtocolFactory.newFailureMessage();
 	}
 
-	static Failure fromModel(Model model, Resource resource) {
-		return new FailureParser(model, resource).parse();
+	static FailureMessage fromModel(Model model, Resource resource) {
+		return new FailureMessageParser(model, resource).parse();
 	}
 
 }

@@ -26,41 +26,53 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.DisconnectBuilder;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseMessageBuilder;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
 import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.rdf.model.Literal;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class DisconnectParser extends RequestParser<Disconnect, DisconnectBuilder> {
+abstract class ResponseMessageParser<T extends ResponseMessage, B extends ResponseMessageBuilder<T,B>> extends MessageParser<T,B> {
 
-	private static final Query QUERY=
-		QueryFactory.create(
-			ResourceUtil.
-				loadResource(
-					DisconnectParser.class,
-					"disconnect.sparql"));
+	protected class ResponseWorker extends MessageWorker {
 
-	private DisconnectParser(Model model, Resource resource) {
-		super(model, resource, "curator:Disconnect", "disconnect", QUERY);
+		@Override
+		public void parse() {
+			super.parse();
+			updateResponseTo();
+			updateResponseNumber();
+		}
+
+		private void updateResponseTo() {
+			mandatory(
+				new LiteralConsumer("responseTo", "curator:responseTo") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withResponseTo(literal.getLexicalForm());
+					}
+				}
+			);
+		}
+
+		private void updateResponseNumber() {
+			mandatory(
+				new LiteralConsumer("responseNumber", "curator:responseNumber") {
+					@Override
+					protected void consumeLiteral(B builder, Literal literal) {
+						builder.withResponseNumber(literal.getLexicalForm());
+					}
+				}
+			);
+		}
+	}
+
+	ResponseMessageParser(Model model, Resource resource, String parsedType, String targetVariable, Query query) {
+		super(model,resource,parsedType,targetVariable,query);
 	}
 
 	@Override
-	protected RequestWorker solutionParser() {
-		return new RequestWorker();
-	}
-
-	@Override
-	protected DisconnectBuilder newBuilder() {
-		return ProtocolFactory.newDisconnect();
-	}
-
-	static Disconnect fromModel(Model model, Resource resource) {
-		return new DisconnectParser(model, resource).parse();
-	}
+	protected abstract ResponseWorker solutionParser();
 
 }

@@ -24,23 +24,18 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.protocol;
 
-import java.util.UUID;
+import com.google.common.base.Optional;
 
-import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.Accepted;
-import org.smartdeveloperhub.curator.protocol.Agent;
+public interface FailureMessage extends ResponseMessage {
 
-final class ImmutableAccepted extends ImmutableResponse implements Accepted {
+	long code();
 
-	ImmutableAccepted(
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
-	}
+	Optional<Long> subcode();
+
+	String reason();
+
+	String detail();
 
 }

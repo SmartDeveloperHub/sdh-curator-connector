@@ -26,50 +26,44 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
-import org.smartdeveloperhub.curator.protocol.Accepted;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+
+import org.junit.Test;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
-import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
-import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
-import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class AcceptedConverter extends ModelMessageConverter<Accepted> {
+public class EnrichmentResponseMessageParserTest {
 
-	private static final String RESPONSE_BNODE = "response";
-	private static final String AGENT_BNODE    = "agent";
-
-	@Override
-	protected void toString(Accepted message, ModelHelper helper) {
-		helper.
-			blankNode(RESPONSE_BNODE).
-				type(messageType()).
-				property(CURATOR.MESSAGE_ID).
-					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
-					withBlankNode(AGENT_BNODE).
-				property(CURATOR.SUBMITTED_ON).
-					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-				property(CURATOR.RESPONSE_TO).
-					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
-				property(CURATOR.RESPONSE_NUMBER).
-					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG_TYPE).
-			blankNode(AGENT_BNODE).
-				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
-					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
+	@Test
+	public void testFromModel$happyPath() {
+		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
+			@Override
+			protected void exercise(Model model, Resource target) {
+				EnrichmentResponseMessage result=EnrichmentResponseMessageParser.fromModel(model, target);
+				assertThat(result,notNullValue());
+				System.out.println(result);
+			}
+		}.verify();
 	}
 
-	@Override
-	protected Accepted parse(Model model, Resource resource) {
-		return AcceptedParser.fromModel(model, resource);
-	}
-
-	@Override
-	protected String messageType() {
-		return CURATOR.ACCEPTED_TYPE;
-	}
+//	@Test
+//	public void testFromModel$fail$multiple() {
+//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
+//			@Override
+//			protected void exercise(Model model, Resource target) {
+//				try {
+//					AgentParser.fromModel(model, target);
+//					fail("Should not return an agent when multiple are available");
+//				} catch (Exception e) {
+//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
+//					assertThat(e.getCause(),nullValue());
+//				}
+//			}
+//		}.verify();
+//	}
 
 }

@@ -35,7 +35,7 @@ import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
@@ -47,7 +47,7 @@ import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentRequest> {
+final class EnrichmentRequestMessageConverter extends ModelMessageConverter<EnrichmentRequestMessage> {
 
 	private static final String REQUEST_BNODE          = "request";
 	private static final String AGENT_BNODE            = "agent";
@@ -55,7 +55,7 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 	private static final String DELIVERY_CHANNEL_BNODE = "deliveryChannel";
 
 	@Override
-	protected void toString(EnrichmentRequest message, ModelHelper helper) {
+	protected void toString(EnrichmentRequestMessage message, ModelHelper helper) {
 		EnrichmentUtil util=
 			EnrichmentUtil.
 				builder().
@@ -88,8 +88,8 @@ final class EnrichmentRequestConverter extends ModelMessageConverter<EnrichmentR
 	}
 
 	@Override
-	protected EnrichmentRequest parse(Model model, Resource resource) {
-		return EnrichmentRequestParser.fromModel(model, resource);
+	protected EnrichmentRequestMessage parse(Model model, Resource resource) {
+		return EnrichmentRequestMessageParser.fromModel(model, resource);
 	}
 
 	@Override

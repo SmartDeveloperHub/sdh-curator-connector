@@ -32,31 +32,33 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Binding;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Policy;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableList;
 
-final class ImmutableEnrichmentResponse extends ImmutableResponse implements EnrichmentResponse {
+final class ImmutableEnrichmentRequestMessage extends ImmutableRequestMessage implements EnrichmentRequestMessage {
 
 	private final URI targetResource;
-	private final List<Binding> additions;
-	private final List<Binding> removals;
+	private final ImmutableList<Filter> filters;
+	private final ImmutableList<Constraint> constraints;
 
-	ImmutableEnrichmentResponse( // NOSONAR
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber,
-		URI targetResource,
-		List<Binding> additions,
-		List<Binding> removals) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
-		this.targetResource=targetResource;
-		this.additions=ImmutableList.<Binding>copyOf(additions);
-		this.removals=ImmutableList.<Binding>copyOf(removals);
+	ImmutableEnrichmentRequestMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent,
+			DeliveryChannel deliveryChannel,
+			URI targetResource,
+			List<Filter> filters,
+			List<Constraint> constraints) {
+		super(messageId,submittedOn,agent,deliveryChannel);
+		this.targetResource = targetResource;
+		this.filters=ImmutableList.copyOf(filters);
+		this.constraints=ImmutableList.copyOf(constraints);
 	}
 
 	@Override
@@ -65,24 +67,27 @@ final class ImmutableEnrichmentResponse extends ImmutableResponse implements Enr
 	}
 
 	@Override
-	public List<Binding> additions() {
-		return this.additions;
+	public Policy apply() {
+		return null;
 	}
 
 	@Override
-	public List<Binding> removals() {
-		return this.removals;
+	public List<Filter> filters() {
+		return this.filters;
+	}
+
+	@Override
+	public List<Constraint> constraints() {
+		return this.constraints;
 	}
 
 	@Override
 	protected void toString(ToStringHelper helper) {
 		super.toString(helper);
 		helper.
-			add("targetResource",this.targetResource).
-			add("additions",this.additions).
-			add("removals",this.removals);
+			add("targetResource", this.targetResource).
+			add("filters",this.filters).
+			add("constraints",this.constraints);
 	}
-
-
 
 }

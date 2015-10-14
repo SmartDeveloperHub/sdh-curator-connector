@@ -36,20 +36,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.Notifier;
 import org.smartdeveloperhub.curator.connector.ProtocolFactory.BindingBuilder;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseBuilder;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseMessageBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseMessageBuilder;
 import org.smartdeveloperhub.curator.connector.io.InvalidDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.connector.io.NoDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.TooManyDefinitionsFoundException;
-import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
-import org.smartdeveloperhub.curator.protocol.Request;
-import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
 
 public final class SimpleCurator implements MessageHandler {
@@ -84,12 +84,12 @@ public final class SimpleCurator implements MessageHandler {
 
 	@Override
 	public void handlePayload(String payload) {
-		EnrichmentRequest erRequest=parsePayload(payload, EnrichmentRequest.class);
+		EnrichmentRequestMessage erRequest=parsePayload(payload, EnrichmentRequestMessage.class);
 		if(erRequest!=null) {
 			processEnrichmentRequest(erRequest);
 			return;
 		}
-		Disconnect dRequest=parsePayload(payload,Disconnect.class);
+		DisconnectMessage dRequest=parsePayload(payload,DisconnectMessage.class);
 		if(dRequest!=null) {
 			processDisconnect(dRequest);
 			return;
@@ -97,7 +97,7 @@ public final class SimpleCurator implements MessageHandler {
 		LOGGER.error("Could not understand request:\n{}",payload);
 	}
 
-	private <T extends Request> T parsePayload(String payload, final Class<? extends T> messageClass) {
+	private <T extends RequestMessage> T parsePayload(String payload, final Class<? extends T> messageClass) {
 		T request=null;
 		try {
 			request=
@@ -117,26 +117,26 @@ public final class SimpleCurator implements MessageHandler {
 
 	}
 
-	private void processDisconnect(Disconnect request) {
+	private void processDisconnect(DisconnectMessage request) {
 		LOGGER.info("Received disconnect from {}",request.submittedBy().agentId());
 		this.notifier.onRequest(request);
 	}
 
-	private void processEnrichmentRequest(EnrichmentRequest request) {
+	private void processEnrichmentRequest(EnrichmentRequestMessage request) {
 		this.notifier.onRequest(request);
 		LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
-		Response acknowledgement = createAcknowledgement(request);
+		ResponseMessage acknowledgement = createAcknowledgement(request);
 		acknowledgeRequest(acknowledgement);
-		if(acknowledgement instanceof Accepted) {
+		if(acknowledgement instanceof AcceptedMessage) {
 			LOGGER.info("Accepted enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
-			Response enrichment = createEnrichmentResponse(request);
+			ResponseMessage enrichment = createEnrichmentResponse(request);
 			replyToEnrichment(enrichment);
 		} else {
 			LOGGER.info("Rejected enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
 		}
 	}
 
-	private void acknowledgeRequest(Response response) {
+	private void acknowledgeRequest(ResponseMessage response) {
 		try {
 			sleep(TimeUnit.MILLISECONDS,150);
 			this.curatorController.publishResponse(response);
@@ -146,7 +146,7 @@ public final class SimpleCurator implements MessageHandler {
 		}
 	}
 
-	private void replyToEnrichment(Response response) {
+	private void replyToEnrichment(ResponseMessage response) {
 		try {
 			sleep(TimeUnit.MILLISECONDS,150);
 			this.connectorController.publishMessage(response);
@@ -156,15 +156,15 @@ public final class SimpleCurator implements MessageHandler {
 		}
 	}
 
-	private Response createAcknowledgement(Request request) {
-		ResponseBuilder<?,?> builder=null;
+	private ResponseMessage createAcknowledgement(RequestMessage request) {
+		ResponseMessageBuilder<?,?> builder=null;
 		if(this.provider.isAccepted(request.messageId())) {
-			builder=ProtocolFactory.newAccepted();
+			builder=ProtocolFactory.newAcceptedMessage();
 		} else {
 			final FailureDescription failure = this.provider.getFailure(request.messageId());
 			builder=
 				ProtocolFactory.
-					newFailure().
+					newFailureMessage().
 						withCode(failure.code()).
 						withSubcode(failure.subcode().orNull()).
 						withReason(failure.reason()).
@@ -183,11 +183,11 @@ public final class SimpleCurator implements MessageHandler {
 				build();
 	}
 
-	private Response createEnrichmentResponse(EnrichmentRequest request) {
+	private ResponseMessage createEnrichmentResponse(EnrichmentRequestMessage request) {
 		final EnrichmentResult result = this.provider.getResult(request.messageId());
-		final EnrichmentResponseBuilder builder =
+		final EnrichmentResponseMessageBuilder builder =
 			ProtocolFactory.
-				newEnrichmentResponse().
+				newEnrichmentResponseMessage().
 					withMessageId(UUID.randomUUID()).
 					withSubmittedOn(new Date()).
 					withSubmittedBy(
@@ -204,7 +204,7 @@ public final class SimpleCurator implements MessageHandler {
 		return	builder.build();
 	}
 
-	private void generateResult(EnrichmentRequest request, EnrichmentResponseBuilder builder) {
+	private void generateResult(EnrichmentRequestMessage request, EnrichmentResponseMessageBuilder builder) {
 		int counter=0;
 		for(Filter filter:request.filters()) {
 			final int id = counter++;
@@ -218,7 +218,7 @@ public final class SimpleCurator implements MessageHandler {
 		builder.withTargetResource(request.targetResource());
 	}
 
-	private void populateResult(EnrichmentResult result, EnrichmentResponseBuilder builder) {
+	private void populateResult(EnrichmentResult result, EnrichmentResponseMessageBuilder builder) {
 		builder.withTargetResource(result.targetResource());
 		for(URI property:result.addedProperties()) {
 			builder.

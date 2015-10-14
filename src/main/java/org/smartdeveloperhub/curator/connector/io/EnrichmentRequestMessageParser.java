@@ -29,10 +29,10 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.List;
 
 import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestBuilder;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Variable;
 
@@ -42,7 +42,7 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, EnrichmentRequestBuilder> {
+final class EnrichmentRequestMessageParser extends RequestMessageParser<EnrichmentRequestMessage, EnrichmentRequestMessageBuilder> {
 
 	private final class EnrichmentRequestWorker extends RequestWorker {
 
@@ -53,7 +53,7 @@ final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, Enr
 				mandatory(
 					new ResourceProvider<Resource>("targetResource","curator:targetResource") {
 						@Override
-						protected Resource consumeResource(EnrichmentRequestBuilder builder, Resource resource) {
+						protected Resource consumeResource(EnrichmentRequestMessageBuilder builder, Resource resource) {
 							builder.withTargetResource(resource.getURI());
 							return resource;
 						}
@@ -86,10 +86,10 @@ final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, Enr
 		QueryFactory.create(
 			ResourceUtil.
 				loadResource(
-					EnrichmentRequestParser.class,
+					EnrichmentRequestMessageParser.class,
 					"enrichmentRequest.sparql"));
 
-	private EnrichmentRequestParser(Model model, Resource resource) {
+	private EnrichmentRequestMessageParser(Model model, Resource resource) {
 		super(model, resource, "curator:EnrichmentRequest", "enrichmentRequest", QUERY);
 	}
 
@@ -99,12 +99,12 @@ final class EnrichmentRequestParser extends RequestParser<EnrichmentRequest, Enr
 	}
 
 	@Override
-	protected EnrichmentRequestBuilder newBuilder() {
-		return ProtocolFactory.newEnrichmentRequest();
+	protected EnrichmentRequestMessageBuilder newBuilder() {
+		return ProtocolFactory.newEnrichmentRequestMessage();
 	}
 
-	static EnrichmentRequest fromModel(Model model, Resource resource) {
-		return new EnrichmentRequestParser(model, resource).parse();
+	static EnrichmentRequestMessage fromModel(Model model, Resource resource) {
+		return new EnrichmentRequestMessageParser(model, resource).parse();
 	}
 
 }

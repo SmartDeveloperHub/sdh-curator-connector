@@ -26,51 +26,51 @@
  */
 package org.smartdeveloperhub.curator;
 
-import org.smartdeveloperhub.curator.protocol.Accepted;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
-import org.smartdeveloperhub.curator.protocol.Failure;
-import org.smartdeveloperhub.curator.protocol.Request;
-import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
 public class Notifier {
 
-	public final void onResponse(Response response) {
-		if(response instanceof Accepted) {
-			this.onAccepted((Accepted)response);
-		} else if(response instanceof Failure ) {
-			this.onFailure((Failure)response);
-		} else if(response instanceof EnrichmentResponse) {
-			this.onEnrichmentResponse((EnrichmentResponse)response);
+	public final void onResponse(ResponseMessage response) {
+		if(response instanceof AcceptedMessage) {
+			this.onAccepted((AcceptedMessage)response);
+		} else if(response instanceof FailureMessage ) {
+			this.onFailure((FailureMessage)response);
+		} else if(response instanceof EnrichmentResponseMessage) {
+			this.onEnrichmentResponse((EnrichmentResponseMessage)response);
 		}
 	}
 
-	public final void onRequest(Request request) {
-		if(request instanceof Disconnect) {
-			this.onDisconnect((Disconnect)request);
-		} else if(request instanceof EnrichmentRequest) {
-			this.onEnrichmentRequest((EnrichmentRequest)request);
+	public final void onRequest(RequestMessage request) {
+		if(request instanceof DisconnectMessage) {
+			this.onDisconnect((DisconnectMessage)request);
+		} else if(request instanceof EnrichmentRequestMessage) {
+			this.onEnrichmentRequest((EnrichmentRequestMessage)request);
 		}
 	}
 
-	public void onDisconnect(Disconnect response) {
+	public void onDisconnect(DisconnectMessage response) {
 		// To be refined by subclasses
 	}
 
-	public void onEnrichmentRequest(EnrichmentRequest request) {
+	public void onEnrichmentRequest(EnrichmentRequestMessage request) {
 		// To be refined by subclasses
 	}
 
-	public void onAccepted(Accepted accepted) {
+	public void onAccepted(AcceptedMessage accepted) {
 		// To be refined by subclasses
 	}
 
-	public void onFailure(Failure response) {
+	public void onFailure(FailureMessage response) {
 		// To be refined by subclasses
 	}
 
-	public void onEnrichmentResponse(EnrichmentResponse response) {
+	public void onEnrichmentResponse(EnrichmentResponseMessage response) {
 		// To be refined by subclasses
 	}
 

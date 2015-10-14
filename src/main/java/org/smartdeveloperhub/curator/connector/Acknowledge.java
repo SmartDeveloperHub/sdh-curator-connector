@@ -26,8 +26,8 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.protocol.Accepted;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.base.MoreObjects;
@@ -42,12 +42,12 @@ public final class Acknowledge {
 	}
 
 	public boolean isAccepted() {
-		return this.message instanceof Accepted;
+		return this.message instanceof AcceptedMessage;
 	}
 
 	public FailureDescription getFailure() {
 		Preconditions.checkState(!isAccepted(),"Request was accepted");
-		return ProtocolUtil.toFailureDescription((Failure)this.message);
+		return ProtocolUtil.toFailureDescription((FailureMessage)this.message);
 	}
 
 	@Override

@@ -26,19 +26,63 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
+import org.smartdeveloperhub.curator.protocol.Binding;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 
-final class ImmutableDisconnect extends ImmutableRequest implements Disconnect {
+import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.ImmutableList;
 
-	ImmutableDisconnect(
-			UUID messageId,
-			DateTime submittedOn,
-			Agent agent) {
-		super(messageId, submittedOn, agent,null);
+final class ImmutableEnrichmentResponseMessage extends ImmutableResponseMessage implements EnrichmentResponseMessage {
+
+	private final URI targetResource;
+	private final List<Binding> additions;
+	private final List<Binding> removals;
+
+	ImmutableEnrichmentResponseMessage( // NOSONAR
+		UUID messageId,
+		DateTime submittedOn,
+		Agent agent,
+		UUID responseTo,
+		long responseNumber,
+		URI targetResource,
+		List<Binding> additions,
+		List<Binding> removals) {
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
+		this.targetResource=targetResource;
+		this.additions=ImmutableList.<Binding>copyOf(additions);
+		this.removals=ImmutableList.<Binding>copyOf(removals);
 	}
+
+	@Override
+	public URI targetResource() {
+		return this.targetResource;
+	}
+
+	@Override
+	public List<Binding> additions() {
+		return this.additions;
+	}
+
+	@Override
+	public List<Binding> removals() {
+		return this.removals;
+	}
+
+	@Override
+	protected void toString(ToStringHelper helper) {
+		super.toString(helper);
+		helper.
+			add("targetResource",this.targetResource).
+			add("additions",this.additions).
+			add("removals",this.removals);
+	}
+
+
 
 }

@@ -24,47 +24,43 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.io;
 
-import java.util.UUID;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.DisconnectMessageBuilder;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 
-import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Response;
+import com.hp.hpl.jena.query.Query;
+import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-import com.google.common.base.MoreObjects.ToStringHelper;
+final class DisconnectMessageParser extends RequestMessageParser<DisconnectMessage, DisconnectMessageBuilder> {
 
-abstract class ImmutableResponse extends ImmutableMessage implements Response {
+	private static final Query QUERY=
+		QueryFactory.create(
+			ResourceUtil.
+				loadResource(
+					DisconnectMessageParser.class,
+					"disconnect.sparql"));
 
-	private final UUID responseTo;
-	private final long responseNumber;
-
-	ImmutableResponse(
-			UUID messageId,
-			DateTime submittedOn,
-			Agent agent,
-			UUID responseTo,
-			long responseNumber) {
-		super(messageId, submittedOn, agent);
-		this.responseTo=responseTo;
-		this.responseNumber=responseNumber;
+	private DisconnectMessageParser(Model model, Resource resource) {
+		super(model, resource, "curator:Disconnect", "disconnect", QUERY);
 	}
 
 	@Override
-	public UUID responseTo() {
-		return this.responseTo;
+	protected RequestWorker solutionParser() {
+		return new RequestWorker();
 	}
 
 	@Override
-	public long responseNumber() {
-		return this.responseNumber;
+	protected DisconnectMessageBuilder newBuilder() {
+		return ProtocolFactory.newDisconnectMessage();
 	}
 
-	@Override
-	protected void toString(ToStringHelper helper) {
-		helper.
-			add("responseTo",this.responseTo).
-			add("responseNumber",this.responseNumber);
+	static DisconnectMessage fromModel(Model model, Resource resource) {
+		return new DisconnectMessageParser(model, resource).parse();
 	}
 
 }

@@ -29,11 +29,11 @@ package org.smartdeveloperhub.curator.connector.io;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
-import org.smartdeveloperhub.curator.protocol.Accepted;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.collect.Maps;
@@ -43,11 +43,11 @@ public final class MessageUtil {
 	private static final ConcurrentMap<Class<?>,Class<?>> CONVERTERS=Maps.newConcurrentMap();
 
 	static {
-		MessageUtil.registerConverter(EnrichmentRequest.class,EnrichmentRequestConverter.class);
-		MessageUtil.registerConverter(Disconnect.class, DisconnectConverter.class);
-		MessageUtil.registerConverter(EnrichmentResponse.class,EnrichmentResponseConverter.class);
-		MessageUtil.registerConverter(Accepted.class,AcceptedConverter.class);
-		MessageUtil.registerConverter(Failure.class,FailureConverter.class);
+		MessageUtil.registerConverter(EnrichmentRequestMessage.class,EnrichmentRequestMessageConverter.class);
+		MessageUtil.registerConverter(DisconnectMessage.class, DisconnectMessageConverter.class);
+		MessageUtil.registerConverter(EnrichmentResponseMessage.class,EnrichmentResponseMessageConverter.class);
+		MessageUtil.registerConverter(AcceptedMessage.class,AcceptedMessageConverter.class);
+		MessageUtil.registerConverter(FailureMessage.class,FailureMessageConverter.class);
 	}
 
 	private volatile ConversionContext context;

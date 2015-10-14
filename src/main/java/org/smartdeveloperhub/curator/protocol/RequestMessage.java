@@ -26,12 +26,10 @@
  */
 package org.smartdeveloperhub.curator.protocol;
 
-import java.util.UUID;
 
-public interface Response extends Message {
+public interface RequestMessage extends Message {
 
-	UUID responseTo();
-
-	long responseNumber();
+	DeliveryChannel replyTo();
 
 }
+

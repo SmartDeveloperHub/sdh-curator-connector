@@ -24,46 +24,19 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.protocol;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
+import java.net.URI;
+import java.util.List;
 
-import org.junit.Test;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+public interface EnrichmentRequestMessage extends RequestMessage {
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Resource;
+	Policy apply();
 
-public class EnrichmentRequestParserTest {
+	URI targetResource();
 
-	@Test
-	public void testFromModel$happyPath() {
-		new ParserTester("messages/enrichment_request.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
-			@Override
-			protected void exercise(Model model, Resource target) {
-				EnrichmentRequest result=EnrichmentRequestParser.fromModel(model, target);
-				assertThat(result,notNullValue());
-				System.out.println(result);
-			}
-		}.verify();
-	}
+	List<Filter> filters();
 
-//	@Test
-//	public void testFromModel$fail$multiple() {
-//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
-//			@Override
-//			protected void exercise(Model model, Resource target) {
-//				try {
-//					AgentParser.fromModel(model, target);
-//					fail("Should not return an agent when multiple are available");
-//				} catch (Exception e) {
-//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
-//					assertThat(e.getCause(),nullValue());
-//				}
-//			}
-//		}.verify();
-//	}
+	List<Constraint> constraints();
 
 }

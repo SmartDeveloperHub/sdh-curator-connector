@@ -39,8 +39,8 @@ import org.smartdeveloperhub.curator.Curator;
 import org.smartdeveloperhub.curator.Notifier;
 import org.smartdeveloperhub.curator.RandomMessageIdentifierFactory;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 
 public class ConnectorTest {
 
@@ -62,12 +62,12 @@ public class ConnectorTest {
 	private class CustomNotifier extends Notifier {
 
 		@Override
-		public void onDisconnect(Disconnect response) {
+		public void onDisconnect(DisconnectMessage response) {
 			disconnected.arrive();
 		}
 
 		@Override
-		public void onEnrichmentResponse(EnrichmentResponse response) {
+		public void onEnrichmentResponse(EnrichmentResponseMessage response) {
 			answered.arrive();
 		}
 

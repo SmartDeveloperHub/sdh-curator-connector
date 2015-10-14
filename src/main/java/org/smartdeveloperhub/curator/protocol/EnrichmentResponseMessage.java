@@ -24,69 +24,17 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.protocol;
 
-import java.util.UUID;
+import java.net.URI;
+import java.util.List;
 
-import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Failure;
+public interface EnrichmentResponseMessage extends ResponseMessage {
 
-import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.base.Optional;
+	URI targetResource();
 
-final class ImmutableFailure extends ImmutableResponse implements Failure {
+	List<Binding> additions();
 
-	private final long code;
-	private final Optional<Long> subcode;
-	private final String reason;
-	private final String detail;
-
-	ImmutableFailure( // NOSONAR
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber,
-		long code,
-		Long subcode,
-		String reason,
-		String detail) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
-		this.code=code;
-		this.subcode=Optional.fromNullable(subcode);
-		this.reason=reason;
-		this.detail=detail;
-	}
-
-	@Override
-	public long code() {
-		return this.code;
-	}
-
-	@Override
-	public Optional<Long> subcode() {
-		return this.subcode;
-	}
-
-	@Override
-	public String reason() {
-		return this.reason;
-	}
-
-	@Override
-	public String detail() {
-		return this.detail;
-	}
-
-	@Override
-	protected void toString(ToStringHelper helper) {
-		super.toString(helper);
-		helper.
-			add("code",this.code).
-			add("subcode",this.subcode.orNull()).
-			add("reason",this.reason).
-			add("detail",this.detail);
-	}
+	List<Binding> removals();
 
 }

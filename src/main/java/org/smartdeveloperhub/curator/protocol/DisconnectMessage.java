@@ -24,56 +24,9 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.protocol;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-
-import mockit.Injectable;
-import mockit.Tested;
-import mockit.integration.junit4.JMockit;
-
-import org.joda.time.DateTime;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Filter;
-
-@RunWith(JMockit.class)
-public class ImmutableEnrichmentRequestTest {
-	@Injectable
-	private Agent agent;
-
-	@Injectable
-	private DeliveryChannel deliveryChannel;
-
-	@Injectable
-	private UUID messageId;
-
-	@Injectable
-	private DateTime submittedOn;
-
-	@Injectable
-	private URI targetResource;
-
-	@Injectable
-	private List<Filter> filters;
-
-	@Injectable
-	private List<Constraint> constraints;
-
-	@Tested
-	private ImmutableEnrichmentRequest sut;
-
-	@Test
-	public void testApply() throws Exception {
-		assertThat(sut.apply(),nullValue());
-	}
+public interface DisconnectMessage extends RequestMessage {
 
 }

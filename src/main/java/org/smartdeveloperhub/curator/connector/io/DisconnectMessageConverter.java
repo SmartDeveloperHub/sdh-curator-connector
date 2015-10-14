@@ -26,44 +26,43 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-
-import org.junit.Test;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
 
-public class EnrichmentResponseParserTest {
+final class DisconnectMessageConverter extends ModelMessageConverter<DisconnectMessage> {
 
-	@Test
-	public void testFromModel$happyPath() {
-		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
-			@Override
-			protected void exercise(Model model, Resource target) {
-				EnrichmentResponse result=EnrichmentResponseParser.fromModel(model, target);
-				assertThat(result,notNullValue());
-				System.out.println(result);
-			}
-		}.verify();
+	@Override
+	protected void toString(DisconnectMessage message, ModelHelper helper) {
+		helper.
+			blankNode("response").
+				type(CURATOR.DISCONNECT_TYPE).
+				property(CURATOR.MESSAGE_ID).
+					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
+				property(CURATOR.SUBMITTED_BY).
+					withBlankNode("agent").
+				property(CURATOR.SUBMITTED_ON).
+					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
+			blankNode("agent").
+				type(FOAF.AGENT_TYPE).
+				property(CURATOR.AGENT_ID).
+					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
 	}
 
-//	@Test
-//	public void testFromModel$fail$multiple() {
-//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
-//			@Override
-//			protected void exercise(Model model, Resource target) {
-//				try {
-//					AgentParser.fromModel(model, target);
-//					fail("Should not return an agent when multiple are available");
-//				} catch (Exception e) {
-//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
-//					assertThat(e.getCause(),nullValue());
-//				}
-//			}
-//		}.verify();
-//	}
+	@Override
+	protected DisconnectMessage parse(Model model, Resource resource) {
+		return DisconnectMessageParser.fromModel(model, resource);
+	}
+
+	@Override
+	protected String messageType() {
+		return CURATOR.DISCONNECT_TYPE;
+	}
 
 }

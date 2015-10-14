@@ -35,16 +35,16 @@ import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureBuilder;
-import org.smartdeveloperhub.curator.protocol.Accepted;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureMessageBuilder;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 
 
 public class AcknowledgeTest {
 
-	private Accepted accepted() {
+	private AcceptedMessage accepted() {
 		return
-			newAccepted().
+			newAcceptedMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -55,9 +55,9 @@ public class AcknowledgeTest {
 				build();
 	}
 
-	private Failure failure(boolean full) {
-		FailureBuilder builder=
-			newFailure().
+	private FailureMessage failure(boolean full) {
+		FailureMessageBuilder builder=
+			newFailureMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
 				withSubmittedBy(
@@ -100,7 +100,7 @@ public class AcknowledgeTest {
 
 	@Test
 	public void testGetFailure$failure() throws Exception {
-		final Failure failure = failure(true);
+		final FailureMessage failure = failure(true);
 		final Acknowledge sut = Acknowledge.of(failure);
 		assertThat(sut.getFailure(),equalTo(ProtocolUtil.toFailureDescription(failure)));
 	}

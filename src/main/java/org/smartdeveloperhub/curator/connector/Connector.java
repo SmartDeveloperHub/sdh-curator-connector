@@ -40,11 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
-import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -128,10 +128,10 @@ public final class Connector {
 		public void handlePayload(String payload) {
 			LOGGER.trace("Received message in connector's curator response queue: {}",payload);
 			try {
-				Accepted response =
+				AcceptedMessage response =
 					MessageUtil.
 						newInstance().
-							fromString(payload, Accepted.class);
+							fromString(payload, AcceptedMessage.class);
 				processAcceptance(response);
 			} catch (MessageConversionException e) {
 				LOGGER.warn("Could not process curator response:\n{}\n. Full stacktrace follows",payload,e);
@@ -146,10 +146,10 @@ public final class Connector {
 		public void handlePayload(String payload) {
 			LOGGER.trace("Received message in connector's response queue: {}",payload);
 			try {
-				EnrichmentResponse response =
+				EnrichmentResponseMessage response =
 					MessageUtil.
 						newInstance().
-							fromString(payload, EnrichmentResponse.class);
+							fromString(payload, EnrichmentResponseMessage.class);
 				processEnrichmentResponse(response);
 			} catch (MessageConversionException e) {
 				LOGGER.warn("Could not process message:\n{}\n. Full stacktrace follows",e);
@@ -191,7 +191,7 @@ public final class Connector {
 		this.activeRequests=Maps.newConcurrentMap();
 	}
 
-	private void processAcceptance(Accepted response) {
+	private void processAcceptance(AcceptedMessage response) {
 		ConnectorFuture future=this.pendingAcknowledgements.get(response.responseTo());
 		if(future==null) {
 			LOGGER.warn("Could not process curator response {}: unknown curator request {}",response,response.responseTo());
@@ -205,7 +205,7 @@ public final class Connector {
 		}
 	}
 
-	private void processEnrichmentResponse(EnrichmentResponse response) {
+	private void processEnrichmentResponse(EnrichmentResponseMessage response) {
 		EnrichmentResultHandler handler=this.activeRequests.get(response.responseTo());
 		if(handler!=null) {
 			LOGGER.trace("Handling processing of response {} for request {} to handler {}...",response.messageId(),response.responseTo(),handler);
@@ -216,7 +216,7 @@ public final class Connector {
 		}
 	}
 
-	private ConnectorFuture addRequest(EnrichmentRequest message, EnrichmentResultHandler handler) {
+	private ConnectorFuture addRequest(EnrichmentRequestMessage message, EnrichmentResultHandler handler) {
 		ConnectorFuture future= new LoggedConnectorFuture(new DefaultConnectorFuture(this,message));
 		this.pendingAcknowledgements.put(future.messageId(),future);
 		this.activeRequests.put(future.messageId(), handler);
@@ -236,7 +236,7 @@ public final class Connector {
 			this.curatorController.
 				publishRequest(
 					ProtocolFactory.
-						newDisconnect().
+						newDisconnectMessage().
 							withMessageId(this.factory.nextIdentifier()).
 							withSubmittedOn(new Date()).
 							withSubmittedBy(this.configuration.agent()).
@@ -306,7 +306,7 @@ public final class Connector {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
-			EnrichmentRequest message=
+			EnrichmentRequestMessage message=
 				ProtocolUtil.
 					toRequestBuilder(specification).
 						withMessageId(this.factory.nextIdentifier()).

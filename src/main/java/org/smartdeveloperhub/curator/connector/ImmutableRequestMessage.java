@@ -24,9 +24,38 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
+import java.util.UUID;
 
-public interface Disconnect extends Request {
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
+
+import com.google.common.base.MoreObjects.ToStringHelper;
+
+abstract class ImmutableRequestMessage extends ImmutableMessage implements RequestMessage {
+
+	private final DeliveryChannel deliveryChannel;
+
+	ImmutableRequestMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent,
+			DeliveryChannel deliveryChannel) {
+		super(messageId,submittedOn,agent);
+		this.deliveryChannel = deliveryChannel;
+	}
+
+	@Override
+	public final DeliveryChannel replyTo() {
+		return this.deliveryChannel;
+	}
+
+	@Override
+	protected void toString(ToStringHelper helper) {
+		helper.add("replyTo",this.deliveryChannel);
+	}
 
 }

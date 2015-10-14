@@ -32,23 +32,23 @@ import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.Accepted;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.Disconnect;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequest;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
-import org.smartdeveloperhub.curator.protocol.Failure;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
-import org.smartdeveloperhub.curator.protocol.Request;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
 import org.smartdeveloperhub.curator.protocol.Resource;
-import org.smartdeveloperhub.curator.protocol.Response;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
@@ -247,11 +247,11 @@ public final class ProtocolFactory {
 
 	}
 
-	public abstract static class RequestBuilder<T extends Request, B extends RequestBuilder<T,B>> extends MessageBuilder<T,B> {
+	public abstract static class RequestMessageBuilder<T extends RequestMessage, B extends RequestMessageBuilder<T,B>> extends MessageBuilder<T,B> {
 
 		private DeliveryChannel deliveryChannel;
 
-		private RequestBuilder(Class<? extends B> builderClass) {
+		private RequestMessageBuilder(Class<? extends B> builderClass) {
 			super(builderClass);
 		}
 
@@ -273,50 +273,50 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class EnrichmentRequestBuilder extends RequestBuilder<EnrichmentRequest,EnrichmentRequestBuilder> {
+	public static final class EnrichmentRequestMessageBuilder extends RequestMessageBuilder<EnrichmentRequestMessage,EnrichmentRequestMessageBuilder> {
 
 		private final List<Filter> filters;
 		private final List<Constraint> constraints;
 
 		private URI targetResource;
 
-		private EnrichmentRequestBuilder() {
-			super(EnrichmentRequestBuilder.class);
+		private EnrichmentRequestMessageBuilder() {
+			super(EnrichmentRequestMessageBuilder.class);
 			this.filters=Lists.newArrayList();
 			this.constraints=Lists.newArrayList();
 		}
 
-		public EnrichmentRequestBuilder withTargetResource(String targetResource) {
+		public EnrichmentRequestMessageBuilder withTargetResource(String targetResource) {
 			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
-		public EnrichmentRequestBuilder withTargetResource(URI targetResource) {
+		public EnrichmentRequestMessageBuilder withTargetResource(URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
-		public EnrichmentRequestBuilder withFilter(Filter filter) {
+		public EnrichmentRequestMessageBuilder withFilter(Filter filter) {
 			if(filter!=null) {
 				this.filters.add(filter);
 			}
 			return this;
 		}
 
-		public EnrichmentRequestBuilder withFilter(FilterBuilder builder) {
+		public EnrichmentRequestMessageBuilder withFilter(FilterBuilder builder) {
 			if(builder!=null) {
 				return withFilter(builder.build());
 			}
 			return this;
 		}
 
-		public EnrichmentRequestBuilder withConstraint(Constraint constraint) {
+		public EnrichmentRequestMessageBuilder withConstraint(Constraint constraint) {
 			if(constraint!=null) {
 				this.constraints.add(constraint);
 			}
 			return this;
 		}
 
-		public EnrichmentRequestBuilder withConstraint(Builder<Constraint> builder) {
+		public EnrichmentRequestMessageBuilder withConstraint(Builder<Constraint> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -325,7 +325,7 @@ public final class ProtocolFactory {
 
 
 		@Override
-		public EnrichmentRequest build() {
+		public EnrichmentRequestMessage build() {
 /** UNCOMMENT WHEN PARSER IS READY
 			if(this.filters.isEmpty()) {
 				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No filters specified");
@@ -335,7 +335,7 @@ public final class ProtocolFactory {
 			}
 **/
 			return
-				new ImmutableEnrichmentRequest(
+				new ImmutableEnrichmentRequestMessage(
 					id(),
 					submissionDate(),
 					agent(),
@@ -347,16 +347,16 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class DisconnectBuilder extends RequestBuilder<Disconnect,DisconnectBuilder> {
+	public static final class DisconnectMessageBuilder extends RequestMessageBuilder<DisconnectMessage,DisconnectMessageBuilder> {
 
-		private DisconnectBuilder() {
-			super(DisconnectBuilder.class);
+		private DisconnectMessageBuilder() {
+			super(DisconnectMessageBuilder.class);
 		}
 
 		@Override
-		public Disconnect build() {
+		public DisconnectMessage build() {
 			return
-				new ImmutableDisconnect(
+				new ImmutableDisconnectMessage(
 					id(),
 					submissionDate(),
 					agent());
@@ -364,12 +364,12 @@ public final class ProtocolFactory {
 
 	}
 
-	public abstract static class ResponseBuilder<T extends Response, B extends ResponseBuilder<T,B>> extends MessageBuilder<T,B> {
+	public abstract static class ResponseMessageBuilder<T extends ResponseMessage, B extends ResponseMessageBuilder<T,B>> extends MessageBuilder<T,B> {
 
 		private UUID responseTo;
 		private Long responseNumber;
 
-		private ResponseBuilder(Class<? extends B> builderClass) {
+		private ResponseMessageBuilder(Class<? extends B> builderClass) {
 			super(builderClass);
 		}
 
@@ -406,16 +406,16 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class AcceptedBuilder extends ResponseBuilder<Accepted,AcceptedBuilder> {
+	public static final class AcceptedMessageBuilder extends ResponseMessageBuilder<AcceptedMessage,AcceptedMessageBuilder> {
 
-		private AcceptedBuilder() {
-			super(AcceptedBuilder.class);
+		private AcceptedMessageBuilder() {
+			super(AcceptedMessageBuilder.class);
 		}
 
 		@Override
-		public Accepted build() {
+		public AcceptedMessage build() {
 			return
-				new ImmutableAccepted(
+				new ImmutableAcceptedMessage(
 					id(),
 					submissionDate(),
 					agent(),
@@ -425,7 +425,7 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class FailureBuilder extends ResponseBuilder<Failure,FailureBuilder> {
+	public static final class FailureMessageBuilder extends ResponseMessageBuilder<FailureMessage,FailureMessageBuilder> {
 
 		private Long code;
 		private Long subcode;
@@ -433,8 +433,8 @@ public final class ProtocolFactory {
 		private String reason;
 		private String detail;
 
-		private FailureBuilder() {
-			super(FailureBuilder.class);
+		private FailureMessageBuilder() {
+			super(FailureMessageBuilder.class);
 		}
 
 		private void setCode(long code) {
@@ -445,48 +445,48 @@ public final class ProtocolFactory {
 			this.subcode=subcode;
 		}
 
-		public FailureBuilder withCode(long code) {
+		public FailureMessageBuilder withCode(long code) {
 			setCode(code);
 			return this;
 		}
 
-		public FailureBuilder withCode(String code) {
+		public FailureMessageBuilder withCode(String code) {
 			setCode(ParsingUtil.toUnsignedLong(code));
 			return this;
 		}
 
-		public FailureBuilder withSubcode(long subcode) {
+		public FailureMessageBuilder withSubcode(long subcode) {
 			setSubcode(subcode);
 			return this;
 		}
 
-		public FailureBuilder withSubcode(Long subcode) {
+		public FailureMessageBuilder withSubcode(Long subcode) {
 			if(subcode!=null) {
 				setSubcode(subcode);
 			}
 			return this;
 		}
 
-		public FailureBuilder withSubcode(String subcode) {
+		public FailureMessageBuilder withSubcode(String subcode) {
 			setSubcode(ParsingUtil.toUnsignedLong(subcode));
 			return this;
 		}
 
 
-		public FailureBuilder withReason(String reason) {
+		public FailureMessageBuilder withReason(String reason) {
 			this.reason = reason;
 			return this;
 		}
 
-		public FailureBuilder withDetail(String detail) {
+		public FailureMessageBuilder withDetail(String detail) {
 			this.detail = detail;
 			return this;
 		}
 
 		@Override
-		public Failure build() {
+		public FailureMessage build() {
 			return
-				new ImmutableFailure(
+				new ImmutableFailureMessage(
 					id(),
 					submissionDate(),
 					agent(),
@@ -500,49 +500,49 @@ public final class ProtocolFactory {
 
 	}
 
-	public static final class EnrichmentResponseBuilder extends ResponseBuilder<EnrichmentResponse,EnrichmentResponseBuilder> {
+	public static final class EnrichmentResponseMessageBuilder extends ResponseMessageBuilder<EnrichmentResponseMessage,EnrichmentResponseMessageBuilder> {
 
 		private URI targetResource;
 		private List<Binding> additions;
 		private List<Binding> removals;
 
-		private EnrichmentResponseBuilder() {
-			super(EnrichmentResponseBuilder.class);
+		private EnrichmentResponseMessageBuilder() {
+			super(EnrichmentResponseMessageBuilder.class);
 			this.additions=Lists.newArrayList();
 			this.removals=Lists.newArrayList();
 		}
 
-		public EnrichmentResponseBuilder withTargetResource(URI targetResource) {
+		public EnrichmentResponseMessageBuilder withTargetResource(URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withTargetResource(String targetResource) {
+		public EnrichmentResponseMessageBuilder withTargetResource(String targetResource) {
 			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
-		public EnrichmentResponseBuilder withAddition(Binding binding) {
+		public EnrichmentResponseMessageBuilder withAddition(Binding binding) {
 			if(binding!=null) {
 				this.additions.add(binding);
 			}
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withAddition(Builder<Binding> builder) {
+		public EnrichmentResponseMessageBuilder withAddition(Builder<Binding> builder) {
 			if(builder==null) {
 				return this;
 			}
 			return withAddition(builder.build());
 		}
 
-		public EnrichmentResponseBuilder withRemoval(Binding binding) {
+		public EnrichmentResponseMessageBuilder withRemoval(Binding binding) {
 			if(binding!=null) {
 				this.removals.add(binding);
 			}
 			return this;
 		}
 
-		public EnrichmentResponseBuilder withRemoval(Builder<Binding> builder) {
+		public EnrichmentResponseMessageBuilder withRemoval(Builder<Binding> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -550,9 +550,9 @@ public final class ProtocolFactory {
 		}
 
 		@Override
-		public EnrichmentResponse build() {
+		public EnrichmentResponseMessage build() {
 			return
-				new ImmutableEnrichmentResponse(
+				new ImmutableEnrichmentResponseMessage(
 					id(),
 					submissionDate(),
 					agent(),
@@ -731,24 +731,24 @@ public final class ProtocolFactory {
 		return new DeliveryChannelBuilder();
 	}
 
-	public static EnrichmentRequestBuilder newEnrichmentRequest() {
-		return new EnrichmentRequestBuilder();
+	public static EnrichmentRequestMessageBuilder newEnrichmentRequestMessage() {
+		return new EnrichmentRequestMessageBuilder();
 	}
 
-	public static DisconnectBuilder newDisconnect() {
-		return new DisconnectBuilder();
+	public static DisconnectMessageBuilder newDisconnectMessage() {
+		return new DisconnectMessageBuilder();
 	}
 
-	public static AcceptedBuilder newAccepted() {
-		return new AcceptedBuilder();
+	public static AcceptedMessageBuilder newAcceptedMessage() {
+		return new AcceptedMessageBuilder();
 	}
 
-	public static FailureBuilder newFailure() {
-		return new FailureBuilder();
+	public static FailureMessageBuilder newFailureMessage() {
+		return new FailureMessageBuilder();
 	}
 
-	public static EnrichmentResponseBuilder newEnrichmentResponse() {
-		return new EnrichmentResponseBuilder();
+	public static EnrichmentResponseMessageBuilder newEnrichmentResponseMessage() {
+		return new EnrichmentResponseMessageBuilder();
 	}
 
 	public static Variable newVariable(final String name) {

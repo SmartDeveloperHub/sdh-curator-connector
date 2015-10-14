@@ -34,7 +34,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	ParsingUtilTest.class,
 	ValidationUtilTest.class,
-	ImmutableEnrichmentRequestTest.class,
+	ImmutableEnrichmentRequestMessageTest.class,
 	ProtocolFactoryTest.class,
 	AcknowledgeTest.class,
 	ConnectorTest.class

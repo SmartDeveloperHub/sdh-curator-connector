@@ -24,43 +24,8 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector.io;
+package org.smartdeveloperhub.curator.protocol;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.AcceptedBuilder;
-import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.Accepted;
-
-import com.hp.hpl.jena.query.Query;
-import com.hp.hpl.jena.query.QueryFactory;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.Resource;
-
-final class AcceptedParser extends ResponseParser<Accepted, AcceptedBuilder> {
-
-	private static final Query QUERY=
-		QueryFactory.create(
-			ResourceUtil.
-				loadResource(
-					AcceptedParser.class,
-					"accepted.sparql"));
-
-	private AcceptedParser(Model model, Resource resource) {
-		super(model, resource,"curator:Accepted","accepted",QUERY);
-	}
-
-	@Override
-	protected ResponseWorker solutionParser() {
-		return new ResponseWorker();
-	}
-
-	@Override
-	protected AcceptedBuilder newBuilder() {
-		return ProtocolFactory.newAccepted();
-	}
-
-	static Accepted fromModel(Model model, Resource resource) {
-		return new AcceptedParser(model, resource).parse();
-	}
+public interface AcceptedMessage extends ResponseMessage {
 
 }

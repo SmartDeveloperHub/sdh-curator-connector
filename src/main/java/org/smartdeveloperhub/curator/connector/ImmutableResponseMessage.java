@@ -24,18 +24,47 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.protocol;
+package org.smartdeveloperhub.curator.connector;
 
-import com.google.common.base.Optional;
+import java.util.UUID;
 
-public interface Failure extends Response {
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
-	long code();
+import com.google.common.base.MoreObjects.ToStringHelper;
 
-	Optional<Long> subcode();
+abstract class ImmutableResponseMessage extends ImmutableMessage implements ResponseMessage {
 
-	String reason();
+	private final UUID responseTo;
+	private final long responseNumber;
 
-	String detail();
+	ImmutableResponseMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent,
+			UUID responseTo,
+			long responseNumber) {
+		super(messageId, submittedOn, agent);
+		this.responseTo=responseTo;
+		this.responseNumber=responseNumber;
+	}
+
+	@Override
+	public UUID responseTo() {
+		return this.responseTo;
+	}
+
+	@Override
+	public long responseNumber() {
+		return this.responseNumber;
+	}
+
+	@Override
+	protected void toString(ToStringHelper helper) {
+		helper.
+			add("responseTo",this.responseTo).
+			add("responseNumber",this.responseNumber);
+	}
 
 }
