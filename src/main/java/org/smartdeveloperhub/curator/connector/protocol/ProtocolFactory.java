@@ -297,11 +297,11 @@ public final class ProtocolFactory {
 			return this;
 		}
 
-		public EnrichmentRequestMessageBuilder withFilter(FilterBuilder builder) {
-			if(builder!=null) {
-				return withFilter(builder.build());
+		public EnrichmentRequestMessageBuilder withFilter(Builder<Filter> builder) {
+			if(builder==null) {
+				return this;
 			}
-			return this;
+			return withFilter(builder.build());
 		}
 
 		public EnrichmentRequestMessageBuilder withConstraint(Constraint constraint) {
@@ -321,21 +321,19 @@ public final class ProtocolFactory {
 
 		@Override
 		public EnrichmentRequestMessage build() {
-/** UNCOMMENT WHEN PARSER IS READY
 			if(this.filters.isEmpty()) {
-				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No filters specified");
+				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No enrichment request filters specified");
 			}
 			if(this.constraints.isEmpty()) {
-				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No constraints specified");
+				throw new ValidationException(null,RDFS.RESOURCE_TYPE,"No enrichment request constraints specified");
 			}
-**/
 			return
 				new ImmutableEnrichmentRequestMessage(
 					id(),
 					submissionDate(),
 					agent(),
-					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"Reply delivery channel cannot be null"),
-					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"Target resource cannot be null"),
+					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"No enrichment request reply delivery channel specified"),
+					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"No enrichment request target resource specified"),
 					this.filters,
 					this.constraints);
 		}

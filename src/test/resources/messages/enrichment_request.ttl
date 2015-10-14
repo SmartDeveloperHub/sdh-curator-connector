@@ -33,21 +33,46 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
 
-[ a                       curator:EnrichmentRequest ;
-  curator:messageId       "9ed47a2c-ed25-4dce-a859-a6d1d5c956b5"^^types:UUID ;
-  curator:replyTo         [ a                  curator:DeliveryChannel ;
-                            amqp:broker        [ a                 amqp:Broker ;
-                                                 amqp:host         "127.0.0.1"^^types:Hostname ;
-                                                 amqp:port         "12345"^^types:Port ;
-                                                 amqp:virtualHost  "/virtualHost"^^amqp:Path
-                                               ] ;
-                            amqp:exchangeName  "exchange.name"^^amqp:Name ;
-                            amqp:queueName     "queue.name"^^amqp:Name ;
-                            amqp:routingKey    "routing.key"^^amqp:Path
-                          ] ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "e8c6fdeb-e442-40be-95bf-ea93519142ad"^^types:UUID
-                          ] ;
-  curator:submittedOn     "2015-10-01T19:34:12.041+02:00"^^xsd:dateTime ;
-  curator:targetResource  <urn:example>
-] .
+@prefix ci:      <http://www.smartdeveloperhub.org/vocabulary/ci#> .
+@prefix scm:     <http://www.smartdeveloperhub.org/vocabulary/scm#> .
+@prefix doap:    <http://usefulinc.com/ns/doap#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+
+_:request a curator:EnrichmentRequest ;
+  curator:messageId "00000000-0000-0000-0000-000000000001"^^types:UUID ;
+  curator:submittedBy _:connector ;
+  curator:submittedOn "2015-09-29T09:30:10+01:00"^^xsd:dateTime ;
+  curator:replyTo _:deliveryChannel ;
+  curator:targetResource <http://localhost:8080/harvester/service/builds/1/> .
+  
+_:connector a foaf:Agent ;
+  curator:agentId "00000000-0000-0000-0001-000000000001"^^types:UUID .
+  
+_:deliveryChannel a curator:DeliveryChannel ;
+  amqp:broker _:broker ;
+  amqp:exchangeName "ci.responses"^^amqp:Name ;
+  amqp:queueName "builds"^^amqp:Name ;
+  amqp:routingKey "enrichment.responses"^^amqp:RoutingKey .
+  
+_:broker a amqp:Broker ;
+  amqp:host "127.0.0.1"^^types:Hostname ;
+  amqp:port "41980"^^types:Port ;
+  amqp:virtualHost "/sdh/curator/"^^amqp:Path .
+  
+<http://localhost:8080/harvester/service/builds/1/>
+  ci:forBranch  _:branch ;
+  ci:forCommit  _:commit .
+
+_:repository a curator:Variable ; 
+  rdf:type       scm:Repository ;
+  scm:hasBranch  _:branch ;
+  scm:location   "git://github.com/ldp4j/ldp4j.git"^^xsd:anyURI .
+
+_:branch a curator:Variable ;
+  rdf:type       scm:Branch ;
+  doap:name      "develop"^^xsd:string ;
+  scm:hasCommit  _:commit .
+
+_:commit a curator:Variable ;
+  rdf:type scm:Commit ;
+  scm:commitId  "f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44"^^xsd:string .

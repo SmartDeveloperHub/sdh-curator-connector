@@ -45,7 +45,6 @@ public class EnrichmentRequestMessageParserTest {
 			protected void exercise(Model model, Resource target) {
 				EnrichmentRequestMessage result=EnrichmentRequestMessageParser.fromModel(model, target);
 				assertThat(result,notNullValue());
-				System.out.println(result);
 			}
 		}.verify();
 	}

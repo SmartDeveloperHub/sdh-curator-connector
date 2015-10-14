@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector.protocol;
 
 import java.net.URI;
+import java.util.Objects;
 
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Value;
@@ -43,16 +44,48 @@ final class ImmutableBinding implements Binding {
 		this.value = value;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public URI property() {
 		return this.property;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Value value() {
 		return this.value;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.property,this.value);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if(obj instanceof Binding) {
+			Binding that=(Binding)obj;
+			result=
+				Objects.equals(this.property,that.property()) &&
+				Objects.equals(this.value,that.value());
+		}
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return

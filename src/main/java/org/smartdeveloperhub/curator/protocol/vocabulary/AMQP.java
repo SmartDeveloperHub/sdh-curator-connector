@@ -41,6 +41,7 @@ public final class AMQP {
 	public static final String PORT = term("port");
 	public static final String HOST = term("host");
 	public static final String BROKER = term("broker");
+	public static final String ROUTING_KEY_TYPE = term("RoutingKey");
 
 	private AMQP() {
 	}

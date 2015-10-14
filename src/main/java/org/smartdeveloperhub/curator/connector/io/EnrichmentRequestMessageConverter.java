@@ -122,7 +122,7 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 		serializeBroker(util, helper, deliveryChannel.broker());
 		deliveryChannelProperty(util,helper,AMQP.EXCHANGE_NAME,deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
 		deliveryChannelProperty(util,helper,AMQP.QUEUE_NAME,deliveryChannel.queueName(), AMQP.NAME_TYPE);
-		deliveryChannelProperty(util,helper,AMQP.ROUTING_KEY,deliveryChannel.routingKey(), AMQP.PATH_TYPE);
+		deliveryChannelProperty(util,helper,AMQP.ROUTING_KEY,deliveryChannel.routingKey(), AMQP.ROUTING_KEY_TYPE);
 	}
 
 	private void serializeBroker(EnrichmentUtil util, ModelHelper helper, Broker broker) {

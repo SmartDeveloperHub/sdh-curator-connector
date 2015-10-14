@@ -26,6 +26,8 @@
  */
 package org.smartdeveloperhub.curator.connector.protocol;
 
+import java.util.Objects;
+
 import org.smartdeveloperhub.curator.protocol.Variable;
 
 import com.google.common.base.MoreObjects;
@@ -38,11 +40,38 @@ final class ImmutableVariable implements Variable {
 		this.name = name;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String name() {
 		return this.name;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.name);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if(obj instanceof Variable) {
+			Variable that=(Variable)obj;
+			result=Objects.equals(this.name,that.name());
+		}
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return

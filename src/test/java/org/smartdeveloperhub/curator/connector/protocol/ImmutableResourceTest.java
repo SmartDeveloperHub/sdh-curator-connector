@@ -26,60 +26,40 @@
  */
 package org.smartdeveloperhub.curator.connector.protocol;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import java.net.URI;
-import java.util.Objects;
 
-import org.smartdeveloperhub.curator.protocol.Resource;
+import org.junit.Test;
 
-import com.google.common.base.MoreObjects;
+public class ImmutableResourceTest {
 
-final class ImmutableResource implements Resource {
-
-	private final URI name;
-
-	ImmutableResource(URI name) {
-		this.name = name;
+	private ImmutableResource create(final String str) {
+		return new ImmutableResource(URI.create(str));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public URI name() {
-		return this.name;
+	@Test
+	public void testEquals$equal() throws Exception {
+		ImmutableResource sut=create("name");
+		assertThat(create("name"),equalTo(sut));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int hashCode() {
-		return Objects.hash(this.name);
+	@Test
+	public void testEquals$differentType() {
+		ImmutableResource sut=create("name");
+		assertThat((Object)sut,not(equalTo((Object)"string")));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		boolean result = false;
-		if(obj instanceof Resource) {
-			Resource that=(Resource)obj;
-			result=Objects.equals(this.name,that.name());
-		}
-		return result;
+	@Test
+	public void testHashCode$equal() throws Exception {
+		ImmutableResource sut=create("name");
+		assertThat(create("name").hashCode(),equalTo(sut.hashCode()));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					add("name",this.name).
-					toString();
+	@Test
+	public void testHashCode$differentType() {
+		ImmutableResource sut=create("name");
+		assertThat(sut.hashCode(),not(equalTo("string".hashCode())));
 	}
-
 }

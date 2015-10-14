@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector.protocol;
 
 import java.net.URI;
+import java.util.Objects;
 
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Variable;
@@ -43,16 +44,48 @@ final class ImmutableFilter implements Filter {
 		this.variable=variable;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public URI property() {
 		return this.property;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Variable variable() {
 		return this.variable;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.property,this.variable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if(obj instanceof Filter) {
+			Filter that=(Filter)obj;
+			result=
+				Objects.equals(this.property,that.property()) &&
+				Objects.equals(this.variable,that.variable());
+		}
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return

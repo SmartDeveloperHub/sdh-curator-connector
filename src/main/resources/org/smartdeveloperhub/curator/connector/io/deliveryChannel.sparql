@@ -39,6 +39,6 @@ WHERE {
     IF(bound(?broker), !isLiteral(?broker) , true) &&
     IF(bound(?exchangeName), datatype(?exchangeName) = amqp:Name , true) &&
     IF(bound(?queueName), datatype(?queueName) = amqp:Name , true) &&
-    IF(bound(?routingKey), datatype(?routingKey) = amqp:Path , true)
+    IF(bound(?routingKey), datatype(?routingKey) = amqp:RoutingKey , true)
   )
 }

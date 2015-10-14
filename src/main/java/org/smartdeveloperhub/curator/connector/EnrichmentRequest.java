@@ -27,23 +27,17 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
-import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.Filter;
-
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 
 public final class EnrichmentRequest {
 
 	private final URI targetResource;
-	private final ImmutableList<Filter> filters;
-	private final ImmutableList<Constraint> constraints;
+	private final Filters filters;
+	private final Constraints constraints;
 
-	private EnrichmentRequest(URI targetResource, ImmutableList<Filter> filters, ImmutableList<Constraint> constraints) {
+	private EnrichmentRequest(URI targetResource, Filters filters, Constraints constraints) {
 		this.targetResource=targetResource;
 		this.filters=filters;
 		this.constraints=constraints;
@@ -53,31 +47,41 @@ public final class EnrichmentRequest {
 		return this.targetResource;
 	}
 
+	public Filters filters() {
+		return this.filters;
+	}
+
+	public Constraints constraints() {
+		return this.constraints;
+	}
+
+	public EnrichmentRequest withTargetResource(String targetResource) {
+		return withTargetResource(URI.create(targetResource));
+	}
+
 	public EnrichmentRequest withTargetResource(URI targetResource) {
 		return new EnrichmentRequest(targetResource,this.filters,this.constraints);
 	}
 
-	public List<Filter> filters() {
-		return this.filters;
+	public EnrichmentRequest withFilters(Filters filters) {
+		return new EnrichmentRequest(this.targetResource,filters,this.constraints);
 	}
 
-	public EnrichmentRequest withFilters(Collection<? extends Filter> filters) {
-		return new EnrichmentRequest(this.targetResource,ImmutableList.<Filter>copyOf(filters),this.constraints);
+	public EnrichmentRequest withConstraints(Constraints constraints) {
+		return new EnrichmentRequest(this.targetResource,this.filters,constraints);
 	}
 
-	public List<Constraint> constraints() {
-		return this.constraints;
-	}
-
-	public EnrichmentRequest withConstraints(Collection<? extends Constraint> constraints) {
-		return new EnrichmentRequest(this.targetResource,this.filters,ImmutableList.<Constraint>copyOf(constraints));
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public int hashCode() {
 		return Objects.hash(this.targetResource,this.filters,this.constraints);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		boolean result=false;
@@ -91,6 +95,9 @@ public final class EnrichmentRequest {
 		return result;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return
@@ -103,7 +110,7 @@ public final class EnrichmentRequest {
 	}
 
 	public static EnrichmentRequest newInstance() {
-		return new EnrichmentRequest(null,ImmutableList.<Filter>of(),ImmutableList.<Constraint>of());
+		return new EnrichmentRequest(null,Filters.newInstance(),Constraints.newInstance());
 	}
 
 }

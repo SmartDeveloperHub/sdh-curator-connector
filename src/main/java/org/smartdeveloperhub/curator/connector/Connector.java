@@ -303,13 +303,14 @@ public final class Connector {
 		}
 	}
 
-	public Future<Acknowledge> requestEnrichment(EnrichmentRequest specification, EnrichmentResultHandler handler) throws IOException {
+	public Future<Acknowledge> requestEnrichment(EnrichmentRequest request, EnrichmentResultHandler handler) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
+			LOGGER.debug("Requesting {}",request);
 			EnrichmentRequestMessage message=
 				ProtocolUtil.
-					toRequestBuilder(specification).
+					toRequestBuilder(request).
 						withMessageId(this.factory.nextIdentifier()).
 						withSubmittedOn(new Date()).
 						withSubmittedBy(this.configuration.agent()).
@@ -318,6 +319,7 @@ public final class Connector {
 			ConnectorFuture future = addRequest(message,handler);
 			this.curatorController.publishRequest(message);
 			future.start();
+			LOGGER.debug("Enrichment requested: {}",future);
 			return future;
 		} finally {
 			this.read.unlock();

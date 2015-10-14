@@ -26,60 +26,25 @@
  */
 package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.net.URI;
-import java.util.Objects;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.protocol.ValidationUtilTest;
+import org.smartdeveloperhub.curator.connector.protocol.ParsingUtilTest;
+import org.smartdeveloperhub.curator.connector.protocol.ImmutableEnrichmentRequestMessageTest;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactoryTest;
 
-import org.smartdeveloperhub.curator.protocol.Resource;
-
-import com.google.common.base.MoreObjects;
-
-final class ImmutableResource implements Resource {
-
-	private final URI name;
-
-	ImmutableResource(URI name) {
-		this.name = name;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public URI name() {
-		return this.name;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int hashCode() {
-		return Objects.hash(this.name);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		boolean result = false;
-		if(obj instanceof Resource) {
-			Resource that=(Resource)obj;
-			result=Objects.equals(this.name,that.name());
-		}
-		return result;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					add("name",this.name).
-					toString();
-	}
+@RunWith(Suite.class)
+@SuiteClasses({
+	ParsingUtilTest.class,
+	ValidationUtilTest.class,
+	ImmutableLiteralTest.class,
+	ImmutableResourceTest.class,
+	ImmutableFilterTest.class,
+	ImmutableConstraintTest.class,
+	ImmutableEnrichmentRequestMessageTest.class,
+	ProtocolFactoryTest.class,
+})
+public class ProtocolTestsSuite {
 
 }

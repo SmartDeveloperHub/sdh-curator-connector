@@ -132,4 +132,9 @@ public class ParsingUtilTest {
 		assertThat(ParsingUtil.toVariable((String)null),nullValue());
 	}
 
+	@Test
+	public void testToVariable$notNull() throws Exception {
+		assertThat(ParsingUtil.toVariable("name").name(),equalTo("name"));
+	}
+
 }

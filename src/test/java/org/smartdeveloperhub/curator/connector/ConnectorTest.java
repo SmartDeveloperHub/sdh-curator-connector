@@ -42,6 +42,8 @@ import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 public class ConnectorTest {
 
@@ -109,7 +111,34 @@ public class ConnectorTest {
 					requestEnrichment(
 						EnrichmentRequest.
 							newInstance().
-								withTargetResource(URI.create("urn:message")),
+								withTargetResource("http://localhost:8080/harvester/service/builds/1/").
+									withFilters(
+										Filters.
+											newInstance().
+												withFilter("ci:forBranch", "branch").
+												withFilter("ci:forCommit", "commit")).
+									withConstraints(
+										Constraints.
+											newInstance().
+												forVariable("repository").
+													withProperty(RDF.TYPE).
+														andResource("scm:Repository").
+													withProperty("scm:location").
+														andTypedLiteral("git://github.com/ldp4j/ldp4j.git",XSD.ANY_URI_TYPE).
+													withProperty("scm:hasBranch").
+														andVariable("branch").
+												forVariable("branch").
+													withProperty(RDF.TYPE).
+														andResource("scm:Branch").
+													withProperty("doap:name").
+														andTypedLiteral("develop",XSD.STRING_TYPE).
+													withProperty("scm:hasCommit").
+														andVariable("commit").
+												forVariable("commit").
+													withProperty(RDF.TYPE).
+														andResource("scm:Commit").
+													withProperty("scm:commitId").
+														andTypedLiteral("f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44",XSD.STRING_TYPE)),
 						new EnrichmentResultHandler() {
 							@Override
 							public void onResult(EnrichmentResult response) {

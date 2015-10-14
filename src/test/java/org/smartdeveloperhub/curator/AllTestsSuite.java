@@ -31,12 +31,14 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.smartdeveloperhub.curator.connector.ConnectorTestsSuite;
 import org.smartdeveloperhub.curator.connector.io.IOTestsSuite;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolTestsSuite;
 import org.smartdeveloperhub.curator.connector.rdf.RdfTestsSuite;
 import org.smartdeveloperhub.curator.connector.util.UtilTestsSuite;
 import org.smartdeveloperhub.curator.protocol.vocabulary.VocabularyTestsSuite;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+	ProtocolTestsSuite.class,
 	RdfTestsSuite.class,
 	UtilTestsSuite.class,
 	VocabularyTestsSuite.class,

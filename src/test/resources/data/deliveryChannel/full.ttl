@@ -41,4 +41,4 @@ _:deliveryChannel a curator:DeliveryChannel ;
                      ] ;
   amqp:exchangeName  "exchange.name"^^amqp:Name ;
   amqp:queueName     "queue.name"^^amqp:Name ;
-  amqp:routingKey    "routing.key"^^amqp:Path .
+  amqp:routingKey    "routing.key"^^amqp:RoutingKey .

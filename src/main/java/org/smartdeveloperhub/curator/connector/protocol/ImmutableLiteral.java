@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector.protocol;
 
 import java.net.URI;
+import java.util.Objects;
 
 import org.smartdeveloperhub.curator.protocol.Literal;
 
@@ -44,21 +45,57 @@ final class ImmutableLiteral implements Literal {
 		this.language = language;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String lexicalForm() {
 		return this.lexicalForm;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public URI datatype() {
 		return this.datatype;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String language() {
 		return this.language;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.lexicalForm,this.datatype,this.language);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		boolean result = false;
+		if(obj instanceof Literal) {
+			Literal that=(Literal)obj;
+			result=
+				Objects.equals(this.lexicalForm,that.lexicalForm()) &&
+				Objects.equals(this.datatype,that.datatype()) &&
+				Objects.equals(this.language,that.language());
+		}
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return
