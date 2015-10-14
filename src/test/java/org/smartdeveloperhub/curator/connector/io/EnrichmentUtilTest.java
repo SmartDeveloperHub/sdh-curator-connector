@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.*;
 import mockit.Deencapsulation;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 
 import com.google.common.collect.ImmutableList;
 

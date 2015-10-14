@@ -28,8 +28,8 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestMessageBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentRequestMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;

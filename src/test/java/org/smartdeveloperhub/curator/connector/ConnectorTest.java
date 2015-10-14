@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.Curator;
 import org.smartdeveloperhub.curator.Notifier;
 import org.smartdeveloperhub.curator.RandomMessageIdentifierFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;

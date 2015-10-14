@@ -36,7 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RiotException;
-import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.protocol.ValidationException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.rdf.Namespaces;

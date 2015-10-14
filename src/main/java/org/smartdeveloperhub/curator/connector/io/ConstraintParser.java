@@ -33,8 +33,8 @@ import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.ConstraintBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.ConstraintBuilder;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.NamedValue;

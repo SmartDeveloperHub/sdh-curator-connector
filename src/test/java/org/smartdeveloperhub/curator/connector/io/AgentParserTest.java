@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.protocol.ValidationException;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 

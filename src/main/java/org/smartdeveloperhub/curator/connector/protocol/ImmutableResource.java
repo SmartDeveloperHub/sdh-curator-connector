@@ -24,51 +24,34 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
 import java.net.URI;
 
-import org.smartdeveloperhub.curator.protocol.Literal;
+import org.smartdeveloperhub.curator.protocol.Resource;
 
 import com.google.common.base.MoreObjects;
 
-final class ImmutableLiteral implements Literal {
+final class ImmutableResource implements Resource {
 
-	private final String lexicalForm;
-	private final URI datatype;
-	private final String language;
+	private final URI name;
 
-	ImmutableLiteral(String lexicalForm, URI datatype, String language) {
-		this.lexicalForm = lexicalForm;
-		this.datatype = datatype;
-		this.language = language;
+	ImmutableResource(URI name) {
+		this.name = name;
 	}
 
 	@Override
-	public String lexicalForm() {
-		return this.lexicalForm;
-	}
-
-	@Override
-	public URI datatype() {
-		return this.datatype;
-	}
-
-	@Override
-	public String language() {
-		return this.language;
+	public URI name() {
+		return this.name;
 	}
 
 	@Override
 	public String toString() {
-		return
+		return 
 			MoreObjects.
 				toStringHelper(getClass()).
-					omitNullValues().
-					add("lexicalForm",this.lexicalForm).
-					add("datatype",this.datatype).
-					add("language",this.language).
+					add("name",this.name).
 					toString();
 	}
-
+	
 }

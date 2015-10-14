@@ -24,23 +24,37 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.google.common.base.MoreObjects;
 
-final class ImmutableVariable implements Variable {
+final class ImmutableBroker implements Broker {
 
-	private final String name;
+	private final int port;
+	private final String host;
+	private String virtualHost;
 
-	ImmutableVariable(String name) {
-		this.name = name;
+	ImmutableBroker(String host, int port, String virtualHost) {
+		this.host = host;
+		this.port = port;
+		this.virtualHost = virtualHost;
 	}
 
 	@Override
-	public String name() {
-		return this.name;
+	public String host() {
+		return this.host;
+	}
+
+	@Override
+	public int port() {
+		return this.port;
+	}
+
+	@Override
+	public String virtualHost() {
+		return this.virtualHost;
 	}
 
 	@Override
@@ -48,7 +62,9 @@ final class ImmutableVariable implements Variable {
 		return
 			MoreObjects.
 				toStringHelper(getClass()).
-					add("name",this.name).
+					add("host",this.host).
+					add("port",this.port).
+					add("virtualHost",this.virtualHost).
 					toString();
 	}
 

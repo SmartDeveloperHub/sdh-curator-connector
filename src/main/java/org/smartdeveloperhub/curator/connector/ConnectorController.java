@@ -28,6 +28,7 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 

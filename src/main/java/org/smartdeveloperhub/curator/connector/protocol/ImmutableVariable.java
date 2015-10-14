@@ -24,35 +24,23 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.util.List;
-
-import org.smartdeveloperhub.curator.protocol.Binding;
-import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.NamedValue;
+import org.smartdeveloperhub.curator.protocol.Variable;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 
-final class ImmutableConstraint implements Constraint {
+final class ImmutableVariable implements Variable {
 
-	private final NamedValue target;
-	private final ImmutableList<Binding> bindings;
+	private final String name;
 
-	ImmutableConstraint(NamedValue namedValue, List<Binding> bindings) {
-		this.target=namedValue;
-		this.bindings=ImmutableList.copyOf(bindings);
+	ImmutableVariable(String name) {
+		this.name = name;
 	}
 
 	@Override
-	public NamedValue target() {
-		return this.target;
-	}
-
-	@Override
-	public List<Binding> bindings() {
-		return this.bindings;
+	public String name() {
+		return this.name;
 	}
 
 	@Override
@@ -60,9 +48,7 @@ final class ImmutableConstraint implements Constraint {
 		return
 			MoreObjects.
 				toStringHelper(getClass()).
-					omitNullValues().
-					add("target",this.target).
-					add("bindings",this.bindings).
+					add("name",this.name).
 					toString();
 	}
 

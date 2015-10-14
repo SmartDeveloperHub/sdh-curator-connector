@@ -30,8 +30,8 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.BindingBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.BindingBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Binding;
 

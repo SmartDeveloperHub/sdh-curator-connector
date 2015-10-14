@@ -24,62 +24,69 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import java.util.UUID;
 
-import com.google.common.base.MoreObjects;
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.FailureMessage;
 
-final class ImmutableDeliveryChannel implements DeliveryChannel {
+import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.Optional;
 
-	private final String exchangeName;
-	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
+final class ImmutableFailureMessage extends ImmutableResponseMessage implements FailureMessage {
 
-	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
-		this.broker = broker;
-		this.exchangeName = exchangeName;
-		this.queueName = queueName;
-		this.routingKey = routingKey;
+	private final long code;
+	private final Optional<Long> subcode;
+	private final String reason;
+	private final String detail;
+
+	ImmutableFailureMessage( // NOSONAR
+		UUID messageId,
+		DateTime submittedOn,
+		Agent agent,
+		UUID responseTo,
+		long responseNumber,
+		long code,
+		Long subcode,
+		String reason,
+		String detail) {
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
+		this.code=code;
+		this.subcode=Optional.fromNullable(subcode);
+		this.reason=reason;
+		this.detail=detail;
 	}
 
 	@Override
-	public Broker broker() {
-		return this.broker;
+	public long code() {
+		return this.code;
 	}
 
 	@Override
-	public String exchangeName() {
-		return this.exchangeName;
+	public Optional<Long> subcode() {
+		return this.subcode;
 	}
 
 	@Override
-	public String queueName() {
-		return this.queueName;
+	public String reason() {
+		return this.reason;
 	}
 
 	@Override
-	public String routingKey() {
-		return this.routingKey;
+	public String detail() {
+		return this.detail;
 	}
 
 	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					omitNullValues().
-					add("broker",this.broker).
-					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
-					add("routingKey",this.routingKey).
-					toString();
+	protected void toString(ToStringHelper helper) {
+		super.toString(helper);
+		helper.
+			add("code",this.code).
+			add("subcode",this.subcode.orNull()).
+			add("reason",this.reason).
+			add("detail",this.detail);
 	}
 
 }

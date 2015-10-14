@@ -26,7 +26,7 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.ResponseMessageBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.ResponseMessageBuilder;
 import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
 import com.hp.hpl.jena.query.Query;

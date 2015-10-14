@@ -29,8 +29,8 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentResponseMessageBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentResponseMessageBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;

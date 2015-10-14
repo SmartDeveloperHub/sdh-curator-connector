@@ -28,8 +28,8 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.FilterBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.FilterBuilder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.Filter;
 

@@ -24,44 +24,61 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.net.URI;
+import java.util.UUID;
 
-import org.smartdeveloperhub.curator.protocol.Binding;
-import org.smartdeveloperhub.curator.protocol.Value;
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 
-final class ImmutableBinding implements Binding {
+abstract class ImmutableMessage implements Message {
 
-	private final Value value;
-	private final URI property;
+	private final UUID id;
+	private final DateTime submissionDate;
+	private final Agent agent;
 
-	ImmutableBinding(URI property, Value value) {
-		this.property = property;
-		this.value = value;
+	ImmutableMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent) {
+		this.agent = agent;
+		this.submissionDate = submittedOn;
+		this.id = messageId;
 	}
 
 	@Override
-	public URI property() {
-		return this.property;
+	public final UUID messageId() {
+		return this.id;
 	}
 
 	@Override
-	public Value value() {
-		return this.value;
+	public final DateTime submittedOn() {
+		return this.submissionDate;
 	}
 
 	@Override
-	public String toString() {
-		return
+	public final Agent submittedBy() {
+		return this.agent;
+	}
+
+
+	@Override
+	public final String toString() {
+		ToStringHelper helper=
 			MoreObjects.
 				toStringHelper(getClass()).
 					omitNullValues().
-					add("property",this.property).
-					add("value",this.value).
-					toString();
+					add("messageId",this.id).
+					add("submittedOn",this.submissionDate).
+					add("submittedBy",this.agent);
+		toString(helper);
+		return helper.toString();
 	}
+
+	protected abstract void toString(ToStringHelper helper);
 
 }

@@ -24,69 +24,70 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.FailureMessage;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Policy;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
-final class ImmutableFailureMessage extends ImmutableResponseMessage implements FailureMessage {
+final class ImmutableEnrichmentRequestMessage extends ImmutableRequestMessage implements EnrichmentRequestMessage {
 
-	private final long code;
-	private final Optional<Long> subcode;
-	private final String reason;
-	private final String detail;
+	private final URI targetResource;
+	private final ImmutableList<Filter> filters;
+	private final ImmutableList<Constraint> constraints;
 
-	ImmutableFailureMessage( // NOSONAR
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber,
-		long code,
-		Long subcode,
-		String reason,
-		String detail) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
-		this.code=code;
-		this.subcode=Optional.fromNullable(subcode);
-		this.reason=reason;
-		this.detail=detail;
+	ImmutableEnrichmentRequestMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent,
+			DeliveryChannel deliveryChannel,
+			URI targetResource,
+			List<Filter> filters,
+			List<Constraint> constraints) {
+		super(messageId,submittedOn,agent,deliveryChannel);
+		this.targetResource = targetResource;
+		this.filters=ImmutableList.copyOf(filters);
+		this.constraints=ImmutableList.copyOf(constraints);
 	}
 
 	@Override
-	public long code() {
-		return this.code;
+	public URI targetResource() {
+		return this.targetResource;
 	}
 
 	@Override
-	public Optional<Long> subcode() {
-		return this.subcode;
+	public Policy apply() {
+		return null;
 	}
 
 	@Override
-	public String reason() {
-		return this.reason;
+	public List<Filter> filters() {
+		return this.filters;
 	}
 
 	@Override
-	public String detail() {
-		return this.detail;
+	public List<Constraint> constraints() {
+		return this.constraints;
 	}
 
 	@Override
 	protected void toString(ToStringHelper helper) {
 		super.toString(helper);
 		helper.
-			add("code",this.code).
-			add("subcode",this.subcode.orNull()).
-			add("reason",this.reason).
-			add("detail",this.detail);
+			add("targetResource", this.targetResource).
+			add("filters",this.filters).
+			add("constraints",this.constraints);
 	}
 
 }

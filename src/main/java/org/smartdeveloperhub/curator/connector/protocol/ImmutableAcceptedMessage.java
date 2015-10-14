@@ -24,48 +24,23 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import org.smartdeveloperhub.curator.protocol.Broker;
+import java.util.UUID;
 
-import com.google.common.base.MoreObjects;
+import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
+import org.smartdeveloperhub.curator.protocol.Agent;
 
-final class ImmutableBroker implements Broker {
+final class ImmutableAcceptedMessage extends ImmutableResponseMessage implements AcceptedMessage {
 
-	private final int port;
-	private final String host;
-	private String virtualHost;
-
-	ImmutableBroker(String host, int port, String virtualHost) {
-		this.host = host;
-		this.port = port;
-		this.virtualHost = virtualHost;
-	}
-
-	@Override
-	public String host() {
-		return this.host;
-	}
-
-	@Override
-	public int port() {
-		return this.port;
-	}
-
-	@Override
-	public String virtualHost() {
-		return this.virtualHost;
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					add("host",this.host).
-					add("port",this.port).
-					add("virtualHost",this.virtualHost).
-					toString();
+	ImmutableAcceptedMessage(
+		UUID messageId,
+		DateTime submittedOn,
+		Agent agent,
+		UUID responseTo,
+		long responseNumber) {
+		super(messageId, submittedOn, agent, responseTo,responseNumber);
 	}
 
 }

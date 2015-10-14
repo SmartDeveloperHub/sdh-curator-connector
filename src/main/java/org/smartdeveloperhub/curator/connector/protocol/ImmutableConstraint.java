@@ -24,33 +24,35 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.net.URI;
+import java.util.List;
 
-import org.smartdeveloperhub.curator.protocol.Filter;
-import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.Binding;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.NamedValue;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
-final class ImmutableFilter implements Filter {
+final class ImmutableConstraint implements Constraint {
 
-	private final URI property;
-	private final Variable variable;
+	private final NamedValue target;
+	private final ImmutableList<Binding> bindings;
 
-	ImmutableFilter(URI property, Variable variable) {
-		this.property=property;
-		this.variable=variable;
+	ImmutableConstraint(NamedValue namedValue, List<Binding> bindings) {
+		this.target=namedValue;
+		this.bindings=ImmutableList.copyOf(bindings);
 	}
 
 	@Override
-	public URI property() {
-		return this.property;
+	public NamedValue target() {
+		return this.target;
 	}
 
 	@Override
-	public Variable variable() {
-		return this.variable;
+	public List<Binding> bindings() {
+		return this.bindings;
 	}
 
 	@Override
@@ -59,8 +61,8 @@ final class ImmutableFilter implements Filter {
 			MoreObjects.
 				toStringHelper(getClass()).
 					omitNullValues().
-					add("property",this.property).
-					add("variable",this.variable).
+					add("target",this.target).
+					add("bindings",this.bindings).
 					toString();
 	}
 

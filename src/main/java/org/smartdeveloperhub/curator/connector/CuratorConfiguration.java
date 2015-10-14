@@ -28,6 +28,7 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.util.Objects;
 
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.google.common.base.MoreObjects;

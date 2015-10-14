@@ -29,6 +29,10 @@ package org.smartdeveloperhub.curator.connector;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.smartdeveloperhub.curator.connector.protocol.ValidationUtilTest;
+import org.smartdeveloperhub.curator.connector.protocol.ParsingUtilTest;
+import org.smartdeveloperhub.curator.connector.protocol.ImmutableEnrichmentRequestMessageTest;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactoryTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({

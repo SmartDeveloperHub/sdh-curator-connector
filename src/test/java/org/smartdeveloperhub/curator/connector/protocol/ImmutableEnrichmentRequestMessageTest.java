@@ -24,47 +24,57 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
+import mockit.Injectable;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
+
 import org.joda.time.DateTime;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.protocol.ImmutableEnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.ResponseMessage;
+import org.smartdeveloperhub.curator.protocol.Constraint;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Filter;
 
-import com.google.common.base.MoreObjects.ToStringHelper;
+@RunWith(JMockit.class)
+public class ImmutableEnrichmentRequestMessageTest {
+	@Injectable
+	private Agent agent;
 
-abstract class ImmutableResponseMessage extends ImmutableMessage implements ResponseMessage {
+	@Injectable
+	private DeliveryChannel deliveryChannel;
 
-	private final UUID responseTo;
-	private final long responseNumber;
+	@Injectable
+	private UUID messageId;
 
-	ImmutableResponseMessage(
-			UUID messageId,
-			DateTime submittedOn,
-			Agent agent,
-			UUID responseTo,
-			long responseNumber) {
-		super(messageId, submittedOn, agent);
-		this.responseTo=responseTo;
-		this.responseNumber=responseNumber;
-	}
+	@Injectable
+	private DateTime submittedOn;
 
-	@Override
-	public UUID responseTo() {
-		return this.responseTo;
-	}
+	@Injectable
+	private URI targetResource;
 
-	@Override
-	public long responseNumber() {
-		return this.responseNumber;
-	}
+	@Injectable
+	private List<Filter> filters;
 
-	@Override
-	protected void toString(ToStringHelper helper) {
-		helper.
-			add("responseTo",this.responseTo).
-			add("responseNumber",this.responseNumber);
+	@Injectable
+	private List<Constraint> constraints;
+
+	@Tested
+	private ImmutableEnrichmentRequestMessage sut;
+
+	@Test
+	public void testApply() throws Exception {
+		assertThat(sut.apply(),nullValue());
 	}
 
 }

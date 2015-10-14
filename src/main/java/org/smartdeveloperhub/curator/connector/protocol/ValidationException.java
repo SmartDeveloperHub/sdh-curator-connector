@@ -24,23 +24,52 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.util.UUID;
+import org.smartdeveloperhub.curator.connector.RuntimeConnectorException;
 
-import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
-import org.smartdeveloperhub.curator.protocol.Agent;
+public class ValidationException extends RuntimeConnectorException {
 
-final class ImmutableAcceptedMessage extends ImmutableResponseMessage implements AcceptedMessage {
+	private static final long serialVersionUID = 6617159761808495488L;
 
-	ImmutableAcceptedMessage(
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
+	private final String value;
+
+	private final String type;
+
+	private final String description;
+
+	public ValidationException(Object value, String type) {
+		this(value,type,null,null);
+	}
+
+	public ValidationException(Object value, String type, String description) {
+		this(value,type,description,null);
+	}
+
+	public ValidationException(Object value, String type, String description, Throwable cause) {
+		super("Value "+toString(value)+" is not a valid "+type+(description!=null?": "+description:""),cause);
+		this.value = value!=null?value.toString():null;
+		this.type = type;
+		this.description = description;
+	}
+
+	public String getValue() {
+		return this.value;
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public String getDescription() {
+		return this.description;
+	}
+
+	private static String toString(Object value) {
+		return
+			value==null?
+				"<null>":
+				"'"+value+"'";
 	}
 
 }

@@ -28,7 +28,7 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
-import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.protocol.ValidationException;
 import org.smartdeveloperhub.curator.connector.util.Builder;
 
 import com.google.common.collect.Lists;

@@ -24,65 +24,38 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Binding;
-import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.RequestMessage;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.collect.ImmutableList;
 
-final class ImmutableEnrichmentResponseMessage extends ImmutableResponseMessage implements EnrichmentResponseMessage {
+abstract class ImmutableRequestMessage extends ImmutableMessage implements RequestMessage {
 
-	private final URI targetResource;
-	private final List<Binding> additions;
-	private final List<Binding> removals;
+	private final DeliveryChannel deliveryChannel;
 
-	ImmutableEnrichmentResponseMessage( // NOSONAR
-		UUID messageId,
-		DateTime submittedOn,
-		Agent agent,
-		UUID responseTo,
-		long responseNumber,
-		URI targetResource,
-		List<Binding> additions,
-		List<Binding> removals) {
-		super(messageId, submittedOn, agent, responseTo,responseNumber);
-		this.targetResource=targetResource;
-		this.additions=ImmutableList.<Binding>copyOf(additions);
-		this.removals=ImmutableList.<Binding>copyOf(removals);
+	ImmutableRequestMessage(
+			UUID messageId,
+			DateTime submittedOn,
+			Agent agent,
+			DeliveryChannel deliveryChannel) {
+		super(messageId,submittedOn,agent);
+		this.deliveryChannel = deliveryChannel;
 	}
 
 	@Override
-	public URI targetResource() {
-		return this.targetResource;
-	}
-
-	@Override
-	public List<Binding> additions() {
-		return this.additions;
-	}
-
-	@Override
-	public List<Binding> removals() {
-		return this.removals;
+	public final DeliveryChannel replyTo() {
+		return this.deliveryChannel;
 	}
 
 	@Override
 	protected void toString(ToStringHelper helper) {
-		super.toString(helper);
-		helper.
-			add("targetResource",this.targetResource).
-			add("additions",this.additions).
-			add("removals",this.removals);
+		helper.add("replyTo",this.deliveryChannel);
 	}
-
-
 
 }

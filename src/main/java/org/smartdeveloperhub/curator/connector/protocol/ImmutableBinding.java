@@ -24,25 +24,33 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.util.UUID;
+import java.net.URI;
 
-import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.Binding;
+import org.smartdeveloperhub.curator.protocol.Value;
 
 import com.google.common.base.MoreObjects;
 
-final class ImmutableAgent implements Agent {
+final class ImmutableBinding implements Binding {
 
-	private final UUID agentId;
+	private final Value value;
+	private final URI property;
 
-	ImmutableAgent(UUID id) {
-		this.agentId = id;
+	ImmutableBinding(URI property, Value value) {
+		this.property = property;
+		this.value = value;
 	}
 
 	@Override
-	public UUID agentId() {
-		return this.agentId;
+	public URI property() {
+		return this.property;
+	}
+
+	@Override
+	public Value value() {
+		return this.value;
 	}
 
 	@Override
@@ -50,7 +58,9 @@ final class ImmutableAgent implements Agent {
 		return
 			MoreObjects.
 				toStringHelper(getClass()).
-					add("agentId",this.agentId).
+					omitNullValues().
+					add("property",this.property).
+					add("value",this.value).
 					toString();
 	}
 

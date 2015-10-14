@@ -24,38 +24,44 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.util.UUID;
+import java.net.URI;
 
-import org.joda.time.DateTime;
-import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.RequestMessage;
+import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Variable;
 
-import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.MoreObjects;
 
-abstract class ImmutableRequestMessage extends ImmutableMessage implements RequestMessage {
+final class ImmutableFilter implements Filter {
 
-	private final DeliveryChannel deliveryChannel;
+	private final URI property;
+	private final Variable variable;
 
-	ImmutableRequestMessage(
-			UUID messageId,
-			DateTime submittedOn,
-			Agent agent,
-			DeliveryChannel deliveryChannel) {
-		super(messageId,submittedOn,agent);
-		this.deliveryChannel = deliveryChannel;
+	ImmutableFilter(URI property, Variable variable) {
+		this.property=property;
+		this.variable=variable;
 	}
 
 	@Override
-	public final DeliveryChannel replyTo() {
-		return this.deliveryChannel;
+	public URI property() {
+		return this.property;
 	}
 
 	@Override
-	protected void toString(ToStringHelper helper) {
-		helper.add("replyTo",this.deliveryChannel);
+	public Variable variable() {
+		return this.variable;
+	}
+
+	@Override
+	public String toString() {
+		return
+			MoreObjects.
+				toStringHelper(getClass()).
+					omitNullValues().
+					add("property",this.property).
+					add("variable",this.variable).
+					toString();
 	}
 
 }

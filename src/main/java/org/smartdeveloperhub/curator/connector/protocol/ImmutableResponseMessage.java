@@ -24,70 +24,47 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.Constraint;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
-import org.smartdeveloperhub.curator.protocol.Filter;
-import org.smartdeveloperhub.curator.protocol.Policy;
+import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.collect.ImmutableList;
 
-final class ImmutableEnrichmentRequestMessage extends ImmutableRequestMessage implements EnrichmentRequestMessage {
+abstract class ImmutableResponseMessage extends ImmutableMessage implements ResponseMessage {
 
-	private final URI targetResource;
-	private final ImmutableList<Filter> filters;
-	private final ImmutableList<Constraint> constraints;
+	private final UUID responseTo;
+	private final long responseNumber;
 
-	ImmutableEnrichmentRequestMessage(
+	ImmutableResponseMessage(
 			UUID messageId,
 			DateTime submittedOn,
 			Agent agent,
-			DeliveryChannel deliveryChannel,
-			URI targetResource,
-			List<Filter> filters,
-			List<Constraint> constraints) {
-		super(messageId,submittedOn,agent,deliveryChannel);
-		this.targetResource = targetResource;
-		this.filters=ImmutableList.copyOf(filters);
-		this.constraints=ImmutableList.copyOf(constraints);
+			UUID responseTo,
+			long responseNumber) {
+		super(messageId, submittedOn, agent);
+		this.responseTo=responseTo;
+		this.responseNumber=responseNumber;
 	}
 
 	@Override
-	public URI targetResource() {
-		return this.targetResource;
+	public UUID responseTo() {
+		return this.responseTo;
 	}
 
 	@Override
-	public Policy apply() {
-		return null;
-	}
-
-	@Override
-	public List<Filter> filters() {
-		return this.filters;
-	}
-
-	@Override
-	public List<Constraint> constraints() {
-		return this.constraints;
+	public long responseNumber() {
+		return this.responseNumber;
 	}
 
 	@Override
 	protected void toString(ToStringHelper helper) {
-		super.toString(helper);
 		helper.
-			add("targetResource", this.targetResource).
-			add("filters",this.filters).
-			add("constraints",this.constraints);
+			add("responseTo",this.responseTo).
+			add("responseNumber",this.responseNumber);
 	}
 
 }

@@ -24,7 +24,7 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -36,8 +36,8 @@ import java.util.UUID;
 
 import org.junit.Test;
 import org.ldp4j.commons.testing.Utils;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.AgentBuilder;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.DeliveryChannelBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.AgentBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.DeliveryChannelBuilder;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;

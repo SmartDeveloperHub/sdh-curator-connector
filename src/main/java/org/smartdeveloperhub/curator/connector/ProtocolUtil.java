@@ -26,7 +26,8 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequestMessageBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentRequestMessageBuilder;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;

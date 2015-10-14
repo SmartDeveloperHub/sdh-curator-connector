@@ -29,13 +29,13 @@ package org.smartdeveloperhub.curator.connector;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
-import static org.smartdeveloperhub.curator.connector.ProtocolFactory.*;
+import static org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.*;
 
 import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.FailureMessageBuilder;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.FailureMessageBuilder;
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.FailureMessage;
 

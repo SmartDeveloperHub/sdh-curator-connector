@@ -24,50 +24,51 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-public class ValidationException extends RuntimeConnectorException {
+import java.net.URI;
 
-	private static final long serialVersionUID = 6617159761808495488L;
+import org.smartdeveloperhub.curator.protocol.Literal;
 
-	private final String value;
+import com.google.common.base.MoreObjects;
 
-	private final String type;
+final class ImmutableLiteral implements Literal {
 
-	private final String description;
+	private final String lexicalForm;
+	private final URI datatype;
+	private final String language;
 
-	public ValidationException(Object value, String type) {
-		this(value,type,null,null);
+	ImmutableLiteral(String lexicalForm, URI datatype, String language) {
+		this.lexicalForm = lexicalForm;
+		this.datatype = datatype;
+		this.language = language;
 	}
 
-	public ValidationException(Object value, String type, String description) {
-		this(value,type,description,null);
+	@Override
+	public String lexicalForm() {
+		return this.lexicalForm;
 	}
 
-	public ValidationException(Object value, String type, String description, Throwable cause) {
-		super("Value "+toString(value)+" is not a valid "+type+(description!=null?": "+description:""),cause);
-		this.value = value!=null?value.toString():null;
-		this.type = type;
-		this.description = description;
+	@Override
+	public URI datatype() {
+		return this.datatype;
 	}
 
-	public String getValue() {
-		return this.value;
+	@Override
+	public String language() {
+		return this.language;
 	}
 
-	public String getType() {
-		return this.type;
-	}
-
-	public String getDescription() {
-		return this.description;
-	}
-
-	private static String toString(Object value) {
+	@Override
+	public String toString() {
 		return
-			value==null?
-				"<null>":
-				"'"+value+"'";
+			MoreObjects.
+				toStringHelper(getClass()).
+					omitNullValues().
+					add("lexicalForm",this.lexicalForm).
+					add("datatype",this.datatype).
+					add("language",this.language).
+					toString();
 	}
 
 }
