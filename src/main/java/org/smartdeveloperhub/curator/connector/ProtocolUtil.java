@@ -49,7 +49,7 @@ final class ProtocolUtil {
 		return result;
 	}
 
-	static EnrichmentRequestMessageBuilder toRequestBuilder(EnrichmentSpecification specification) {
+	static EnrichmentRequestMessageBuilder toRequestBuilder(EnrichmentRequest specification) {
 		final EnrichmentRequestMessageBuilder builder=
 			ProtocolFactory.
 				newEnrichmentRequestMessage().
@@ -63,9 +63,9 @@ final class ProtocolUtil {
 		return builder;
 	}
 
-	static FailureDescription toFailureDescription(FailureMessage message) {
+	static Failure toFailure(FailureMessage message) {
 		return
-			FailureDescription.
+			Failure.
 				newInstance().
 					withCode(message.code()).
 					withSubcode(message.subcode().orNull()).

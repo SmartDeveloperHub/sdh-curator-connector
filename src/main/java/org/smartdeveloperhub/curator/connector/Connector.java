@@ -302,7 +302,7 @@ public final class Connector {
 		}
 	}
 
-	public Future<Acknowledge> requestEnrichment(EnrichmentSpecification specification, EnrichmentResultHandler handler) throws IOException {
+	public Future<Acknowledge> requestEnrichment(EnrichmentRequest specification, EnrichmentResultHandler handler) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");

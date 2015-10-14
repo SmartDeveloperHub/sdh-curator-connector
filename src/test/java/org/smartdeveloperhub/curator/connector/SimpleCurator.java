@@ -161,7 +161,7 @@ public final class SimpleCurator implements MessageHandler {
 		if(this.provider.isAccepted(request.messageId())) {
 			builder=ProtocolFactory.newAcceptedMessage();
 		} else {
-			final FailureDescription failure = this.provider.getFailure(request.messageId());
+			final Failure failure = this.provider.getFailure(request.messageId());
 			builder=
 				ProtocolFactory.
 					newFailureMessage().

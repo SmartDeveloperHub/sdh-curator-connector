@@ -106,7 +106,7 @@ public class ConnectorTest {
 			Future<Acknowledge> response=
 				connector.
 					requestEnrichment(
-						EnrichmentSpecification.
+						EnrichmentRequest.
 							newInstance().
 								withTargetResource(URI.create("urn:message")),
 						new EnrichmentResultHandler() {

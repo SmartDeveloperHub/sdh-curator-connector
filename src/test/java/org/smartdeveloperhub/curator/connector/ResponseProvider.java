@@ -34,7 +34,7 @@ public interface ResponseProvider {
 
 	boolean isAccepted(UUID messageId);
 
-	FailureDescription getFailure(UUID messageId);
+	Failure getFailure(UUID messageId);
 
 	EnrichmentResult getResult(UUID messageId);
 

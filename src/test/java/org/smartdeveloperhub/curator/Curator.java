@@ -33,7 +33,7 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.connector.EnrichmentResult;
-import org.smartdeveloperhub.curator.connector.FailureDescription;
+import org.smartdeveloperhub.curator.connector.Failure;
 import org.smartdeveloperhub.curator.connector.ResponseProvider;
 import org.smartdeveloperhub.curator.connector.SimpleCurator;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
@@ -62,8 +62,8 @@ public final class Curator {
 		}
 
 		@Override
-		public FailureDescription getFailure(UUID messageId) {
-			final FailureDescription result = getNext(messageId, failures, rejected);
+		public Failure getFailure(UUID messageId) {
+			final Failure result = getNext(messageId, failures, rejected);
 			LOGGER.info("Consuming failure {} for message {}",result,messageId);
 			return result;
 		}
@@ -97,7 +97,7 @@ public final class Curator {
 	private final SimpleCurator delegate;
 	private final List<UUID> accepted;
 	private final List<UUID> rejected;
-	private final Multimap<UUID,FailureDescription> failures;
+	private final Multimap<UUID,Failure> failures;
 	private final Multimap<UUID,EnrichmentResult> results;
 	private boolean accept;
 
@@ -142,7 +142,7 @@ public final class Curator {
 		return this;
 	}
 
-	public Curator fail(UUID messageId, FailureDescription description) {
+	public Curator fail(UUID messageId, Failure description) {
 		LOGGER.info("Fail {} with {}",messageId,description);
 		this.failures.put(messageId,description);
 		return this;

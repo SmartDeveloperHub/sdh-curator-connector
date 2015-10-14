@@ -37,13 +37,13 @@ import org.smartdeveloperhub.curator.protocol.Filter;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
-public final class EnrichmentSpecification {
+public final class EnrichmentRequest {
 
 	private final URI targetResource;
 	private final ImmutableList<Filter> filters;
 	private final ImmutableList<Constraint> constraints;
 
-	private EnrichmentSpecification(URI targetResource, ImmutableList<Filter> filters, ImmutableList<Constraint> constraints) {
+	private EnrichmentRequest(URI targetResource, ImmutableList<Filter> filters, ImmutableList<Constraint> constraints) {
 		this.targetResource=targetResource;
 		this.filters=filters;
 		this.constraints=constraints;
@@ -53,24 +53,24 @@ public final class EnrichmentSpecification {
 		return this.targetResource;
 	}
 
-	public EnrichmentSpecification withTargetResource(URI targetResource) {
-		return new EnrichmentSpecification(targetResource,this.filters,this.constraints);
+	public EnrichmentRequest withTargetResource(URI targetResource) {
+		return new EnrichmentRequest(targetResource,this.filters,this.constraints);
 	}
 
 	public List<Filter> filters() {
 		return this.filters;
 	}
 
-	public EnrichmentSpecification withFilters(Collection<? extends Filter> filters) {
-		return new EnrichmentSpecification(this.targetResource,ImmutableList.<Filter>copyOf(filters),this.constraints);
+	public EnrichmentRequest withFilters(Collection<? extends Filter> filters) {
+		return new EnrichmentRequest(this.targetResource,ImmutableList.<Filter>copyOf(filters),this.constraints);
 	}
 
 	public List<Constraint> constraints() {
 		return this.constraints;
 	}
 
-	public EnrichmentSpecification withConstraints(Collection<? extends Constraint> constraints) {
-		return new EnrichmentSpecification(this.targetResource,this.filters,ImmutableList.<Constraint>copyOf(constraints));
+	public EnrichmentRequest withConstraints(Collection<? extends Constraint> constraints) {
+		return new EnrichmentRequest(this.targetResource,this.filters,ImmutableList.<Constraint>copyOf(constraints));
 	}
 
 	@Override
@@ -81,8 +81,8 @@ public final class EnrichmentSpecification {
 	@Override
 	public boolean equals(Object obj) {
 		boolean result=false;
-		if(obj instanceof EnrichmentSpecification) {
-			EnrichmentSpecification that=(EnrichmentSpecification)obj;
+		if(obj instanceof EnrichmentRequest) {
+			EnrichmentRequest that=(EnrichmentRequest)obj;
 			result=
 				Objects.equals(this.targetResource,that.targetResource) &&
 				Objects.equals(this.filters,that.filters) &&
@@ -102,8 +102,8 @@ public final class EnrichmentSpecification {
 					toString();
 	}
 
-	public static EnrichmentSpecification newInstance() {
-		return new EnrichmentSpecification(null,ImmutableList.<Filter>of(),ImmutableList.<Constraint>of());
+	public static EnrichmentRequest newInstance() {
+		return new EnrichmentRequest(null,ImmutableList.<Filter>of(),ImmutableList.<Constraint>of());
 	}
 
 }

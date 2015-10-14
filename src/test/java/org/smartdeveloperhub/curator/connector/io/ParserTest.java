@@ -34,10 +34,12 @@ import static org.junit.Assert.fail;
 
 
 
+
+
 import org.junit.Test;
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
 import org.smartdeveloperhub.curator.connector.ValidationException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
+import org.smartdeveloperhub.curator.connector.util.Builder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 

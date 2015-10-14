@@ -28,8 +28,8 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import java.util.List;
 
-import org.smartdeveloperhub.curator.connector.ProtocolFactory.Builder;
 import org.smartdeveloperhub.curator.connector.ValidationException;
+import org.smartdeveloperhub.curator.connector.util.Builder;
 
 import com.google.common.collect.Lists;
 import com.hp.hpl.jena.query.Query;

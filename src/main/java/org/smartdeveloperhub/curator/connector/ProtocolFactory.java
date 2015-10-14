@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.smartdeveloperhub.curator.connector.util.Builder;
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.Binding;
@@ -61,12 +62,6 @@ import com.google.common.collect.Lists;
 import com.rabbitmq.client.ConnectionFactory;
 
 public final class ProtocolFactory {
-
-	public interface Builder<T> {
-
-		T build();
-
-	}
 
 	public static final class BrokerBuilder implements Builder<Broker> {
 

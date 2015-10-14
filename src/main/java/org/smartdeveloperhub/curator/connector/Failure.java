@@ -33,14 +33,14 @@ import com.google.common.base.Optional;
 
 import static com.google.common.base.Preconditions.*;
 
-public final class FailureDescription {
+public final class Failure {
 
 	private final long code;
 	private final Long subcode;
 	private final String reason;
 	private final String details;
 
-	private FailureDescription(long code, Long subcode, String reason, String detail) {
+	private Failure(long code, Long subcode, String reason, String detail) {
 		this.code=code;
 		this.subcode=subcode;
 		this.reason=reason;
@@ -63,23 +63,23 @@ public final class FailureDescription {
 		return this.details;
 	}
 
-	public FailureDescription withCode(long code) {
+	public Failure withCode(long code) {
 		checkArgument(code>=0,"Failure code cannot be lower than zero (%s)",code);
-		return new FailureDescription(code,this.subcode,this.reason,this.details);
+		return new Failure(code,this.subcode,this.reason,this.details);
 	}
 
-	public FailureDescription withSubcode(Long subcode) {
+	public Failure withSubcode(Long subcode) {
 		checkArgument(subcode==null || subcode>=0,"Failure subcode cannot be lower than zero (%s)",subcode);
-		return new FailureDescription(this.code,subcode,this.reason,this.details);
+		return new Failure(this.code,subcode,this.reason,this.details);
 	}
 
-	public FailureDescription withReason(String reason) {
+	public Failure withReason(String reason) {
 		checkNotNull(reason,"Failure reason cannot be null");
-		return new FailureDescription(this.code,this.subcode,reason,this.details);
+		return new Failure(this.code,this.subcode,reason,this.details);
 	}
 
-	public FailureDescription withDetail(String detail) {
-		return new FailureDescription(this.code,this.subcode,this.reason,detail);
+	public Failure withDetail(String detail) {
+		return new Failure(this.code,this.subcode,this.reason,detail);
 	}
 
 	@Override
@@ -90,8 +90,8 @@ public final class FailureDescription {
 	@Override
 	public boolean equals(Object obj) {
 		boolean result=false;
-		if(obj instanceof FailureDescription) {
-			FailureDescription that=(FailureDescription)obj;
+		if(obj instanceof Failure) {
+			Failure that=(Failure)obj;
 			result=
 				Objects.equals(this.code,that.code) &&
 				Objects.equals(this.subcode,that.subcode) &&
@@ -114,8 +114,8 @@ public final class FailureDescription {
 					toString();
 	}
 
-	public static FailureDescription newInstance() {
-		return new FailureDescription(0,null,"Unexpected failure",null);
+	public static Failure newInstance() {
+		return new Failure(0,null,"Unexpected failure",null);
 	}
 
 }
