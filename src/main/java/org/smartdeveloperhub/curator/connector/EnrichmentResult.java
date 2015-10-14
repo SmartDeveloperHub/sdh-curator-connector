@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.Set;
 
 import org.smartdeveloperhub.curator.protocol.Value;
@@ -83,6 +84,24 @@ public final class EnrichmentResult {
 
 	public EnrichmentResult withRemoval(URI property, Value value) {
 		return new EnrichmentResult(this.targetResource,this.additions,append(removals,property,value));
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.targetResource,this.additions,this.removals);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		boolean result=false;
+		if(obj instanceof EnrichmentResult) {
+			EnrichmentResult that=(EnrichmentResult)obj;
+			result=
+				Objects.equals(this.targetResource,that.targetResource) &&
+				Objects.equals(this.additions,that.additions) &&
+				Objects.equals(this.removals,that.removals);
+		}
+		return result;
 	}
 
 	@Override

@@ -209,7 +209,7 @@ public final class Connector {
 		EnrichmentResultHandler handler=this.activeRequests.get(response.responseTo());
 		if(handler!=null) {
 			LOGGER.trace("Handling processing of response {} for request {} to handler {}...",response.messageId(),response.responseTo(),handler);
-			final EnrichmentResult result = ProtocolUtil.toResult(response);
+			final EnrichmentResult result = ProtocolUtil.toEnrichmentResult(response);
 			handler.onResult(result);
 		} else {
 			LOGGER.debug("Discarded response {}.",response);
@@ -263,23 +263,6 @@ public final class Connector {
 		}
 	}
 
-	public void connect() throws ConnectorException {
-		this.write.lock();
-		try {
-			Preconditions.checkState(!this.connected,"Already connected");
-			LOGGER.info("-->> CONNECTING <<--");
-			connectToCurator();
-			this.connected=true;
-			LOGGER.info(this.configuration.toString());
-			LOGGER.info("-->> CONNECTED <<--");
-		} catch (Exception e) {
-			LOGGER.error("-->> CONNECTION FAILED <<--",e);
-			throw e;
-		} finally {
-			this.write.unlock();
-		}
-	}
-
 	private void connectToCurator() throws ConnectorException {
 		this.curatorController.connect();
 		try {
@@ -299,6 +282,23 @@ public final class Connector {
 		} catch (Exception e) {
 			this.connectorController.disconnect();
 			throw e;
+		}
+	}
+
+	public void connect() throws ConnectorException {
+		this.write.lock();
+		try {
+			Preconditions.checkState(!this.connected,"Already connected");
+			LOGGER.info("-->> CONNECTING <<--");
+			connectToCurator();
+			this.connected=true;
+			LOGGER.info(this.configuration.toString());
+			LOGGER.info("-->> CONNECTED <<--");
+		} catch (Exception e) {
+			LOGGER.error("-->> CONNECTION FAILED <<--",e);
+			throw e;
+		} finally {
+			this.write.unlock();
 		}
 	}
 

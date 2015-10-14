@@ -30,6 +30,7 @@ import org.smartdeveloperhub.curator.connector.ProtocolFactory.EnrichmentRequest
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponse;
+import org.smartdeveloperhub.curator.protocol.Failure;
 import org.smartdeveloperhub.curator.protocol.Filter;
 
 final class ProtocolUtil {
@@ -37,7 +38,7 @@ final class ProtocolUtil {
 	private ProtocolUtil() {
 	}
 
-	static EnrichmentResult toResult(EnrichmentResponse response) {
+	static EnrichmentResult toEnrichmentResult(EnrichmentResponse response) {
 		EnrichmentResult result=EnrichmentResult.newInstance().withTargetResource(response.targetResource());
 		for(Binding addition:response.additions()) {
 			result=result.withAddition(addition.property(),addition.value());
@@ -60,6 +61,16 @@ final class ProtocolUtil {
 			builder.withConstraint(constraint);
 		}
 		return builder;
+	}
+
+	static FailureDescription toFailureDescription(Failure message) {
+		return
+			FailureDescription.
+				newInstance().
+					withCode(message.code()).
+					withSubcode(message.subcode().orNull()).
+					withReason(message.reason()).
+					withDetail(message.detail());
 	}
 
 }

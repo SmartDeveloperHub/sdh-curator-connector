@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator.connector;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.Filter;
@@ -70,6 +71,24 @@ public final class EnrichmentSpecification {
 
 	public EnrichmentSpecification withConstraints(Collection<? extends Constraint> constraints) {
 		return new EnrichmentSpecification(this.targetResource,this.filters,ImmutableList.<Constraint>copyOf(constraints));
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.targetResource,this.filters,this.constraints);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		boolean result=false;
+		if(obj instanceof EnrichmentSpecification) {
+			EnrichmentSpecification that=(EnrichmentSpecification)obj;
+			result=
+				Objects.equals(this.targetResource,that.targetResource) &&
+				Objects.equals(this.filters,that.filters) &&
+				Objects.equals(this.constraints,that.constraints);
+		}
+		return result;
 	}
 
 	@Override

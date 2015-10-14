@@ -102,7 +102,7 @@ public class AcknowledgeTest {
 	public void testGetFailure$failure() throws Exception {
 		final Failure failure = failure(true);
 		final Acknowledge sut = Acknowledge.of(failure);
-		assertThat(sut.getFailure(),sameInstance(failure));
+		assertThat(sut.getFailure(),equalTo(ProtocolUtil.toFailureDescription(failure)));
 	}
 
 }

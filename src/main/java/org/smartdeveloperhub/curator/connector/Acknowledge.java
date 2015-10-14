@@ -45,9 +45,9 @@ public final class Acknowledge {
 		return this.message instanceof Accepted;
 	}
 
-	public Failure getFailure() {
+	public FailureDescription getFailure() {
 		Preconditions.checkState(!isAccepted(),"Request was accepted");
-		return (Failure)this.message;
+		return ProtocolUtil.toFailureDescription((Failure)this.message);
 	}
 
 	@Override

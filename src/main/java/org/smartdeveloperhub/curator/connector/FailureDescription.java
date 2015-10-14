@@ -26,6 +26,8 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.util.Objects;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 
@@ -78,6 +80,25 @@ public final class FailureDescription {
 
 	public FailureDescription withDetail(String detail) {
 		return new FailureDescription(this.code,this.subcode,this.reason,detail);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.code,this.subcode,this.reason,this.details);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		boolean result=false;
+		if(obj instanceof FailureDescription) {
+			FailureDescription that=(FailureDescription)obj;
+			result=
+				Objects.equals(this.code,that.code) &&
+				Objects.equals(this.subcode,that.subcode) &&
+				Objects.equals(this.reason,that.reason) &&
+				Objects.equals(this.details,that.details);
+		}
+		return result;
 	}
 
 	@Override
