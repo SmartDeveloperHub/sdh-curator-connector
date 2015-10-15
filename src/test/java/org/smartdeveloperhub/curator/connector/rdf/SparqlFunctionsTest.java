@@ -27,7 +27,7 @@
 package org.smartdeveloperhub.curator.connector.rdf;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 import java.io.StringReader;
 import java.util.Iterator;
@@ -55,39 +55,6 @@ public class SparqlFunctionsTest {
 		StringReader in = new StringReader(ResourceUtil.loadResource(data));
 		model.read(in, "urn:","TURTLE");
 		return model;
-	}
-
-	@Test
-	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(SparqlFunctions.class),equalTo(true));
-	}
-
-	@Test
-	public void testGreaterThan() {
-		SparqlFunctions.enable();
-		Model model = loadData("data/validation.ttl");
-		Query query =
-			QueryFactory.
-				create(
-					ResourceUtil.loadResource("queries/validation.sparql"));
-		QueryExecution queryExecution = null;
-		try {
-			queryExecution = QueryExecutionFactory.create(query, model);
-			ResultSet results = queryExecution.execSelect();
-			for(; results.hasNext();) {
-				System.out.println("Solution found: ");
-				QuerySolution solution = results.nextSolution();
-				Iterator<String> varNames = solution.varNames();
-				while(varNames.hasNext()) {
-					String var=varNames.next();
-					System.out.println(" - "+var+" : "+solution.get(var));
-				}
-			}
-		} finally {
-			if (queryExecution != null) {
-				queryExecution.close();
-			}
-		}
 	}
 
 	private static class Triple {
@@ -169,6 +136,39 @@ public class SparqlFunctionsTest {
 
 		protected abstract void evaluate(String caseId, Triple triple);
 
+	}
+
+	@Test
+	public void verifyIsValidUtilityClass() {
+		assertThat(Utils.isUtilityClass(SparqlFunctions.class),equalTo(true));
+	}
+
+	@Test
+	public void testComplexValidation() {
+		SparqlFunctions.enable();
+		Model model = loadData("data/validation.ttl");
+		Query query =
+			QueryFactory.
+				create(
+					ResourceUtil.loadResource("queries/validation.sparql"));
+		QueryExecution queryExecution = null;
+		try {
+			queryExecution = QueryExecutionFactory.create(query, model);
+			ResultSet results = queryExecution.execSelect();
+			for(; results.hasNext();) {
+				System.out.println("Solution found: ");
+				QuerySolution solution = results.nextSolution();
+				Iterator<String> varNames = solution.varNames();
+				while(varNames.hasNext()) {
+					String var=varNames.next();
+					System.out.println(" - "+var+" : "+solution.get(var));
+				}
+			}
+		} finally {
+			if (queryExecution != null) {
+				queryExecution.close();
+			}
+		}
 	}
 
 	@Test

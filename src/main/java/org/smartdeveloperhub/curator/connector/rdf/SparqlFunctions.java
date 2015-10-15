@@ -52,11 +52,11 @@ public final class SparqlFunctions {
 		@Override
 		public Function create(String uri) {
 			Function result=null;
-			if(uri.equals(GREATER_THAN)) {
+			if(GREATER_THAN.equals(uri)) {
 				result=new GreaterThan();
-			} else if(uri.equals(LOWER_THAN)) {
+			} else if(LOWER_THAN.equals(uri)) {
 				result=new LowerThan();
-			} else if(uri.equals(EQUAL)) {
+			} else { // MUST BE EQUAL
 				result=new Equal();
 			}
 			return result;
@@ -64,7 +64,7 @@ public final class SparqlFunctions {
 
 	}
 
-	private static abstract class DateTimeComparisonFunction extends FunctionBase2 {
+	private abstract static class DateTimeComparisonFunction extends FunctionBase2 {
 
 		private boolean firstNonDatetime;
 		private boolean secondNonDatetime;
