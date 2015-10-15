@@ -25,31 +25,18 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-@prefix ex: <http://www.w3.org/2012/12/rdf-val/SOTA-ex#> .
-@prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+PREFIX : <http://www.smartdeveloperhub.org/examples#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/'>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX fn: <http://www.smartdeveloperhub.org/sparql#>
 
-<issue7> a ex:Issue , ex:SecurityIssue ;
-    ex:state ex:unassigned ;
-    ex:reportedBy <user6> , <user2> ; # only one reportedBy permitted
-    ex:reportedOn "2012-12-31T23:57:00Z"^^xsd:dateTime ;
-    ex:reproducedBy <user2>, <user1> ;
-    ex:reproducedOn "2012-10-31T23:57:00Z"^^xsd:dateTime ; # reproduced before being reported
-    ex:related <issue4>, <issue3>, <issue2> . # referenced issues not included
-
-<issue4> # a ??? - missing type arc
-    ex:state ex:unsinged ; # misspelled term in value set.
-  # ex:reportedBy ??? - missing required property
-    ex:reportedOn "2012-12-31T23:57:00Z"^^xsd:dateTime .
-
-<user2> a foaf:Person ;
-    foaf:givenName "Alice" ;
-    foaf:familyName "Smith" ;
-    foaf:phone <tel:+1.555.222.2222> ;
-    foaf:mbox <mailto:alice@example.com> .
-
-<user6> a foaf:Agent ; # should be foaf:Person
-    foaf:givenName "Bob" ; 
-  # foaf:familyName "???" - missing required property
-    foaf:phone <tel:+.555.222.2222> ; # malformed tel: URL
-    foaf:mbox <mailto:alice@example.com> .
+SELECT DISTINCT
+  ?case
+  (fn:greaterThan(?a,?b) as ?greaterThan)
+  (fn:lowerThan(?a,?b) as ?lowerThan)
+  (fn:equal(?a,?b) as ?equal)
+WHERE {
+  ?case a :Case ;
+    :operandA ?a ;
+    :operandB ?b .
+}

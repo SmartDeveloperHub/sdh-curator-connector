@@ -26,6 +26,11 @@
  */
 package org.smartdeveloperhub.curator.connector.rdf;
 
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
+
 import com.hp.hpl.jena.sparql.expr.NodeValue;
 import com.hp.hpl.jena.sparql.function.Function;
 import com.hp.hpl.jena.sparql.function.FunctionBase2;
@@ -33,6 +38,8 @@ import com.hp.hpl.jena.sparql.function.FunctionFactory;
 import com.hp.hpl.jena.sparql.function.FunctionRegistry;
 
 public final class SparqlFunctions {
+
+	private static final Logger LOGGER=LoggerFactory.getLogger(SparqlFunctions.class);
 
 	private static final String NAMESPACE    = "http://www.smartdeveloperhub.org/sparql#";
 
@@ -57,43 +64,87 @@ public final class SparqlFunctions {
 
 	}
 
-	private static class GreaterThan extends FunctionBase2 {
-		@Override
-		public NodeValue exec(NodeValue v1, NodeValue v2) {
-			if(!v1.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			if(!v2.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			return NodeValue.makeBoolean(v1.getDateTime().compare(v2.getDateTime())>0);
+	private static abstract class DateTimeComparisonFunction extends FunctionBase2 {
+
+		private boolean firstNonDatetime;
+		private boolean secondNonDatetime;
+
+		private DateTimeComparisonFunction(boolean firstNonDatetime, boolean secondNonDatetime) {
+			this.firstNonDatetime = firstNonDatetime;
+			this.secondNonDatetime = secondNonDatetime;
 		}
+
+		@Override
+		public final NodeValue exec(NodeValue v1, NodeValue v2) {
+			DateTime d1 = toDateTime(v1);
+			if(d1==null) {
+				return NodeValue.makeBoolean(this.firstNonDatetime);
+			}
+			DateTime d2 = toDateTime(v2);
+			if(d2==null) {
+				return NodeValue.makeBoolean(this.secondNonDatetime);
+			}
+			return NodeValue.makeBoolean(compare(d1, d2));
+		}
+
+		private DateTime toDateTime(NodeValue node) {
+			DateTime result=null;
+			if(XSD.DATE_TIME_TYPE.equals(node.getDatatypeURI())) {
+				try {
+					result=new DateTime(node.asUnquotedString());
+				} catch (IllegalArgumentException e) {
+					ignore(node,e);
+				}
+			}
+			return result;
+		}
+
+		private void ignore(NodeValue node, IllegalArgumentException e) {
+			LOGGER.debug("Invalid date time {}",node,e.getMessage());
+		}
+
+		protected abstract boolean compare(DateTime d1, DateTime d2);
+
 	}
 
-	private static class LowerThan extends FunctionBase2 {
-		@Override
-		public NodeValue exec(NodeValue v1, NodeValue v2) {
-			if(!v1.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			if(!v2.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			return NodeValue.makeBoolean(v1.getDateTime().compare(v2.getDateTime())<0);
+	private static class GreaterThan extends DateTimeComparisonFunction {
+
+		private GreaterThan() {
+			super(false,false);
 		}
+
+		@Override
+		protected boolean compare(DateTime d1, DateTime d2) {
+			return d1.isAfter(d2);
+		}
+
 	}
 
-	private static class Equal extends FunctionBase2 {
-		@Override
-		public NodeValue exec(NodeValue v1, NodeValue v2) {
-			if(!v1.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			if(!v2.isDateTime()) {
-				return NodeValue.makeBoolean(false);
-			}
-			return NodeValue.makeBoolean(v1.getDateTime().compare(v2.getDateTime())==0);
+	private static class LowerThan extends DateTimeComparisonFunction {
+
+		private LowerThan() {
+			super(false,false);
 		}
+
+		@Override
+		protected boolean compare(DateTime d1, DateTime d2) {
+			return d1.isBefore(d2);
+		}
+
+	}
+
+
+	private static class Equal extends DateTimeComparisonFunction {
+
+		private Equal() {
+			super(false,false);
+		}
+
+		@Override
+		protected boolean compare(DateTime d1, DateTime d2) {
+			return d1.isEqual(d2);
+		}
+
 	}
 
 	private SparqlFunctions() {

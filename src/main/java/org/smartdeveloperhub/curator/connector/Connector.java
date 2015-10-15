@@ -286,6 +286,10 @@ public final class Connector {
 		}
 	}
 
+	private void verifyConnection() {
+		Preconditions.checkState(this.connected,"Not connected");
+	}
+
 	public void connect() throws ConnectorException {
 		this.write.lock();
 		try {
@@ -306,7 +310,7 @@ public final class Connector {
 	public Future<Enrichment> requestEnrichment(EnrichmentRequest request, EnrichmentResultHandler handler) throws IOException {
 		this.read.lock();
 		try {
-			Preconditions.checkState(this.connected,"Not connected");
+			verifyConnection();
 			LOGGER.debug("Requesting {}",request);
 			EnrichmentRequestMessage message=
 				ProtocolUtil.
@@ -329,7 +333,7 @@ public final class Connector {
 	public void cancelEnrichment(Enrichment enrichment) {
 		this.read.lock();
 		try {
-			Preconditions.checkState(this.connected,"Not connected");
+			verifyConnection();
 			LOGGER.debug("Cancelling enrichment {}...",enrichment);
 			if(enrichment.cancel()) {
 				this.activeRequests.remove(enrichment.messageId());
@@ -343,7 +347,7 @@ public final class Connector {
 	public void disconnect() throws ConnectorException {
 		this.write.lock();
 		try {
-			Preconditions.checkState(this.connected,"Not connected");
+			verifyConnection();
 			LOGGER.info("-->> DISCONNECTING <<--");
 			LOGGER.info(this.configuration.toString());
 			try {
