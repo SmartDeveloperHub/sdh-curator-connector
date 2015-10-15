@@ -303,7 +303,7 @@ public final class Connector {
 		}
 	}
 
-	public Future<Acknowledge> requestEnrichment(EnrichmentRequest request, EnrichmentResultHandler handler) throws IOException {
+	public Future<Enrichment> requestEnrichment(EnrichmentRequest request, EnrichmentResultHandler handler) throws IOException {
 		this.read.lock();
 		try {
 			Preconditions.checkState(this.connected,"Not connected");
@@ -321,6 +321,20 @@ public final class Connector {
 			future.start();
 			LOGGER.debug("Enrichment requested: {}",future);
 			return future;
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	public void cancelEnrichment(Enrichment enrichment) {
+		this.read.lock();
+		try {
+			Preconditions.checkState(this.connected,"Not connected");
+			LOGGER.debug("Cancelling enrichment {}...",enrichment);
+			if(enrichment.cancel()) {
+				this.activeRequests.remove(enrichment.messageId());
+				LOGGER.debug("Enrichment {} cancelled.",enrichment);
+			}
 		} finally {
 			this.read.unlock();
 		}
@@ -346,7 +360,7 @@ public final class Connector {
 		}
 	}
 
-	void cancelRequest(ConnectorFuture future) {
+	void abortRequest(ConnectorFuture future) {
 		this.pendingAcknowledgements.remove(future.messageId(),future);
 		this.activeRequests.remove(future.messageId());
 	}

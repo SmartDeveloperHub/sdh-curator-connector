@@ -29,7 +29,6 @@ package org.smartdeveloperhub.curator.connector;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -39,21 +38,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.RequestMessage;
 
-final class DefaultConnectorFuture extends ConnectorFuture implements Future<Acknowledge> {
+final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enrichment> {
 
-	private enum State {
+	enum State {
 		WAITING,
 		DONE,
 		CANCELLED
 	}
 
-	private final BlockingQueue<Acknowledge> replyQueue;
+	private final BlockingQueue<Enrichment> replyQueue;
 	private final RequestMessage request;
 	private final Connector connector;
 	private final Lock lock;
 
 	private volatile State state = State.WAITING;
-	private volatile Acknowledge acknowledge;
+	private volatile Enrichment acknowledge;
 
 	DefaultConnectorFuture(Connector connector, RequestMessage request) {
 		this.replyQueue= new ArrayBlockingQueue<>(1);
@@ -62,16 +61,25 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 		this.lock=new ReentrantLock();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	UUID messageId() {
 		return this.request.messageId();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	void start() {
 		// NOTHING TO DO HERE FOR THE TIME BEING
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	boolean complete(Message message) throws InterruptedException {
 		this.lock.lock();
@@ -79,7 +87,7 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 			boolean result=isWaiting();
 			if(result) {
 				this.state=State.DONE;
-				this.acknowledge=Acknowledge.of(message);
+				this.acknowledge=Enrichment.of(message);
 				memoizeAcknowledge();
 			}
 			return result;
@@ -88,6 +96,9 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		this.lock.lock();
@@ -95,36 +106,52 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 			boolean result=isWaiting();
 			if(result) {
 				this.state=State.CANCELLED;
-				this.connector.cancelRequest(this);
+				this.connector.abortRequest(this);
+				this.acknowledge=Enrichment.of(null);
+				try {
+					memoizeAcknowledge();
+				} catch (InterruptedException e) {
+					throw new RuntimeConnectorException("Could not memoize cancellation",e);
+				}
 			}
-			return true;
+			return result;
 		} finally {
 			this.lock.unlock();
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isCancelled() {
 		return this.state.equals(State.CANCELLED);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isDone() {
 		return this.state.equals(State.DONE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public Acknowledge get() throws InterruptedException {
-		checkNotCancelled();
-		final Acknowledge reply=this.replyQueue.take();
+	public Enrichment get() throws InterruptedException {
+		final Enrichment reply=this.replyQueue.take();
 		memoizeAcknowledge();
 		return reply;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public Acknowledge get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
-		checkNotCancelled();
-		final Acknowledge replyOrNull=this.replyQueue.poll(timeout, unit);
+	public Enrichment get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+		final Enrichment replyOrNull=this.replyQueue.poll(timeout, unit);
 		if(replyOrNull==null) {
 			throw new TimeoutException();
 		} else {
@@ -139,12 +166,6 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Ack
 
 	private void memoizeAcknowledge() throws InterruptedException {
 		this.replyQueue.put(this.acknowledge);
-	}
-
-	private void checkNotCancelled() {
-		if(isCancelled()) {
-			throw new CancellationException("Acknowledgement of request "+this.request.messageId()+" has been already cancelled");
-		}
 	}
 
 }

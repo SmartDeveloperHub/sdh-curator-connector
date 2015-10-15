@@ -44,15 +44,15 @@ import com.google.common.collect.ImmutableMap;
 
 public final class Filters implements Iterable<Filter> {
 
-	private final ImmutableMap<URI,String> filters;
+	private final ImmutableMap<URI,String> mappings;
 
 	private Filters(ImmutableMap<URI,String> filters) {
-		this.filters = filters;
+		this.mappings = filters;
 	}
 
 	private ImmutableList<Filter> toList() {
 		Builder<Filter> builder = ImmutableList.<Filter>builder();
-		for(Entry<URI,String> entry:this.filters.entrySet()) {
+		for(Entry<URI,String> entry:this.mappings.entrySet()) {
 			builder.add(
 				ProtocolFactory.
 					newFilter().
@@ -71,16 +71,16 @@ public final class Filters implements Iterable<Filter> {
 	public Filters withFilter(URI property, String variableName) {
 		checkNotNull("Filter property cannot be null");
 		checkNotNull("Filter variable name cannot be null");
-		if(variableName.equals(this.filters.get(property))) {
+		if(variableName.equals(this.mappings.get(property))) {
 			return this;
 		}
-		checkArgument(!this.filters.containsKey(property),"Filter property already defined");
-		checkArgument(!this.filters.containsValue(variableName),"Filter variable already defined");
+		checkArgument(!this.mappings.containsKey(property),"Filter property already defined");
+		checkArgument(!this.mappings.containsValue(variableName),"Filter variable already defined");
 		return
 			new Filters(
 				ImmutableMap.
 					<URI,String>builder().
-						putAll(this.filters).
+						putAll(this.mappings).
 						put(property,variableName).
 						build());
 	}
@@ -90,7 +90,7 @@ public final class Filters implements Iterable<Filter> {
 	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.filters);
+		return Objects.hash(this.mappings);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public final class Filters implements Iterable<Filter> {
 		boolean result = false;
 		if(obj instanceof Filters) {
 			Filters that=(Filters)obj;
-			result=Objects.equals(this.filters,that.filters);
+			result=Objects.equals(this.mappings,that.mappings);
 		}
 		return result;
 	}
@@ -114,7 +114,7 @@ public final class Filters implements Iterable<Filter> {
 		return
 			MoreObjects.
 				toStringHelper(getClass()).
-					addValue(this.filters).
+					addValue(this.mappings).
 					toString();
 	}
 

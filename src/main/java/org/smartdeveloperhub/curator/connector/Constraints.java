@@ -47,7 +47,7 @@ import com.google.common.collect.Multimap;
 
 public class Constraints implements Iterable<Constraint> {
 
-	public static final class TargetedConstraints extends Constraints {
+	public static final class TargetedConstraints extends Constraints { // NOSONAR
 
 		private final NamedValue target;
 
@@ -63,6 +63,7 @@ public class Constraints implements Iterable<Constraint> {
 		public BindingValueBuilder withProperty(URI property) {
 			return new BindingValueBuilder(this,this.target,property);
 		}
+
 	}
 
 	public static final class BindingValueBuilder {

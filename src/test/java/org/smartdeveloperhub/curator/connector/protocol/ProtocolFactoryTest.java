@@ -27,7 +27,10 @@
 package org.smartdeveloperhub.curator.connector.protocol;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
@@ -46,13 +49,16 @@ import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
+import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
+import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 @RunWith(JMockit.class)
 public class ProtocolFactoryTest {
@@ -64,6 +70,7 @@ public class ProtocolFactoryTest {
 	@Mocked private Filter filter;
 	@Mocked private Binding addition;
 	@Mocked private Binding removal;
+	@Mocked private Date date;
 
 	@Test
 	public void verifyIsValidUtilityClass() {
@@ -237,6 +244,25 @@ public class ProtocolFactoryTest {
 	}
 
 	@Test
+	public void testEnrichmentRequestMessageBuilder$withFilterAndConstraint() {
+		EnrichmentRequestMessage request =
+			ProtocolFactory.
+				newEnrichmentRequestMessage().
+					withMessageId(this.messageId).
+					withSubmittedOn(this.date).
+					withSubmittedBy(this.agent).
+					withReplyTo(this.deliveryChannel).
+					withTargetResource("target").
+					withFilter((Filter)null).
+					withFilter(this.filter).
+					withConstraint((Constraint)null).
+					withConstraint(this.constraint).
+					build();
+		assertThat(request.filters(),contains(this.filter));
+		assertThat(request.constraints(),contains(this.constraint));
+	}
+
+	@Test
 	public void testEnrichmentResponseMessageBuilder$withoutAdditions() throws Exception {
 		EnrichmentResponseMessage message=
 			ProtocolFactory.
@@ -272,6 +298,34 @@ public class ProtocolFactoryTest {
 					build();
 		assertThat(message.removals(),hasSize(0));
 		assertThat(message.additions(),contains(this.addition));
+	}
+
+	@Test
+	public void testLiteralBuilder$withLexicalForm() {
+		final String lexicalForm = "string";
+		Literal literal =
+			ProtocolFactory.
+				newLiteral().
+					withLexicalForm(lexicalForm).
+					build();
+		assertThat(literal.lexicalForm(),equalTo(lexicalForm));
+		assertThat(literal.datatype(),nullValue());
+		assertThat(literal.language(),nullValue());
+	}
+
+	@Test
+	public void testLiteralBuilder$nullLexicalForm() {
+		try {
+			ProtocolFactory.
+				newLiteral().
+					withLexicalForm(null).
+					build();
+			fail("Should not create a literal without a lexical form");
+		} catch (ValidationException e) {
+			assertThat(e.getDescription(),equalTo("Lexical form cannot be null"));
+			assertThat(e.getType(),equalTo(XSD.STRING_TYPE));
+			assertThat(e.getValue(),nullValue());
+		}
 	}
 
 }

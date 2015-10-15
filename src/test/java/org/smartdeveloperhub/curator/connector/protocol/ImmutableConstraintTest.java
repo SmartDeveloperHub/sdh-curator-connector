@@ -54,6 +54,11 @@ public class ImmutableConstraintTest {
 				));
 
 	@Test
+	public void testEquals$differentType() throws Exception {
+		assertThat((Object)DEFAULT,not(equalTo((Object)"another type")));
+	}
+
+	@Test
 	public void testEquals$equal() throws Exception {
 		ImmutableConstraint sut=
 			new ImmutableConstraint(

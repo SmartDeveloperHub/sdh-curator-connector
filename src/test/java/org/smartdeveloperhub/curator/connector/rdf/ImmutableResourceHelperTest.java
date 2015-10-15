@@ -24,19 +24,50 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-import java.util.UUID;
-import java.util.concurrent.Future;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-import org.smartdeveloperhub.curator.protocol.Message;
+import java.net.URI;
 
-abstract class ConnectorFuture implements Future<Enrichment> {
+import mockit.Deencapsulation;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
-	abstract UUID messageId();
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
-	abstract void start();
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-	abstract boolean complete(Message message) throws InterruptedException;
+@RunWith(JMockit.class)
+public class ImmutableResourceHelperTest {
+
+	private static final String ID = "http://www.smartdeveloperhub.org";
+
+	@Mocked private Model model;
+
+	@Mocked private Resource resource;
+
+	@Mocked private Resource type;
+
+	@Mocked private Property property;
+
+	@Test
+	public void testType$URI() throws Exception {
+		new Expectations() {{
+			model.createProperty(RDF.TYPE);result=property;
+			model.createResource(ID);result=type;
+			model.add(resource,property,type);
+		}};
+		ImmutableResourceHelper sut=new ImmutableResourceHelper(new ImmutableModelHelper(model), resource);
+		PropertyHelper helper = sut.type(URI.create(ID));
+		assertThat((Resource)Deencapsulation.getField(helper,"resource"),equalTo(this.resource));
+		assertThat((Property)Deencapsulation.getField(helper,"property"),equalTo(this.property));
+	}
 
 }

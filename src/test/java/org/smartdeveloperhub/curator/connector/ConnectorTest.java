@@ -26,6 +26,9 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import java.net.URI;
 import java.util.concurrent.Future;
 import java.util.concurrent.Phaser;
@@ -106,7 +109,7 @@ public class ConnectorTest {
 					build();
 		connector.connect();
 		try {
-			Future<Acknowledge> response=
+			Future<Enrichment> response=
 				connector.
 					requestEnrichment(
 						EnrichmentRequest.
@@ -147,7 +150,12 @@ public class ConnectorTest {
 							}
 						}
 					);
-			LOGGER.info("Acknowledge: {}",response.get());
+			Enrichment enrichment = response.get();
+			assertThat(enrichment.isAborted(),equalTo(false));
+			assertThat(enrichment.isAccepted(),equalTo(true));
+			assertThat(enrichment.isActive(),equalTo(true));
+			assertThat(enrichment.isCancelled(),equalTo(false));
+			LOGGER.info("Acknowledge: {}",enrichment);
 			this.answered.arriveAndAwaitAdvance();
 		} finally {
 			connector.disconnect();

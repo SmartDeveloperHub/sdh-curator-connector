@@ -105,21 +105,21 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 	}
 
 	@Override
-	public Acknowledge get() throws InterruptedException, ExecutionException {
+	public Enrichment get() throws InterruptedException, ExecutionException {
 		Stopwatch waiting=Stopwatch.createStarted();
 		LOGGER.trace("Waiting for acknowledgment...");
-		final Acknowledge reply=this.delegate.get();
+		final Enrichment reply=this.delegate.get();
 		waiting.stop();
 		LOGGER.trace("Received acknowledgment after {} milliseconds",waiting.elapsed(TimeUnit.MILLISECONDS));
 		return reply;
 	}
 
 	@Override
-	public Acknowledge get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+	public Enrichment get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		Stopwatch waiting=Stopwatch.createStarted();
 		LOGGER.trace("Waiting for acknowledgment...");
 		try {
-			Acknowledge replyOrNull=this.delegate.get(timeout, unit);
+			Enrichment replyOrNull=this.delegate.get(timeout, unit);
 			LOGGER.trace("Received acknowledgment after {} milliseconds",waiting.elapsed(TimeUnit.MILLISECONDS));
 			return replyOrNull;
 		} catch (Exception e) {

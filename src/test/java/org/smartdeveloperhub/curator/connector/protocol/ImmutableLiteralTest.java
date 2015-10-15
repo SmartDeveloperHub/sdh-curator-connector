@@ -39,6 +39,11 @@ public class ImmutableLiteralTest {
 	private static final ImmutableLiteral DEFAULT = new ImmutableLiteral("lexicalForm",URI.create("datatype"),"language");
 
 	@Test
+	public void testEquals$differentType() throws Exception {
+		assertThat((Object)DEFAULT,not(equalTo((Object)"another type")));
+	}
+
+	@Test
 	public void testEquals$all() throws Exception {
 		ImmutableLiteral sut=DEFAULT;
 		assertThat(sut,equalTo(sut));

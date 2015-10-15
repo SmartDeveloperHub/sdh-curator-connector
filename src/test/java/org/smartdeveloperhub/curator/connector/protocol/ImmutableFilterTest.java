@@ -39,6 +39,11 @@ public class ImmutableFilterTest {
 	private static final ImmutableFilter DEFAULT = new ImmutableFilter(URI.create("property"),new ImmutableVariable("name"));
 
 	@Test
+	public void testEquals$differentType() throws Exception {
+		assertThat((Object)DEFAULT,not(equalTo((Object)"another type")));
+	}
+
+	@Test
 	public void testEquals$equal() throws Exception {
 		ImmutableFilter sut=new ImmutableFilter(URI.create("property"),new ImmutableVariable("name"));
 		assertThat(sut,equalTo(DEFAULT));

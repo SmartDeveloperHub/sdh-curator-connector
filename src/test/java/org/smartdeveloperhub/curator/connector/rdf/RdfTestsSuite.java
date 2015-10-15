@@ -33,6 +33,10 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	NamespacesTest.class,
+	DelegatedModelHelperTest.class,
+	ImmutableModelHelperTest.class,
+	ImmutableResourceHelperTest.class,
+	ImmutablePropertyHelperTest.class,
 	ModelUtilTest.class,
 	SparqlFunctionsTest.class
 })

@@ -24,19 +24,47 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.rdf;
 
-import java.util.UUID;
-import java.util.concurrent.Future;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
-import org.smartdeveloperhub.curator.protocol.Message;
+import java.net.URL;
 
-abstract class ConnectorFuture implements Future<Enrichment> {
+import mockit.Deencapsulation;
+import mockit.Expectations;
+import mockit.Injectable;
+import mockit.Mocked;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
 
-	abstract UUID messageId();
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-	abstract void start();
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Resource;
 
-	abstract boolean complete(Message message) throws InterruptedException;
+@RunWith(JMockit.class)
+public class ImmutableModelHelperTest {
+
+	private static final String URL = "http://www.smartdeveloperhub.org";
+
+	@Injectable
+	private Model model;
+
+	@Tested
+	private ImmutableModelHelper sut;
+
+	@Mocked private Resource resource;
+
+	@Test
+	public void testResourceURL() throws Exception {
+		new Expectations() {{
+			model.createResource(URL);result=resource;
+		}};
+		URL url = new URL(URL);
+		ResourceHelper helper = this.sut.resource(url);
+		assertThat((Resource)Deencapsulation.getField(helper,"resource"),equalTo(this.resource));
+	}
 
 }

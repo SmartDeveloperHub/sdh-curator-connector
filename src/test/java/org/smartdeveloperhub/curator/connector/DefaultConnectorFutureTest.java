@@ -26,41 +26,27 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
-import org.smartdeveloperhub.curator.protocol.FailureMessage;
-import org.smartdeveloperhub.curator.protocol.Message;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
+import java.util.Arrays;
 
-public final class Acknowledge {
+import org.junit.Test;
 
-	private final Message message;
 
-	private Acknowledge(Message message) {
-		this.message = message;
+public class DefaultConnectorFutureTest {
+
+	@Test
+	public void testStateValues() {
+		assertThat(Arrays.asList(DefaultConnectorFuture.State.values()),contains(DefaultConnectorFuture.State.WAITING,DefaultConnectorFuture.State.DONE,DefaultConnectorFuture.State.CANCELLED));
 	}
 
-	public boolean isAccepted() {
-		return this.message instanceof AcceptedMessage;
-	}
-
-	public Failure getFailure() {
-		Preconditions.checkState(!isAccepted(),"Request was accepted");
-		return ProtocolUtil.toFailure((FailureMessage)this.message);
-	}
-
-	@Override
-	public String toString() {
-		return
-			MoreObjects.
-				toStringHelper(getClass()).
-					add("message", this.message).
-					toString();
-	}
-
-	static Acknowledge of(Message message) {
-		return new Acknowledge(message);
+	@Test
+	public void testStateValueOf() {
+		for(DefaultConnectorFuture.State value:DefaultConnectorFuture.State.values()) {
+			assertThat(DefaultConnectorFuture.State.valueOf(value.toString()),equalTo(value));
+		}
 	}
 
 }

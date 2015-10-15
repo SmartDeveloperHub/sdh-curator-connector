@@ -24,19 +24,31 @@
  *   Bundle      : sdh-curator-connector-0.1.0-SNAPSHOT.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
-package org.smartdeveloperhub.curator.connector;
+package org.smartdeveloperhub.curator.connector.protocol;
 
-import java.util.UUID;
-import java.util.concurrent.Future;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import mockit.Injectable;
+import mockit.Tested;
+import mockit.integration.junit4.JMockit;
 
-import org.smartdeveloperhub.curator.protocol.Message;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-abstract class ConnectorFuture implements Future<Enrichment> {
+@RunWith(JMockit.class)
+public class ImmutableVariableTest {
 
-	abstract UUID messageId();
+	@Injectable
+	private String name;
 
-	abstract void start();
+	@Tested
+	private ImmutableVariable defaultVariable;
 
-	abstract boolean complete(Message message) throws InterruptedException;
+
+	@Test
+	public void testEquals$differentType() throws Exception {
+		assertThat((Object)defaultVariable,not(equalTo((Object)"another object type")));
+	}
 
 }
