@@ -41,7 +41,7 @@ abstract class ConnectorController {
 	private final DeliveryChannel connectorConfiguration;
 	private DeliveryChannel effectiveConfiguration;
 
-	ConnectorController(DeliveryChannel connectorConfiguration, CuratorController curatorController) {
+	ConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController) {
 		this.connectorConfiguration = connectorConfiguration;
 		this.curatorController = curatorController;
 		if(usesDifferentBrokers()) {
@@ -53,10 +53,10 @@ abstract class ConnectorController {
 
 	final void connect() throws ControllerException {
 		this.brokerController.connect();
-		Channel channel = this.brokerController.channel();
-		String exchangeName = declareConnectorExchange(channel);
-		String queueName = declareConnectorQueue(channel);
-		String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
+		final Channel channel = this.brokerController.channel();
+		final String exchangeName = declareConnectorExchange(channel);
+		final String queueName = declareConnectorQueue(channel);
+		final String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
 		this.effectiveConfiguration=
 			ProtocolFactory.
 				newDeliveryChannel().
@@ -90,35 +90,35 @@ abstract class ConnectorController {
 		return this.curatorController.curatorConfiguration();
 	}
 
-	private boolean connectorUsesSameQueueAsCurator(String connectorQueueName) {
+	private boolean connectorUsesSameQueueAsCurator(final String connectorQueueName) {
 		return
 			curatorConfiguration().requestQueueName().equals(connectorQueueName) ||
 			curatorConfiguration().responseQueueName().equals(connectorQueueName);
 	}
 
-	private String bindConnectorQueue(Channel channel, String exchangeName, String queueName) throws ControllerException {
-		String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
+	private String bindConnectorQueue(final Channel channel, final String exchangeName, final String queueName) throws ControllerException {
+		final String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
 		try {
 			channel.queueBind(queueName,exchangeName,routingKey);
-		} catch (IOException e) {
+			return routingKey;
+		} catch (final IOException e) {
 			throw new ControllerException("Could not bind connector queue '"+queueName+"' using routing key '"+routingKey+"' to exchange '"+exchangeName+"'",e);
 		}
-		return routingKey;
 	}
 
-	private String declareConnectorQueue(Channel channel) throws ControllerException {
+	private String declareConnectorQueue(final Channel channel) throws ControllerException {
 		String queueName = this.connectorConfiguration.queueName();
-		if(!usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
+		if(usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
 			if(queueName!=null) {
 				try {
 					channel.queueDeclare(queueName,true,false,false,null);
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					throw new ControllerException("Could not declare connector queue named '"+queueName+"'",e);
 				}
 			} else {
 				try {
 					queueName=channel.queueDeclare().getQueue();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					throw new ControllerException("Could not declare anonymous connector queue",e);
 				}
 			}
@@ -126,19 +126,19 @@ abstract class ConnectorController {
 		return queueName;
 	}
 
-	private String declareConnectorExchange(Channel channel) throws ControllerException {
-		String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), curatorConfiguration().exchangeName());
-		if(!usesDifferentBrokers() || !exchangeName.equals(curatorConfiguration().exchangeName())) {
+	private String declareConnectorExchange(final Channel channel) throws ControllerException {
+		final String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), curatorConfiguration().exchangeName());
+		if(usesDifferentBrokers() || !exchangeName.equals(curatorConfiguration().exchangeName())) {
 			try {
 				channel.exchangeDeclare(exchangeName,"direct");
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				throw new ControllerException("Could not declare connector exchange named '"+exchangeName+"'",e);
 			}
 		}
 		return exchangeName;
 	}
 
-	private String firstNonNull(String providedValue, String defaultValue) {
+	private String firstNonNull(final String providedValue, final String defaultValue) {
 		return providedValue!=null?providedValue:defaultValue;
 	}
 

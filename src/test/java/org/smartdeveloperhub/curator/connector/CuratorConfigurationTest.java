@@ -26,28 +26,31 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	ProtocolUtilTest.class,
-	FiltersTest.class,
-	ConstraintsTest.class,
-	FailureTest.class,
-	EnrichmentTest.class,
-	EnrichmentRequestTest.class,
-	EnrichmentResultTest.class,
-	DefaultConnectorFutureTest.class,
-	LoggedConnectorFutureTest.class,
-	DefaultMessageIdentifierFactoryTest.class,
-	CuratorConfigurationTest.class,
-	BrokerControllerTest.class,
-	ClientCuratorControllerTest.class,
-	ClientConnectorControllerTest.class,
-	ConnectorTest.class
-})
-public class ConnectorTestsSuite {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ldp4j.commons.testing.Utils;
+import org.smartdeveloperhub.curator.protocol.Broker;
+
+@RunWith(JMockit.class)
+public class CuratorConfigurationTest {
+
+	@Mocked private Broker broker;
+
+	@Test
+	public void testHasCustomString() {
+		final CuratorConfiguration sut = CuratorConfiguration.newInstance();
+		assertThat(sut.toString(),not(equalTo(Utils.defaultToString(sut))));
+	}
+
+	@Test
+	public void testWithBroker() throws Exception {
+		assertThat(CuratorConfiguration.newInstance().withBroker(this.broker).broker(),equalTo(this.broker));
+	}
 
 }
