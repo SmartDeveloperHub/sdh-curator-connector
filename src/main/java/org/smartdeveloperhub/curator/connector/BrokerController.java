@@ -27,7 +27,6 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -43,60 +42,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.ExceptionHandler;
-import com.rabbitmq.client.TopologyRecoveryException;
 
 final class BrokerController {
-
-	private final class BrokerExceptionHandler implements ExceptionHandler {
-
-		@Override
-		public void handleUnexpectedConnectionDriverException(Connection connection, Throwable exception) {
-			LOGGER.error("Unexpected driver failure for connection {}",connection,exception);
-		}
-
-		@Override
-		public void handleReturnListenerException(Channel channel, Throwable exception) {
-			LOGGER.error("Unexpected return listener failure for channel {}",channel,exception);
-		}
-
-		@Override
-		public void handleFlowListenerException(Channel channel, Throwable exception) {
-			LOGGER.error("Unexpected flow listener failure for channel {}",channel,exception);
-		}
-
-		@Override
-		public void handleConfirmListenerException(Channel channel, Throwable exception) {
-			LOGGER.error("Unexpected confirm listener failure for channel {}",channel,exception);
-		}
-
-		@Override
-		public void handleBlockedListenerException(Connection connection, Throwable exception) {
-			LOGGER.error("Unexpected blocked listener failure for connection {}",connection,exception);
-		}
-
-		@Override
-		public void handleConsumerException(Channel channel, Throwable exception, Consumer consumer, String consumerTag, String methodName) {
-			LOGGER.error("Unexpected consumer {} ({}) failure in method {} for channel {}",consumer,consumerTag,methodName,channel,exception);
-		}
-
-		@Override
-		public void handleConnectionRecoveryException(Connection connection, Throwable exception) {
-			LOGGER.error("Unexpected recovery failure for connection {}",connection,exception);
-		}
-
-		@Override
-		public void handleChannelRecoveryException(Channel channel, Throwable exception) {
-			LOGGER.error("Unexpected recovery failure for channel {}",channel,exception);
-		}
-
-		@Override
-		public void handleTopologyRecoveryException(Connection connection, Channel channel, TopologyRecoveryException exception) {
-			LOGGER.error("Unexpected topology recovery failure for connection {} and channel {}",connection,channel,exception);
-		}
-
-	}
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
 
@@ -108,12 +55,12 @@ final class BrokerController {
 	private Channel channel;
 	private boolean connected;
 
-	private String name;
+	private final String name;
 
-	BrokerController(Broker broker, String name) {
+	BrokerController(final Broker broker, final String name) {
 		this.broker = broker;
 		this.name = name;
-		ReadWriteLock lock=new ReentrantReadWriteLock();
+		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
 	}
@@ -128,12 +75,12 @@ final class BrokerController {
 			if(this.connected) {
 				return;
 			}
-			ConnectionFactory factory=new ConnectionFactory();
+			final ConnectionFactory factory=new ConnectionFactory();
 			factory.setHost(this.broker.host());
 			factory.setPort(this.broker.port());
 			factory.setVirtualHost(this.broker.virtualHost());
 			factory.setThreadFactory(brokerThreadFactory());
-			factory.setExceptionHandler(new BrokerExceptionHandler());
+			factory.setExceptionHandler(new BrokerControllerExceptionHandler(this));
 			this.connection = factory.newConnection();
 			createChannel();
 		} catch(IOException | TimeoutException e) {
@@ -172,22 +119,18 @@ final class BrokerController {
 		return
 			new ThreadFactoryBuilder().
 				setNameFormat(this.name+"-broker-%d").
-				setUncaughtExceptionHandler(
-					new UncaughtExceptionHandler(){
-						@Override
-						public void uncaughtException(Thread t, Throwable e) {
-							LOGGER.error("Unexpected failure on thread {}",t.getName(),e);
-						}
-					}
-				).
+				setUncaughtExceptionHandler(new BrokerControllerUncaughtExceptionHandler(this)).
 				build();
 	}
 
 	private void createChannel() throws ControllerException {
 		try {
 			this.channel = this.connection.createChannel();
+			if(this.channel==null) {
+				throw new IllegalStateException("No channel available");
+			}
 			this.connected=true;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			this.connected=false;
 			closeConnectionQuietly();
 			throw new ControllerException("Could not create channel for broker connection",e);
@@ -195,12 +138,10 @@ final class BrokerController {
 	}
 
 	private void closeChannelQuietly() {
-		if(this.channel!=null) {
-			try {
-				this.channel.close();
-			} catch (Exception e) {
-				LOGGER.trace("Could not close channel gracefully",e);
-			}
+		try {
+			this.channel.close();
+		} catch (final Exception e) {
+			LOGGER.trace("Could not close channel gracefully",e);
 		}
 	}
 
@@ -208,7 +149,7 @@ final class BrokerController {
 		if(this.connection!=null) {
 			try {
 				this.connection.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				LOGGER.trace("Could not close connection gracefully",e);
 			}
 		}

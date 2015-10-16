@@ -26,23 +26,24 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import java.lang.Thread.UncaughtExceptionHandler;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	ProtocolUtilTest.class,
-	FiltersTest.class,
-	ConstraintsTest.class,
-	FailureTest.class,
-	EnrichmentTest.class,
-	EnrichmentRequestTest.class,
-	EnrichmentResultTest.class,
-	DefaultConnectorFutureTest.class,
-	BrokerControllerTest.class,
-	ConnectorTest.class
-})
-public class ConnectorTestsSuite {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+final class BrokerControllerUncaughtExceptionHandler implements UncaughtExceptionHandler {
+
+	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
+
+	private final BrokerController controller;
+
+	BrokerControllerUncaughtExceptionHandler(final BrokerController controller) {
+		this.controller = controller;
+	}
+
+	@Override
+	public void uncaughtException(final Thread t, final Throwable e) {
+		LOGGER.error("[{}] Unexpected failure on thread {}",this.controller.broker(),t.getName(),e);
+	}
 
 }
