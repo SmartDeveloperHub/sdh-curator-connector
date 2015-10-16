@@ -45,7 +45,7 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 	private final ConnectorFuture delegate;
 	private final Stopwatch completion;
 
-	LoggedConnectorFuture(ConnectorFuture delegate) {
+	LoggedConnectorFuture(final ConnectorFuture delegate) {
 		this.delegate = delegate;
 		this.completion=Stopwatch.createUnstarted();
 	}
@@ -57,6 +57,7 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 
 	@Override
 	void start() {
+		this.delegate.start();
 		this.completion.start();
 		LOGGER.
 			trace(
@@ -65,10 +66,10 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 	}
 
 	@Override
-	boolean complete(Message message) throws InterruptedException {
+	boolean complete(final Message message) throws InterruptedException {
 		final boolean completed=this.delegate.complete(message);
 		if(completed) {
-			this.completion.stop();
+			stopTimer();
 			LOGGER.
 				trace(
 					"Completed acknowledgement of request {} with response {} after {} milliseconds",
@@ -80,18 +81,23 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 	}
 
 	@Override
-	public boolean cancel(boolean mayInterruptIfRunning) {
+	public boolean cancel(final boolean mayInterruptIfRunning) {
 		final boolean cancelled = this.delegate.cancel(mayInterruptIfRunning);
 		if(cancelled) {
-			this.completion.stop();
+			stopTimer();
 			LOGGER.
 				trace(
 					"Cancelled acknowledgement of request {} after waiting for {} milliseconds",
 					messageId(),
 					this.completion.elapsed(TimeUnit.MILLISECONDS));
-
 		}
 		return cancelled;
+	}
+
+	private void stopTimer() {
+		if(this.completion.isRunning()) {
+			this.completion.stop();
+		}
 	}
 
 	@Override
@@ -106,26 +112,35 @@ final class LoggedConnectorFuture extends ConnectorFuture {
 
 	@Override
 	public Enrichment get() throws InterruptedException, ExecutionException {
-		Stopwatch waiting=Stopwatch.createStarted();
+		final Stopwatch waiting=Stopwatch.createStarted();
 		LOGGER.trace("Waiting for acknowledgment...");
 		final Enrichment reply=this.delegate.get();
 		waiting.stop();
-		LOGGER.trace("Received acknowledgment after {} milliseconds",waiting.elapsed(TimeUnit.MILLISECONDS));
+		logAcknowledgeReception(waiting);
 		return reply;
 	}
 
 	@Override
-	public Enrichment get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-		Stopwatch waiting=Stopwatch.createStarted();
+	public Enrichment get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+		final Stopwatch waiting=Stopwatch.createStarted();
 		LOGGER.trace("Waiting for acknowledgment...");
 		try {
-			Enrichment replyOrNull=this.delegate.get(timeout, unit);
-			LOGGER.trace("Received acknowledgment after {} milliseconds",waiting.elapsed(TimeUnit.MILLISECONDS));
+			final Enrichment replyOrNull=this.delegate.get(timeout, unit);
+			logAcknowledgeReception(waiting);
 			return replyOrNull;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.trace("Did not receive acknowledgment after {} milliseconds",waiting.elapsed(TimeUnit.MILLISECONDS));
 			throw e;
 		}
+	}
+
+	private void logAcknowledgeReception(final Stopwatch waiting) {
+		LOGGER.trace(
+			"{} {} milliseconds",
+			this.delegate.isCancelled()?
+				"Cancelled while waiting for acknowledgement for":
+				"Received acknowledgement after ",
+			waiting.elapsed(TimeUnit.MILLISECONDS));
 	}
 
 }

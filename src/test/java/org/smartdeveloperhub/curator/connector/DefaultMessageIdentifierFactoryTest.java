@@ -26,25 +26,32 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	ProtocolUtilTest.class,
-	FiltersTest.class,
-	ConstraintsTest.class,
-	FailureTest.class,
-	EnrichmentTest.class,
-	EnrichmentRequestTest.class,
-	EnrichmentResultTest.class,
-	DefaultConnectorFutureTest.class,
-	LoggedConnectorFutureTest.class,
-	DefaultMessageIdentifierFactoryTest.class,
-	BrokerControllerTest.class,
-	ConnectorTest.class
-})
-public class ConnectorTestsSuite {
+import java.util.UUID;
+
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.integration.junit4.JMockit;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(JMockit.class)
+public class DefaultMessageIdentifierFactoryTest {
+
+	@Test
+	public void testNextIdentifier() throws Exception {
+		final UUID example=UUID.randomUUID();
+		new MockUp<UUID>() {
+			@Mock
+			public UUID randomUUID() {
+				return example;
+			}
+		};
+		final UUID result = new DefaultMessageIdentifierFactory().nextIdentifier();
+		assertThat(result,equalTo(example));
+	}
 
 }

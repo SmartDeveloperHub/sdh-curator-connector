@@ -35,10 +35,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.RequestMessage;
 
 final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enrichment> {
+
+	private static final Logger LOGGER=LoggerFactory.getLogger(DefaultConnectorFuture.class);
 
 	enum State {
 		WAITING,
@@ -54,7 +58,7 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 	private volatile State state = State.WAITING;
 	private volatile Enrichment acknowledge;
 
-	DefaultConnectorFuture(Connector connector, RequestMessage request) {
+	DefaultConnectorFuture(final Connector connector, final RequestMessage request) {
 		this.replyQueue= new ArrayBlockingQueue<>(1);
 		this.connector = connector;
 		this.request = request;
@@ -81,16 +85,19 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 	 * {@inheritDoc}
 	 */
 	@Override
-	boolean complete(Message message) throws InterruptedException {
+	boolean complete(final Message message) throws InterruptedException {
 		this.lock.lock();
 		try {
-			boolean result=isWaiting();
-			if(result) {
-				this.state=State.DONE;
+			if(isWaiting()) {
 				this.acknowledge=Enrichment.of(message);
-				memoizeAcknowledge();
+				try {
+					memoizeAcknowledge();
+					this.state=State.DONE;
+				} catch (final InterruptedException e) {
+					LOGGER.warn("Could not memoize acknowledgement {}",this.acknowledge,e);
+				}
 			}
-			return result;
+			return isCompleted();
 		} finally {
 			this.lock.unlock();
 		}
@@ -100,21 +107,20 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean cancel(boolean mayInterruptIfRunning) {
+	public boolean cancel(final boolean mayInterruptIfRunning) {
 		this.lock.lock();
 		try {
-			boolean result=isWaiting();
-			if(result) {
-				this.state=State.CANCELLED;
+			if(isWaiting()) {
 				this.connector.abortRequest(this);
 				this.acknowledge=Enrichment.of(null);
 				try {
 					memoizeAcknowledge();
-				} catch (InterruptedException e) {
-					throw new RuntimeConnectorException("Could not memoize cancellation",e);
+					this.state=State.CANCELLED;
+				} catch (final InterruptedException e) {
+					LOGGER.warn("Could not memoize cancellation",e);
 				}
 			}
-			return result;
+			return isCancelled();
 		} finally {
 			this.lock.unlock();
 		}
@@ -133,7 +139,7 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 	 */
 	@Override
 	public boolean isDone() {
-		return this.state.equals(State.DONE);
+		return !this.state.equals(State.WAITING);
 	}
 
 	/**
@@ -150,7 +156,7 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Enrichment get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+	public Enrichment get(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
 		final Enrichment replyOrNull=this.replyQueue.poll(timeout, unit);
 		if(replyOrNull==null) {
 			throw new TimeoutException();
@@ -162,6 +168,10 @@ final class DefaultConnectorFuture extends ConnectorFuture implements Future<Enr
 
 	private boolean isWaiting() {
 		return this.state.equals(State.WAITING);
+	}
+
+	private boolean isCompleted() {
+		return this.state.equals(State.DONE);
 	}
 
 	private void memoizeAcknowledge() throws InterruptedException {
