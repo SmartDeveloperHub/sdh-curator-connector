@@ -46,7 +46,10 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.integration.junit4.JMockit;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,14 +70,27 @@ public class ConnectorTest {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
 
+	@Rule
+	public TestName test=new TestName();
+
+	@Rule
+	public Timeout timeout=new Timeout(5,TimeUnit.SECONDS);
+
 	final DeliveryChannel deliveryChannel =
 			ProtocolFactory.
 				newDeliveryChannel().
 					withQueueName("connector").
 					build();
 
+	private void logHeader() {
+		LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		LOGGER.info(">>> RUNNING : {}",this.test.getMethodName());
+		LOGGER.info("");
+	}
+
 	@Test
 	public void testDefaultConfiguration() throws Exception {
+		logHeader();
 		final Connector connector =
 			Connector.
 				builder().
@@ -90,8 +106,8 @@ public class ConnectorTest {
 		assertThat(configuration.curatorConfiguration(),equalTo(CuratorConfiguration.newInstance()));
 	}
 	@Test
-
 	public void testKeepsConfiguration() throws Exception {
+		logHeader();
 		final CuratorConfiguration curatorConfiguration = CuratorConfiguration.newInstance();
 		final UUID agentId = UUID.randomUUID();
 		final DefaultMessageIdentifierFactory factory = new DefaultMessageIdentifierFactory();
@@ -111,6 +127,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testOnlyConnectOnce() throws Exception {
+		logHeader();
 		final Connector connector =
 				Connector.
 					builder().
@@ -128,6 +145,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testConnect$failIfCuratorControllerCannotConnect() throws Exception {
+		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
 			void connect() throws ControllerException {
@@ -149,6 +167,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testConnect$failIfConnectorControllerCannotConnect() throws Exception {
+		logHeader();
 		new MockUp<ClientConnectorController>() {
 			@Mock
 			void connect() throws ControllerException {
@@ -170,6 +189,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testConnect$failIfCannotAddResponseHandler() throws Exception {
+		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
 			void handleResponses(final MessageHandler handler) throws IOException {
@@ -192,6 +212,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testConnect$failIfCannotAddMessageHandler() throws Exception {
+		logHeader();
 		new MockUp<ClientConnectorController>() {
 			@Mock
 			void handleMessage(final MessageHandler handler) throws IOException {
@@ -214,6 +235,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testDisconnect$cleanIfCannotSendDisconnect() throws Exception {
+		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
 			void publishRequest(final Message message) throws IOException {
@@ -237,6 +259,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testDisconnect$cancelAwaitingEnrichments() throws Exception {
+		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
 			void connect() throws ControllerException {
@@ -322,6 +345,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testOnlyDisconnectOnce() throws Exception {
+		logHeader();
 		final Connector connector =
 				Connector.
 					builder().
@@ -338,6 +362,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testRequestEnrichment$failIfDisconnected() throws Exception {
+		logHeader();
 		final Connector connector =
 				Connector.
 					builder().
@@ -361,6 +386,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testRequestEnrichment$useCase() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(3);
 		class CustomNotifier extends Notifier {
@@ -417,6 +443,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testRequestEnrichment$accepted() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
@@ -472,6 +499,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testRequestEnrichment$failed() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
@@ -527,6 +555,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testRequestEnrichment$badAcknowledge() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
@@ -577,6 +606,7 @@ public class ConnectorTest {
 	}
 	@Test
 	public void testRequestEnrichment$completionFailure() throws Exception {
+		logHeader();
 		new MockUp<DefaultConnectorFuture>() {
 			@Mock
 			boolean complete(final Message message) throws InterruptedException {
@@ -634,6 +664,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testCancel$failIfDisconnected() throws Exception {
+		logHeader();
 		final Connector connector =
 				Connector.
 					builder().
@@ -648,6 +679,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testCancel$active() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
@@ -705,6 +737,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testLateAcknowledge() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
@@ -761,9 +794,9 @@ public class ConnectorTest {
 		}
 	}
 
-
 	@Test
 	public void testLateResponse() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final CountDownLatch accepted=new CountDownLatch(1);
 		final CountDownLatch replied=new CountDownLatch(1);
@@ -828,6 +861,7 @@ public class ConnectorTest {
 
 	@Test
 	public void testCancel$inactive() throws Exception {
+		logHeader();
 		final Phaser disconnected=new Phaser(2);
 		final Phaser answered=new Phaser(2);
 		class CustomNotifier extends Notifier {
