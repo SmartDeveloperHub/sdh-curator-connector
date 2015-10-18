@@ -32,24 +32,20 @@ public class RuntimeConnectorException extends RuntimeException {
 
 	private static final String DEFAULT_MESSAGE = "Unexpected Connector exception";
 
-	protected RuntimeConnectorException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
-	public RuntimeConnectorException(String message, Throwable cause) {
+	public RuntimeConnectorException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 
-	public RuntimeConnectorException(String message) {
+	public RuntimeConnectorException(final String message) {
 		this(message,null);
 	}
 
-	public RuntimeConnectorException(Throwable cause) {
+	public RuntimeConnectorException(final Throwable cause) {
 		this(DEFAULT_MESSAGE,cause);
 	}
 
 	public RuntimeConnectorException() {
-		this(DEFAULT_MESSAGE,null);
+		this(DEFAULT_MESSAGE);
 	}
 
 }

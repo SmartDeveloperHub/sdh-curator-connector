@@ -40,7 +40,124 @@ import org.smartdeveloperhub.curator.protocol.Broker;
 @RunWith(JMockit.class)
 public class CuratorConfigurationTest {
 
-	@Mocked private Broker broker;
+	@Mocked private Broker anotherBroker;
+
+	private CuratorConfiguration defaultCuratorConfiguration() {
+		return CuratorConfiguration.newInstance();
+	}
+
+	private CuratorConfiguration withDifferentBroker() {
+		return defaultCuratorConfiguration().withBroker(this.anotherBroker);
+	}
+
+	private CuratorConfiguration withDifferentExchangeName() {
+		return defaultCuratorConfiguration().withExchangeName("anExchangeName");
+	}
+
+	private CuratorConfiguration withDifferentRequestQueueName() {
+		return defaultCuratorConfiguration().withRequestQueueName("anotherRequestQueueName");
+	}
+
+	private CuratorConfiguration withDifferentRequestRoutingKey() {
+		return defaultCuratorConfiguration().withRequestRoutingKey("anotherRequestRoutingKey");
+	}
+
+	private CuratorConfiguration withDifferentResponseQueueName() {
+		return defaultCuratorConfiguration().withResponseQueueName("anotherResponseQueueName");
+	}
+
+	private CuratorConfiguration withDifferentResponseRoutingKey() {
+		return defaultCuratorConfiguration().withResponseRoutingKey("anotherResponseRoutingKey");
+	}
+
+	@Test
+	public void testEquals$differentType() throws Exception {
+		assertThat((Object)defaultCuratorConfiguration(),not(equalTo((Object)"another object type")));
+	}
+
+	@Test
+	public void testEquals$equal() {
+		final CuratorConfiguration sut = defaultCuratorConfiguration();
+		assertThat(sut,equalTo(defaultCuratorConfiguration()));
+	}
+
+	@Test
+	public void testEquals$differentBroker() {
+		final CuratorConfiguration sut = withDifferentBroker();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testEquals$differentExchangeName() {
+		final CuratorConfiguration sut = withDifferentExchangeName();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testEquals$differentRequestQueueName() {
+		final CuratorConfiguration sut = withDifferentRequestQueueName();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testEquals$differentRequestRoutingKey() {
+		final CuratorConfiguration sut = withDifferentRequestRoutingKey();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testEquals$differentResponseQueueName() {
+		final CuratorConfiguration sut = withDifferentResponseQueueName();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testEquals$differentResponseRoutingKey() {
+		final CuratorConfiguration sut = withDifferentResponseRoutingKey();
+		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
+	}
+
+	@Test
+	public void testHashCode$equal() {
+		final CuratorConfiguration sut = defaultCuratorConfiguration();
+		assertThat(sut.hashCode(),equalTo(defaultCuratorConfiguration().hashCode()));
+	}
+
+	@Test
+	public void testHashCode$differentBroker() {
+		final CuratorConfiguration sut = withDifferentBroker();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
+
+	@Test
+	public void testHashCode$differentExchangeName() {
+		final CuratorConfiguration sut = withDifferentExchangeName();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
+
+	@Test
+	public void testHashCode$differentRequestQueueName() {
+		final CuratorConfiguration sut = withDifferentRequestQueueName();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
+
+	@Test
+	public void testHashCode$differentRequestRoutingKey() {
+		final CuratorConfiguration sut = withDifferentRequestRoutingKey();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
+
+	@Test
+	public void testHashCode$differentResponseQueueName() {
+		final CuratorConfiguration sut = withDifferentResponseQueueName();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
+
+	@Test
+	public void testHashCode$differentResponseRoutingKey() {
+		final CuratorConfiguration sut = withDifferentResponseRoutingKey();
+		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
+	}
 
 	@Test
 	public void testHasCustomString() {
@@ -49,8 +166,8 @@ public class CuratorConfigurationTest {
 	}
 
 	@Test
-	public void testWithBroker() throws Exception {
-		assertThat(CuratorConfiguration.newInstance().withBroker(this.broker).broker(),equalTo(this.broker));
+	public void testWithBroker(@Mocked final Broker broker) throws Exception {
+		assertThat(CuratorConfiguration.newInstance().withBroker(broker).broker(),equalTo(broker));
 	}
 
 }

@@ -37,7 +37,6 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.integration.junit4.JMockit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
@@ -255,12 +254,6 @@ public class ClientConnectorControllerTest {
 		}
 	}
 
-	@Ignore
-	@Test
-	public void testEffectiveConfiguration() throws Exception {
-		throw new RuntimeException("not yet implemented");
-	}
-
 	@Test
 	public void testBrokerController$sameBrokerAsCuratorController() throws Exception {
 		new Expectations() {{
@@ -302,12 +295,6 @@ public class ClientConnectorControllerTest {
 						withBroker((Broker)null).
 						build());
 		assertThat(sut.brokerController(),equalTo(this.brokerController));
-	}
-
-	@Ignore
-	@Test
-	public void testDisconnect() throws Exception {
-		throw new RuntimeException("not yet implemented");
 	}
 
 }

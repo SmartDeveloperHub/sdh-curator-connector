@@ -26,51 +26,43 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.io.InvalidDefinitionFoundException;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
-import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.connector.io.NoDefinitionFoundException;
+import org.smartdeveloperhub.curator.connector.io.TooManyDefinitionsFoundException;
 import org.smartdeveloperhub.curator.protocol.Message;
 
-final class ServerConnectorController extends ConnectorController {
+final class HandlerUtil {
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ServerConnectorController.class);
+	private static final Logger LOGGER=LoggerFactory.getLogger(HandlerUtil.class);
 
-	ServerConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController) {
-		super(connectorConfiguration,curatorController);
+	private HandlerUtil() {
 	}
 
-	void publishMessage(final Message message) throws IOException {
+	static <T extends Message> T parsePayload(final String payload, final Class<? extends T> messageClass) {
+		T request=null;
 		try {
-			publishMessage(
+			request=
 				MessageUtil.
 					newInstance().
-						toString(message));
+						fromString(payload, messageClass);
+		} catch (final NoDefinitionFoundException e) {
+			trace("Payload cannot be parsed as {}:\n{}", messageClass.getName(),payload,e);
+		} catch (final TooManyDefinitionsFoundException e) {
+			trace("Too many {} definitions found in the payload:\n{}",messageClass.getName(),payload,e);
+		} catch (final InvalidDefinitionFoundException e) {
+			trace("Could not parse a valid {} from the payload:\n{}",messageClass.getName(),payload,e);
 		} catch (final MessageConversionException e) {
-			LOGGER.warn("Could not publish message {}: {}",message,e.getMessage());
-			throw new IOException("Could not serialize message",e);
+			trace("Failed to parse the payload:\n{}",payload,e);
 		}
+		return request;
 	}
 
-	void publishMessage(final String message) throws IOException {
-		final String routingKey = effectiveConfiguration().routingKey();
-		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
-		try {
-			brokerController().
-				channel().
-					basicPublish(
-						effectiveConfiguration().exchangeName(),
-						routingKey,
-						null,
-						message.getBytes());
-		} catch (final IOException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw e;
-		}
+	private static void trace(final String message, final Object... args) {
+		LOGGER.trace(message,args);
 	}
-
 
 }

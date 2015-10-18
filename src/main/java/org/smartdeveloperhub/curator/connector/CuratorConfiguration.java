@@ -55,12 +55,12 @@ public final class CuratorConfiguration {
 	private final String responseRoutingKey;
 
 	private CuratorConfiguration(
-			Broker broker,
-			String exchangeName,
-			String requestQueueName,
-			String requestRoutingKey,
-			String responseQueueName,
-			String responseRoutingKey) {
+			final Broker broker,
+			final String exchangeName,
+			final String requestQueueName,
+			final String requestRoutingKey,
+			final String responseQueueName,
+			final String responseRoutingKey) {
 		this.broker = Objects.requireNonNull(broker,"Broker cannot be null");
 		this.exchangeName = Objects.requireNonNull(exchangeName,"Exchange name cannot be null");
 		this.requestQueueName = Objects.requireNonNull(requestQueueName,"Request queue name cannot be null");
@@ -93,28 +93,74 @@ public final class CuratorConfiguration {
 		return this.responseRoutingKey;
 	}
 
-	public CuratorConfiguration withBroker(Broker broker) {
+	public CuratorConfiguration withBroker(final Broker broker) {
 		return new CuratorConfiguration(broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withExchangeName(String exchangeName) {
+	public CuratorConfiguration withExchangeName(final String exchangeName) {
 		return new CuratorConfiguration(this.broker,exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withRequestQueueName(String requestQueueName) {
+	public CuratorConfiguration withRequestQueueName(final String requestQueueName) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withRequestRoutingKey(String requestRoutingKey) {
+	public CuratorConfiguration withRequestRoutingKey(final String requestRoutingKey) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withResponseQueueName(String responseQueueName) {
+	public CuratorConfiguration withResponseQueueName(final String responseQueueName) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,responseQueueName,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withResponseRoutingKey(String responseRoutingKey) {
+	public CuratorConfiguration withResponseRoutingKey(final String responseRoutingKey) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,responseRoutingKey);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int hashCode() {
+		return
+			Objects.
+				hash(
+					this.broker,
+					this.exchangeName,
+					this.requestQueueName,this.requestRoutingKey,
+					this.responseQueueName,this.responseRoutingKey);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(final Object obj) {
+		boolean result=false;
+		if(obj instanceof CuratorConfiguration) {
+			final CuratorConfiguration that=(CuratorConfiguration)obj;
+			result=
+				Objects.equals(this.broker,that.broker) &&
+				Objects.equals(this.exchangeName,that.exchangeName) &&
+				hasSameQueueConfig(that);
+		}
+		return result;
+	}
+
+	private boolean hasSameQueueConfig(final CuratorConfiguration that) {
+		return hasSameRequestQueueConfig(that) && hasSameResponseQueueConfig(that);
+	}
+
+	private boolean hasSameRequestQueueConfig(final CuratorConfiguration that) {
+		return
+			Objects.equals(this.requestQueueName,that.requestQueueName) &&
+			Objects.equals(this.requestRoutingKey,that.requestRoutingKey);
+	}
+
+	private boolean hasSameResponseQueueConfig(final CuratorConfiguration that) {
+		return
+			Objects.equals(this.responseQueueName,that.responseQueueName) &&
+			Objects.equals(this.responseRoutingKey,that.responseRoutingKey);
 	}
 
 	@Override

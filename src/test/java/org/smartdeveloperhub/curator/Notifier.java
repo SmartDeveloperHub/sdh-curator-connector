@@ -26,6 +26,8 @@
  */
 package org.smartdeveloperhub.curator;
 
+import java.util.UUID;
+
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
@@ -36,7 +38,7 @@ import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 
 public class Notifier {
 
-	public final void onResponse(ResponseMessage response) {
+	public final void onResponse(final ResponseMessage response) {
 		if(response instanceof AcceptedMessage) {
 			this.onAccepted((AcceptedMessage)response);
 		} else if(response instanceof FailureMessage ) {
@@ -46,7 +48,7 @@ public class Notifier {
 		}
 	}
 
-	public final void onRequest(RequestMessage request) {
+	public final void onRequest(final RequestMessage request) {
 		if(request instanceof DisconnectMessage) {
 			this.onDisconnect((DisconnectMessage)request);
 		} else if(request instanceof EnrichmentRequestMessage) {
@@ -54,23 +56,27 @@ public class Notifier {
 		}
 	}
 
-	public void onDisconnect(DisconnectMessage response) {
+	public void onDisconnect(final DisconnectMessage response) {
 		// To be refined by subclasses
 	}
 
-	public void onEnrichmentRequest(EnrichmentRequestMessage request) {
+	public void onEnrichmentRequest(final EnrichmentRequestMessage request) {
 		// To be refined by subclasses
 	}
 
-	public void onAccepted(AcceptedMessage accepted) {
+	public void onAccepted(final AcceptedMessage accepted) {
 		// To be refined by subclasses
 	}
 
-	public void onFailure(FailureMessage response) {
+	public void onFailure(final FailureMessage response) {
 		// To be refined by subclasses
 	}
 
-	public void onEnrichmentResponse(EnrichmentResponseMessage response) {
+	public void onEnrichmentResponse(final EnrichmentResponseMessage response) {
+		// To be refined by subclasses
+	}
+
+	public void onError(final UUID requestId) {
 		// To be refined by subclasses
 	}
 

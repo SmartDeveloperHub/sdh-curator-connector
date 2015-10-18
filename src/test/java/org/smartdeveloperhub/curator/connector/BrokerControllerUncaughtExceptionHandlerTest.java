@@ -26,33 +26,43 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.sameInstance;
+import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
-@RunWith(Suite.class)
-@SuiteClasses({
-	RuntimeConnectorExceptionTest.class,
-	HandlerUtilTest.class,
-	ProtocolUtilTest.class,
-	FiltersTest.class,
-	ConstraintsTest.class,
-	FailureTest.class,
-	EnrichmentTest.class,
-	EnrichmentRequestTest.class,
-	EnrichmentResultTest.class,
-	DefaultConnectorFutureTest.class,
-	LoggedConnectorFutureTest.class,
-	DefaultMessageIdentifierFactoryTest.class,
-	CuratorConfigurationTest.class,
-	BrokerControllerUncaughtExceptionHandlerTest.class,
-	BrokerControllerExceptionHandlerTest.class,
-	BrokerControllerTest.class,
-	ClientCuratorControllerTest.class,
-	ClientConnectorControllerTest.class,
-	BrokerControllerUncaughtExceptionHandlerTest.class,
-	ConnectorTest.class
-})
-public class ConnectorTestsSuite {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.smartdeveloperhub.curator.protocol.Broker;
+
+@RunWith(JMockit.class)
+public class BrokerControllerUncaughtExceptionHandlerTest {
+
+	@Mocked private BrokerController controller;
+	@Mocked private Broker broker;
+
+	@Test
+	public void testUncaughtException() throws Exception {
+		final RuntimeException failure = new RuntimeException();
+		new MockUp<Logger>() {
+			@Mock
+			void trace(final String message, final Object... args) {
+				assertThat(args.length,equalTo(3));
+				assertThat(args[0],equalTo((Object)BrokerControllerUncaughtExceptionHandlerTest.this.broker));
+				assertThat(args[1],equalTo((Object)Thread.currentThread().getName()));
+				assertThat(args[2],sameInstance((Object)failure));
+			}
+		};
+		final BrokerControllerUncaughtExceptionHandler sut=new BrokerControllerUncaughtExceptionHandler(this.controller);
+		new Expectations() {{
+			BrokerControllerUncaughtExceptionHandlerTest.this.controller.broker();this.result=BrokerControllerUncaughtExceptionHandlerTest.this.broker;
+		}};
+		sut.uncaughtException(Thread.currentThread(), failure);
+	}
 
 }

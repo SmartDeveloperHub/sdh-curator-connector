@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,47 +49,57 @@ public final class Curator {
 	private final class CustomResponseProvider implements ResponseProvider {
 
 		@Override
-		public boolean isExpected(UUID messageId) {
+		public boolean isExpected(final UUID messageId) {
 			return isAccepted(messageId) || isRejected(messageId);
 		}
 
-		boolean isRejected(UUID messageId) {
-			return failures.containsKey(messageId) || rejected.contains(messageId) ;
+		boolean isRejected(final UUID messageId) {
+			return Curator.this.failures.containsKey(messageId) || Curator.this.rejected.contains(messageId) ;
 		}
 
 		@Override
-		public boolean isAccepted(UUID messageId) {
-			return accept || results.containsKey(messageId) || accepted.contains(messageId) ;
+		public boolean isAccepted(final UUID messageId) {
+			return Curator.this.results.containsKey(messageId) || Curator.this.accepted.contains(messageId) ;
 		}
 
 		@Override
-		public Failure getFailure(UUID messageId) {
-			final Failure result = getNext(messageId, failures, rejected);
+		public Failure getFailure(final UUID messageId) {
+			final Failure result = getNext(messageId, Curator.this.failures, Curator.this.rejected);
 			LOGGER.info("Consuming failure {} for message {}",result,messageId);
 			return result;
 		}
 
 		@Override
-		public EnrichmentResult getResult(UUID messageId) {
-			final EnrichmentResult result = getNext(messageId, results, accepted);
+		public EnrichmentResult getResult(final UUID messageId) {
+			final EnrichmentResult result = getNext(messageId, Curator.this.results, Curator.this.accepted);
 			LOGGER.info("Consuming result {} for message {}",result,messageId);
 			return result;
 		}
 
-		private <T> T getNext(UUID messageId, Multimap<UUID, T> mappings, List<UUID> generic) {
+		private <T> T getNext(final UUID messageId, final Multimap<UUID, T> mappings, final List<UUID> generic) {
 			T result=null;
 			final Collection<T> collection = mappings.get(messageId);
 			if(collection!=null) {
 				try {
 					result=Iterables.get(collection,0);
 					mappings.remove(messageId, result);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					// No response available
 				}
 			} else {
 				generic.remove(messageId);
 			}
 			return result;
+		}
+
+		@Override
+		public long acknowledgeDelay(final UUID messageId, final TimeUnit unit) {
+			return unit.convert(Curator.this.acknowledgeDelay, Curator.this.acknowledgeDelayUnit);
+		}
+
+		@Override
+		public long resultDelay(final UUID messageId, final TimeUnit unit) {
+			return unit.convert(Curator.this.resultDelay, Curator.this.resultDelayUnit);
 		}
 	}
 
@@ -99,50 +110,61 @@ public final class Curator {
 	private final List<UUID> rejected;
 	private final Multimap<UUID,Failure> failures;
 	private final Multimap<UUID,EnrichmentResult> results;
-	private boolean accept;
 
-	private Curator(DeliveryChannel connector, Notifier notifier) {
+	private long acknowledgeDelay=150;
+	private TimeUnit acknowledgeDelayUnit=TimeUnit.MILLISECONDS;
+
+	private long resultDelay=150;
+	private TimeUnit resultDelayUnit=TimeUnit.MILLISECONDS;
+
+
+	private Curator(final DeliveryChannel connector, final Notifier notifier) {
 		this.delegate=new SimpleCurator(connector,notifier,new CustomResponseProvider());
 		this.failures=ArrayListMultimap.create();
 		this.results=ArrayListMultimap.create();
 		this.accepted=Lists.newArrayList();
 		this.rejected=Lists.newArrayList();
-		this.accept=true;
 	}
 
 	public void connect() {
 		try {
 			this.delegate.connect();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException("Could not connect curator",e);
 		}
 	}
 
-	public Curator acceptByDefault(boolean accept) {
-		LOGGER.info("Accept by default: {}",accept);
-		this.accept = accept;
+	public Curator delayAcknowledges(final long delay, final TimeUnit unit) {
+		this.acknowledgeDelay=delay;
+		this.acknowledgeDelayUnit=unit;
 		return this;
 	}
 
-	public Curator accept(UUID messageId) {
+	public Curator delayResults(final long delay, final TimeUnit unit) {
+		this.resultDelay=delay;
+		this.resultDelayUnit=unit;
+		return this;
+	}
+
+	public Curator accept(final UUID messageId) {
 		LOGGER.info("Accept {}",messageId);
 		this.accepted.add(messageId);
 		return this;
 	}
 
-	public Curator fail(UUID messageId) {
+	public Curator fail(final UUID messageId) {
 		LOGGER.info("Fail {}",messageId);
 		this.rejected.add(messageId);
 		return this;
 	}
 
-	public Curator accept(UUID messageId, EnrichmentResult result) {
+	public Curator accept(final UUID messageId, final EnrichmentResult result) {
 		LOGGER.info("Accept {} with {}",messageId,result);
 		this.results.put(messageId,result);
 		return this;
 	}
 
-	public Curator fail(UUID messageId, Failure description) {
+	public Curator fail(final UUID messageId, final Failure description) {
 		LOGGER.info("Fail {} with {}",messageId,description);
 		this.failures.put(messageId,description);
 		return this;
@@ -151,12 +173,12 @@ public final class Curator {
 	public void disconnect() {
 		try {
 			this.delegate.disconnect();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new IllegalStateException("Could not disconnect curator",e);
 		}
 	}
 
-	public static Curator newInstance(DeliveryChannel connector, Notifier notifier) {
+	public static Curator newInstance(final DeliveryChannel connector, final Notifier notifier) {
 		return new Curator(connector,notifier);
 	}
 

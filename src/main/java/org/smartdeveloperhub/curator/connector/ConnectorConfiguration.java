@@ -49,24 +49,28 @@ final class ConnectorConfiguration {
 		return this.connectorChannel;
 	}
 
-	ConnectorConfiguration withCuratorConfiguration(CuratorConfiguration configuration) {
+	CuratorConfiguration curatorConfiguration() {
+		return this.curatorConfiguration;
+	}
+
+	ConnectorConfiguration withCuratorConfiguration(final CuratorConfiguration configuration) {
 		this.curatorConfiguration=configuration;
 		return this;
 	}
 
-	ConnectorConfiguration withAgent(Agent agent) {
+	ConnectorConfiguration withAgent(final Agent agent) {
 		this.agent = agent;
 		return this;
 	}
 
-	ConnectorConfiguration withConnectorChannel(DeliveryChannel connectorConfiguration) {
+	ConnectorConfiguration withConnectorChannel(final DeliveryChannel connectorConfiguration) {
 		this.connectorChannel = connectorConfiguration;
 		return this;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder=new StringBuilder();
+		final StringBuilder builder=new StringBuilder();
 		builder.append("-- Connector details:").append(ConnectorConfiguration.NL);
 		builder.append("   + Agent: ").append(this.agent.agentId()).append(ConnectorConfiguration.NL);
 		builder.append("   + Curator configuration:").append(ConnectorConfiguration.NL);
@@ -82,15 +86,15 @@ final class ConnectorConfiguration {
 		return builder.toString();
 	}
 
-	private void appendResponseQueueDetails(StringBuilder builder, String responseQueueName) {
+	private void appendResponseQueueDetails(final StringBuilder builder, final String responseQueueName) {
 		builder.append("     - Response queue name: ").append(responseQueueName).append(ConnectorConfiguration.NL);
 	}
 
-	private void appendExchangeName(StringBuilder builder, String exchangeName) {
+	private void appendExchangeName(final StringBuilder builder, final String exchangeName) {
 		builder.append("     - Exchange name......: ").append(exchangeName).append(ConnectorConfiguration.NL);
 	}
 
-	private void appendBrokerDetails(StringBuilder builder, Broker broker) {
+	private void appendBrokerDetails(final StringBuilder builder, final Broker broker) {
 		builder.append("     - Broker").append(ConnectorConfiguration.NL);
 		builder.append("       + Host.............: ").append(broker.host()).append(ConnectorConfiguration.NL);
 		builder.append("       + Port.............: ").append(broker.port()).append(ConnectorConfiguration.NL);

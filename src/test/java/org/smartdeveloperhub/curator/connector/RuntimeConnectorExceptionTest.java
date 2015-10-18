@@ -26,21 +26,28 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
 
-public interface ResponseProvider {
+import org.junit.Test;
 
-	boolean isExpected(UUID messageId);
+public class RuntimeConnectorExceptionTest {
 
-	boolean isAccepted(UUID messageId);
+	@Test
+	public void testRuntimeConnectorExceptionThrowable() throws Exception {
+		final Throwable cause=new RuntimeException("not yet implemented");
+		final RuntimeConnectorException sut = new RuntimeConnectorException(cause);
+		assertThat(sut.getCause(),sameInstance(cause));
+		assertThat(sut.getMessage(),equalTo("Unexpected Connector exception"));
+	}
 
-	Failure getFailure(UUID messageId);
-
-	EnrichmentResult getResult(UUID messageId);
-
-	long acknowledgeDelay(UUID messageId, TimeUnit unit);
-
-	long resultDelay(UUID messageId, TimeUnit unit);
+	@Test
+	public void testRuntimeConnectorException() throws Exception {
+		final RuntimeConnectorException sut = new RuntimeConnectorException();
+		assertThat(sut.getCause(),nullValue());
+		assertThat(sut.getMessage(),equalTo("Unexpected Connector exception"));
+	}
 
 }

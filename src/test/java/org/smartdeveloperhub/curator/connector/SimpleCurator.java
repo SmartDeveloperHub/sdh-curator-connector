@@ -35,20 +35,13 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.Notifier;
-import org.smartdeveloperhub.curator.connector.io.InvalidDefinitionFoundException;
-import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
-import org.smartdeveloperhub.curator.connector.io.MessageUtil;
-import org.smartdeveloperhub.curator.connector.io.NoDefinitionFoundException;
-import org.smartdeveloperhub.curator.connector.io.TooManyDefinitionsFoundException;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.BindingBuilder;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentResponseMessageBuilder;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.ResponseMessageBuilder;
-import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
-import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.RequestMessage;
 import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
@@ -64,7 +57,7 @@ public final class SimpleCurator implements MessageHandler {
 	private ServerCuratorController curatorController;
 	private ServerConnectorController connectorController;
 
-	public SimpleCurator(DeliveryChannel connectorConfiguration, Notifier notifier, ResponseProvider provider) {
+	public SimpleCurator(final DeliveryChannel connectorConfiguration, final Notifier notifier, final ResponseProvider provider) {
 		this.connectorConfiguration = connectorConfiguration;
 		this.notifier = notifier;
 		this.provider = provider;
@@ -84,13 +77,13 @@ public final class SimpleCurator implements MessageHandler {
 	}
 
 	@Override
-	public void handlePayload(String payload) {
-		EnrichmentRequestMessage erRequest=parsePayload(payload, EnrichmentRequestMessage.class);
+	public void handlePayload(final String payload) {
+		final EnrichmentRequestMessage erRequest=HandlerUtil.parsePayload(payload,EnrichmentRequestMessage.class);
 		if(erRequest!=null) {
 			processEnrichmentRequest(erRequest);
 			return;
 		}
-		DisconnectMessage dRequest=parsePayload(payload,DisconnectMessage.class);
+		final DisconnectMessage dRequest=HandlerUtil.parsePayload(payload,DisconnectMessage.class);
 		if(dRequest!=null) {
 			processDisconnect(dRequest);
 			return;
@@ -98,142 +91,141 @@ public final class SimpleCurator implements MessageHandler {
 		LOGGER.error("Could not understand request:\n{}",payload);
 	}
 
-	private <T extends RequestMessage> T parsePayload(String payload, final Class<? extends T> messageClass) {
-		T request=null;
-		try {
-			request=
-				MessageUtil.
-					newInstance().
-						fromString(payload, messageClass);
-		} catch (NoDefinitionFoundException e) {
-			LOGGER.trace("Request cannot be parsed as {}",messageClass.getName(),payload);
-		} catch (TooManyDefinitionsFoundException e) {
-			LOGGER.trace("Too many {} definitions found",messageClass.getName(),payload);
-		} catch (InvalidDefinitionFoundException e) {
-			LOGGER.trace("Could not parse a valid {} from the payload:\n{}",messageClass.getName(),messageClass.getName(),payload,e);
-		} catch (MessageConversionException e) {
-			LOGGER.trace("Failed to parse the payload:\n{}",payload,e);
-		}
-		return request;
-
-	}
-
-	private void processDisconnect(DisconnectMessage request) {
+	private void processDisconnect(final DisconnectMessage request) {
 		LOGGER.info("Received disconnect from {}",request.submittedBy().agentId());
 		this.notifier.onRequest(request);
 	}
 
-	private void processEnrichmentRequest(EnrichmentRequestMessage request) {
+	private void processEnrichmentRequest(final EnrichmentRequestMessage request) {
 		this.notifier.onRequest(request);
 		LOGGER.info("Received enrichment request {} from {}...",request.messageId(),request.submittedBy().agentId());
-		ResponseMessage acknowledgement = createAcknowledgement(request);
-		acknowledgeRequest(acknowledgement);
-		if(acknowledgement instanceof AcceptedMessage) {
-			LOGGER.info("Accepted enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
-			ResponseMessage enrichment = createEnrichmentResponse(request);
-			replyToEnrichment(enrichment);
-		} else {
-			LOGGER.info("Rejected enrichment request {} from {} with response {}",request.messageId(),request.submittedBy().agentId(),acknowledgement.messageId());
-		}
-	}
-
-	private void acknowledgeRequest(ResponseMessage response) {
-		try {
-			sleep(TimeUnit.MILLISECONDS,150);
-			this.curatorController.publishResponse(response);
-			this.notifier.onResponse(response);
-		} catch (IOException e) {
-			LOGGER.error("Could not acknowledge {}",response,e);
-		}
-	}
-
-	private void replyToEnrichment(ResponseMessage response) {
-		try {
-			sleep(TimeUnit.MILLISECONDS,150);
-			this.connectorController.publishMessage(response);
-			this.notifier.onResponse(response);
-		} catch (IOException e) {
-			LOGGER.error("Could not reply {}",response,e);
-		}
-	}
-
-	private ResponseMessage createAcknowledgement(RequestMessage request) {
-		ResponseMessageBuilder<?,?> builder=null;
 		if(this.provider.isAccepted(request.messageId())) {
-			builder=ProtocolFactory.newAcceptedMessage();
+			final ResponseMessage acknowledgement = acceptEnrichmentRequest(request);
+			LOGGER.info(
+				"Accepted enrichment request {} from {}{}",
+				request.messageId(),
+				request.submittedBy().agentId(),
+				acknowledgement!=null?
+					" with response "+acknowledgement.messageId():
+					"");
+		} else if(this.provider.isExpected(request.messageId())) {
+			final ResponseMessage acknowledgement = rejectEnrichmentRequest(request);
+			LOGGER.info(
+				"Rejected enrichment request {} from {}{}",
+				request.messageId(),
+				request.submittedBy().agentId(),
+				acknowledgement!=null?
+					" with response "+acknowledgement.messageId():
+					"");
 		} else {
-			final Failure failure = this.provider.getFailure(request.messageId());
-			builder=
+			LOGGER.info("Ignored enrichment request {} from {}",request.messageId(),request.submittedBy().agentId());
+		}
+	}
+
+	private ResponseMessage acceptEnrichmentRequest(final EnrichmentRequestMessage request) {
+		final ResponseMessage acknowledgement=completeResponse(ProtocolFactory.newAcceptedMessage(),request);
+		acknowledgeRequest(request.messageId(),acknowledgement);
+		final ResponseMessage enrichment = createEnrichmentResponse(request);
+		replyToEnrichment(request.messageId(),enrichment);
+		return acknowledgement;
+	}
+
+	private ResponseMessage rejectEnrichmentRequest(final EnrichmentRequestMessage request) {
+		ResponseMessage acknowledgement=null;
+		final Failure failure = this.provider.getFailure(request.messageId());
+		if(failure!=null) {
+			final ResponseMessageBuilder<?,?> builder=
 				ProtocolFactory.
 					newFailureMessage().
 						withCode(failure.code()).
 						withSubcode(failure.subcode().orNull()).
 						withReason(failure.reason()).
 						withDetail(failure.details());
+			acknowledgement = completeResponse(builder, request);
 		}
-		return
-			builder.
-				withMessageId(UUID.randomUUID()).
-				withSubmittedOn(new Date()).
-				withSubmittedBy(
-					ProtocolFactory.
-						newAgent().
-							withAgentId(UUID.randomUUID())).
-				withResponseTo(request.messageId()).
-				withResponseNumber(1).
-				build();
+		acknowledgeRequest(request.messageId(),acknowledgement);
+		return acknowledgement;
 	}
 
-	private ResponseMessage createEnrichmentResponse(EnrichmentRequestMessage request) {
+	private void acknowledgeRequest(final UUID requestId, final ResponseMessage response) {
+		try {
+			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(requestId,TimeUnit.MILLISECONDS));
+			if(response!=null) {
+				this.curatorController.publishResponse(response);
+				this.notifier.onResponse(response);
+			} else {
+				this.curatorController.publishMessage("invalid acknowledge",this.curatorController.curatorConfiguration().responseRoutingKey());
+				this.notifier.onError(requestId);
+			}
+		} catch (final IOException e) {
+			LOGGER.error("Could not acknowledge {}",response,e);
+		}
+	}
+
+	private void replyToEnrichment(final UUID requestId, final ResponseMessage response) {
+		try {
+			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(requestId,TimeUnit.MILLISECONDS));
+			if(response!=null) {
+				this.connectorController.publishMessage(response);
+				this.notifier.onResponse(response);
+			} else {
+				this.connectorController.publishMessage("invalid response");
+				this.notifier.onError(requestId);
+			}
+		} catch (final IOException e) {
+			LOGGER.error("Could not reply {}",response,e);
+		}
+	}
+
+	private ResponseMessage completeResponse(final ResponseMessageBuilder<?, ?> builder, final RequestMessage request) {
+		return builder.
+			withMessageId(UUID.randomUUID()).
+			withSubmittedOn(new Date()).
+			withSubmittedBy(
+				ProtocolFactory.
+					newAgent().
+						withAgentId(UUID.randomUUID())).
+			withResponseTo(request.messageId()).
+			withResponseNumber(1).
+			build();
+	}
+
+	private ResponseMessage createEnrichmentResponse(final EnrichmentRequestMessage request) {
 		final EnrichmentResult result = this.provider.getResult(request.messageId());
-		final EnrichmentResponseMessageBuilder builder =
-			ProtocolFactory.
-				newEnrichmentResponseMessage().
-					withMessageId(UUID.randomUUID()).
-					withSubmittedOn(new Date()).
-					withSubmittedBy(
-						ProtocolFactory.
-							newAgent().
-								withAgentId(UUID.randomUUID())).
-					withResponseTo(request.messageId()).
-					withResponseNumber(1);
-		if(result==null) {
-			generateResult(request,builder);
-		} else {
+		ResponseMessage response=null;
+		if(result!=null) {
+			final EnrichmentResponseMessageBuilder builder =
+				ProtocolFactory.
+					newEnrichmentResponseMessage().
+						withMessageId(UUID.randomUUID()).
+						withSubmittedOn(new Date()).
+						withSubmittedBy(
+							ProtocolFactory.
+								newAgent().
+									withAgentId(UUID.randomUUID())).
+						withResponseTo(request.messageId()).
+						withResponseNumber(1);
 			populateResult(result, builder);
+			response=builder.build();
 		}
-		return	builder.build();
+		return response;
 	}
 
-	private void generateResult(EnrichmentRequestMessage request, EnrichmentResponseMessageBuilder builder) {
-		int counter=0;
-		for(Filter filter:request.filters()) {
-			final int id = counter++;
-			builder.
-				withAddition(
-					ProtocolFactory.
-						newBinding().
-							withProperty(filter.property()).
-							withValue(ProtocolFactory.newResource("value_"+id+"_"+filter.variable().name())));
-		}
-		builder.withTargetResource(request.targetResource());
-	}
-
-	private void populateResult(EnrichmentResult result, EnrichmentResponseMessageBuilder builder) {
+	private void populateResult(final EnrichmentResult result, final EnrichmentResponseMessageBuilder builder) {
 		builder.withTargetResource(result.targetResource());
-		for(URI property:result.addedProperties()) {
+		for(final URI property:result.addedProperties()) {
 			builder.
 			withAddition(
 				createBinding(property, result.addedValue(property)));
 		}
-		for(URI property:result.removedProperties()) {
+		for(final URI property:result.removedProperties()) {
 			builder.
 				withRemoval(
 					createBinding(property, result.removedValue(property)));
 		}
 	}
 
-	private BindingBuilder createBinding(URI property, final Value value) {
+	private BindingBuilder createBinding(final URI property, final Value value) {
 		return
 			ProtocolFactory.
 				newBinding().
@@ -241,10 +233,10 @@ public final class SimpleCurator implements MessageHandler {
 					withValue(value);
 	}
 
-	private void sleep(final TimeUnit unit, final int timeout) {
+	private void sleep(final TimeUnit unit, final long timeout) {
 		try {
 			unit.sleep(timeout);
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			// IGNORE INTERRUPTION
 		}
 	}
