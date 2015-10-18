@@ -26,14 +26,18 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.rabbitmq.client.Channel;
@@ -41,6 +45,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.TopologyRecoveryException;
 
+@RunWith(JMockit.class)
 public class BrokerControllerExceptionHandlerTest {
 
 	@Mocked private BrokerController controller;
@@ -56,16 +61,16 @@ public class BrokerControllerExceptionHandlerTest {
 	private final RuntimeException exception = new RuntimeException();
 
 	private BrokerControllerExceptionHandler prepareSut() {
-		new MockUp<LoggerFactory>() {
+		new MockUp<Logger>() {
 			@Mock
-			Logger getLogger(final Class<?> clazz) {
-				return BrokerControllerExceptionHandlerTest.this.logger;
+			public void trace(final String message, final Object[] args) {
+				assertThat(args.length,greaterThan(2));
+				assertThat(args[args.length-1],instanceOf(Throwable.class));
 			}
 		};
 		final BrokerControllerExceptionHandler sut=new BrokerControllerExceptionHandler(this.controller);
 		new Expectations() {{
 			BrokerControllerExceptionHandlerTest.this.controller.broker();this.result=BrokerControllerExceptionHandlerTest.this.broker;
-			BrokerControllerExceptionHandlerTest.this.logger.error((String)this.any,(Object[])this.any);
 		}};
 		return sut;
 	}
