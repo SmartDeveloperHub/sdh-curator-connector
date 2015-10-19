@@ -37,6 +37,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	ProtocolUtilTest.class,
 	FiltersTest.class,
 	ConstraintsTest.class,
+	BindingsTest.class,
 	FailureTest.class,
 	EnrichmentTest.class,
 	EnrichmentRequestTest.class,

@@ -28,62 +28,54 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.net.URI;
 import java.util.Objects;
-import java.util.Set;
-
-import org.smartdeveloperhub.curator.protocol.Value;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Preconditions;
 
 public final class EnrichmentResult {
 
-	private static ImmutableMap<URI, Value> EMPTY=ImmutableMap.<URI,Value>builder().build();
-
 	private final URI targetResource;
-	private final ImmutableMap<URI,Value> additions;
-	private final ImmutableMap<URI,Value> removals;
+	private final Bindings additions;
+	private final Bindings removals;
 
-	private EnrichmentResult(URI targetResource, ImmutableMap<URI,Value> additions, ImmutableMap<URI,Value> removals) {
+	private EnrichmentResult(final URI targetResource, final Bindings additions, final Bindings removals) {
 		this.targetResource=targetResource;
 		this.additions=additions;
 		this.removals=removals;
-	}
-
-	private ImmutableMap<URI, Value> append(ImmutableMap<URI, Value> mappings, URI property, Value value) {
-		return ImmutableMap.<URI,Value>builder().putAll(mappings).put(property,value).build();
 	}
 
 	public URI targetResource() {
 		return this.targetResource;
 	}
 
-	public Set<URI> addedProperties() {
-		return this.additions.keySet();
+	public Bindings additions() {
+		return this.additions;
 	}
 
-
-	public Value addedValue(URI property) {
-		return this.additions.get(property);
+	public Bindings removals() {
+		return this.removals;
 	}
 
-	public Set<URI> removedProperties() {
-		return this.removals.keySet();
+	public EnrichmentResult withTargetResource(final String targetResource) {
+		URI target=null;
+		if(targetResource!=null) {
+			target = URI.create(targetResource);
+		}
+		return withTargetResource(target);
 	}
 
-	public Value removedValue(URI property) {
-		return this.removals.get(property);
-	}
-
-	public EnrichmentResult withTargetResource(URI targetResource) {
+	public EnrichmentResult withTargetResource(final URI targetResource) {
 		return new EnrichmentResult(targetResource,this.additions,this.removals);
 	}
 
-	public EnrichmentResult withAddition(URI property, Value value) {
-		return new EnrichmentResult(this.targetResource,append(this.additions,property,value),this.removals);
+	public EnrichmentResult withAdditions(final Bindings additions) {
+		Preconditions.checkNotNull(additions,"Added bindings cannot be null");
+		return new EnrichmentResult(this.targetResource,additions,this.removals);
 	}
 
-	public EnrichmentResult withRemoval(URI property, Value value) {
-		return new EnrichmentResult(this.targetResource,this.additions,append(removals,property,value));
+	public EnrichmentResult withRemovals(final Bindings removals) {
+		Preconditions.checkNotNull(removals,"Removed bindings cannot be null");
+		return new EnrichmentResult(this.targetResource,this.additions,removals);
 	}
 
 	@Override
@@ -92,10 +84,10 @@ public final class EnrichmentResult {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		boolean result=false;
 		if(obj instanceof EnrichmentResult) {
-			EnrichmentResult that=(EnrichmentResult)obj;
+			final EnrichmentResult that=(EnrichmentResult)obj;
 			result=
 				Objects.equals(this.targetResource,that.targetResource) &&
 				Objects.equals(this.additions,that.additions) &&
@@ -116,7 +108,7 @@ public final class EnrichmentResult {
 	}
 
 	public static EnrichmentResult newInstance() {
-		return new EnrichmentResult(null,EMPTY,EMPTY);
+		return new EnrichmentResult(null,Bindings.newInstance(),Bindings.newInstance());
 	}
 
 }

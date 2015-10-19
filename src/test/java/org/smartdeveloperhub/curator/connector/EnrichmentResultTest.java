@@ -35,15 +35,16 @@ import java.net.URI;
 import mockit.Mocked;
 
 import org.junit.Test;
-import org.smartdeveloperhub.curator.protocol.Value;
 
 public class EnrichmentResultTest {
 
 	private final URI TR1=URI.create("targetResource1");
 	private final URI TR2=URI.create("targetResource2");
 
-	@Mocked private Value value1;
-	@Mocked private Value value2;
+	@Mocked private Bindings addition1;
+	@Mocked private Bindings addition2;
+	@Mocked private Bindings removal1;
+	@Mocked private Bindings removal2;
 
 	@Test
 	public void testEquals$differentType() throws Exception {
@@ -57,8 +58,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR2).
-					withAddition(URI.create("addition"),this.value1).
-					withRemoval(URI.create("removal"),this.value2);
+					withAdditions(this.addition1).
+					withRemovals(this.removal1);
 		assertThat(sut,not(equalTo(defaultResult())));
 	}
 
@@ -68,8 +69,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR1).
-					withAddition(URI.create("addition"),this.value2).
-					withRemoval(URI.create("removal"),this.value2);
+					withAdditions(this.addition2).
+					withRemovals(this.removal1);
 		assertThat(sut,not(equalTo(defaultResult())));
 	}
 
@@ -79,8 +80,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR1).
-					withAddition(URI.create("addition"),this.value1).
-					withRemoval(URI.create("removal"),this.value1);
+					withAdditions(this.addition1).
+					withRemovals(this.removal2);
 		assertThat(sut,not(equalTo(defaultResult())));
 	}
 
@@ -90,8 +91,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR2).
-					withAddition(URI.create("addition"),this.value1).
-					withRemoval(URI.create("removal"),this.value2);
+					withAdditions(this.addition1).
+					withRemovals(this.removal1);
 		assertThat(sut.hashCode(),not(equalTo(defaultResult().hashCode())));
 	}
 
@@ -101,8 +102,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR1).
-					withAddition(URI.create("addition"),this.value2).
-					withRemoval(URI.create("removal"),this.value2);
+					withAdditions(this.addition2).
+					withRemovals(this.removal1);
 		assertThat(sut.hashCode(),not(equalTo(defaultResult().hashCode())));
 	}
 
@@ -112,8 +113,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR1).
-					withAddition(URI.create("addition"),this.value1).
-					withRemoval(URI.create("removal"),this.value1);
+					withAdditions(this.addition1).
+					withRemovals(this.removal2);
 		assertThat(sut.hashCode(),not(equalTo(defaultResult().hashCode())));
 	}
 
@@ -122,8 +123,8 @@ public class EnrichmentResultTest {
 			EnrichmentResult.
 				newInstance().
 					withTargetResource(this.TR1).
-					withAddition(URI.create("addition"),this.value1).
-					withRemoval(URI.create("removal"),this.value2);
+					withAdditions(this.addition1).
+					withRemovals(this.removal1);
 	}
 
 }

@@ -125,7 +125,7 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testOnlyConnectOnce() throws Exception {
+	public void testConnect$onlyOnce() throws Exception {
 		logHeader();
 		final Connector connector =
 				Connector.
@@ -343,7 +343,7 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testOnlyDisconnectOnce() throws Exception {
+	public void testDisconnect$onlyOnce() throws Exception {
 		logHeader();
 		final Connector connector =
 				Connector.
@@ -662,7 +662,7 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testCancel$failIfDisconnected() throws Exception {
+	public void testCancelEnrichment$failIfDisconnected() throws Exception {
 		logHeader();
 		final Connector connector =
 				Connector.
@@ -677,7 +677,7 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testCancel$active() throws Exception {
+	public void testCancelEnrichment$active() throws Exception {
 		logHeader();
 		final CountDownLatch disconnected=new CountDownLatch(1);
 		final CountDownLatch answered=new CountDownLatch(1);
@@ -735,7 +735,67 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testLateAcknowledge() throws Exception {
+	public void testCancelEnrichment$inactive() throws Exception {
+		logHeader();
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
+		class CustomNotifier extends Notifier {
+			@Override
+			public void onDisconnect(final DisconnectMessage response) {
+				disconnected.countDown();
+			}
+			@Override
+			public void onError(final UUID requestId) {
+				answered.countDown();
+			}
+		}
+		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
+		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		curator.accept(factory.generated(0));
+		curator.connect();
+		try {
+			final Connector connector =
+					Connector.
+						builder().
+							withConnectorChannel(this.deliveryChannel).
+							withMessageIdentifierFactory(factory).
+							build();
+			connector.connect();
+			try {
+				final Future<Enrichment> response=
+					connector.
+						requestEnrichment(
+							UseCase.EXAMPLE_REQUEST,
+							new EnrichmentResultHandler() {
+								@Override
+								public void onResult(final EnrichmentResult response) {
+									LOGGER.debug("Received: {}",response);
+								}
+							}
+						);
+				final Enrichment enrichment = response.get();
+				assertThat(enrichment.isAborted(),equalTo(false));
+				assertThat(enrichment.isAccepted(),equalTo(true));
+				assertThat(enrichment.isActive(),equalTo(true));
+				assertThat(enrichment.isCancelled(),equalTo(false));
+				LOGGER.info("Acknowledge: {}",enrichment);
+				answered.await();
+				connector.cancelEnrichment(enrichment);
+				assertThat(enrichment.isCancelled(),equalTo(true));
+				connector.cancelEnrichment(enrichment);
+				assertThat(enrichment.isCancelled(),equalTo(true));
+			} finally {
+				connector.disconnect();
+			}
+			disconnected.await();
+			LOGGER.info("Disconnection processed");
+		} finally {
+			curator.disconnect();
+		}
+	}
+
+	@Test
+	public void testAbortEnrichment$lateAcknowledge() throws Exception {
 		logHeader();
 		final CountDownLatch disconnected=new CountDownLatch(1);
 		final CountDownLatch answered=new CountDownLatch(1);
@@ -794,7 +854,7 @@ public class ConnectorTest {
 	}
 
 	@Test
-	public void testLateResponse() throws Exception {
+	public void testAbortEnrichment$lateResponse() throws Exception {
 		logHeader();
 		final CountDownLatch disconnected=new CountDownLatch(1);
 		final CountDownLatch accepted=new CountDownLatch(1);
@@ -848,66 +908,6 @@ public class ConnectorTest {
 				accepted.await();
 				replied.await();
 				TimeUnit.MILLISECONDS.sleep(1000);
-			} finally {
-				connector.disconnect();
-			}
-			disconnected.await();
-			LOGGER.info("Disconnection processed");
-		} finally {
-			curator.disconnect();
-		}
-	}
-
-	@Test
-	public void testCancel$inactive() throws Exception {
-		logHeader();
-		final CountDownLatch disconnected=new CountDownLatch(1);
-		final CountDownLatch answered=new CountDownLatch(1);
-		class CustomNotifier extends Notifier {
-			@Override
-			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.countDown();
-			}
-			@Override
-			public void onError(final UUID requestId) {
-				answered.countDown();
-			}
-		}
-		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
-		curator.accept(factory.generated(0));
-		curator.connect();
-		try {
-			final Connector connector =
-					Connector.
-						builder().
-							withConnectorChannel(this.deliveryChannel).
-							withMessageIdentifierFactory(factory).
-							build();
-			connector.connect();
-			try {
-				final Future<Enrichment> response=
-					connector.
-						requestEnrichment(
-							UseCase.EXAMPLE_REQUEST,
-							new EnrichmentResultHandler() {
-								@Override
-								public void onResult(final EnrichmentResult response) {
-									LOGGER.debug("Received: {}",response);
-								}
-							}
-						);
-				final Enrichment enrichment = response.get();
-				assertThat(enrichment.isAborted(),equalTo(false));
-				assertThat(enrichment.isAccepted(),equalTo(true));
-				assertThat(enrichment.isActive(),equalTo(true));
-				assertThat(enrichment.isCancelled(),equalTo(false));
-				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.await();
-				connector.cancelEnrichment(enrichment);
-				assertThat(enrichment.isCancelled(),equalTo(true));
-				connector.cancelEnrichment(enrichment);
-				assertThat(enrichment.isCancelled(),equalTo(true));
 			} finally {
 				connector.disconnect();
 			}

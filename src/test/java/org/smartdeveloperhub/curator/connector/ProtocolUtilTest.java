@@ -28,7 +28,8 @@ package org.smartdeveloperhub.curator.connector;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.net.URI;
 
@@ -63,29 +64,29 @@ public class ProtocolUtilTest {
 	@Test
 	public void testToEnrichmentResult$additions() {
 		new Expectations() {{
-			response.targetResource();result=targetResource;
-			response.removals();result=Lists.newArrayList();
-			response.additions();result=ImmutableList.of(binding);
-			binding.property();result=property;
-			binding.value();result=value;
+			ProtocolUtilTest.this.response.targetResource();this.result=ProtocolUtilTest.this.targetResource;
+			ProtocolUtilTest.this.response.removals();this.result=Lists.newArrayList();
+			ProtocolUtilTest.this.response.additions();this.result=ImmutableList.of(ProtocolUtilTest.this.binding);
+			ProtocolUtilTest.this.binding.property();this.result=ProtocolUtilTest.this.property;
+			ProtocolUtilTest.this.binding.value();this.result=ProtocolUtilTest.this.value;
 		}};
-		EnrichmentResult result = ProtocolUtil.toEnrichmentResult(response);
-		assertThat(result.addedProperties(),contains(property));
-		assertThat(result.addedValue(property),equalTo(value));
+		final EnrichmentResult result = ProtocolUtil.toEnrichmentResult(this.response);
+		assertThat(result.additions().properties(),contains(this.property));
+		assertThat(result.additions().value(this.property),equalTo(this.value));
 	}
 
 	@Test
 	public void testToEnrichmentResult$removals() {
 		new Expectations() {{
-			response.targetResource();result=targetResource;
-			response.additions();result=Lists.newArrayList();
-			response.removals();result=ImmutableList.of(binding);
-			binding.property();result=property;
-			binding.value();result=value;
+			ProtocolUtilTest.this.response.targetResource();this.result=ProtocolUtilTest.this.targetResource;
+			ProtocolUtilTest.this.response.additions();this.result=Lists.newArrayList();
+			ProtocolUtilTest.this.response.removals();this.result=ImmutableList.of(ProtocolUtilTest.this.binding);
+			ProtocolUtilTest.this.binding.property();this.result=ProtocolUtilTest.this.property;
+			ProtocolUtilTest.this.binding.value();this.result=ProtocolUtilTest.this.value;
 		}};
-		EnrichmentResult result = ProtocolUtil.toEnrichmentResult(response);
-		assertThat(result.removedProperties(),contains(property));
-		assertThat(result.removedValue(property),equalTo(value));
+		final EnrichmentResult result = ProtocolUtil.toEnrichmentResult(this.response);
+		assertThat(result.removals().properties(),contains(this.property));
+		assertThat(result.removals().value(this.property),equalTo(this.value));
 	}
 
 }

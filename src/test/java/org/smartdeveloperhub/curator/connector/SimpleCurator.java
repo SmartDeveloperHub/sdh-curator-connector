@@ -213,15 +213,17 @@ public final class SimpleCurator implements MessageHandler {
 
 	private void populateResult(final EnrichmentResult result, final EnrichmentResponseMessageBuilder builder) {
 		builder.withTargetResource(result.targetResource());
-		for(final URI property:result.addedProperties()) {
+		final Bindings additions=result.additions();
+		for(final URI property:additions.properties()) {
 			builder.
-			withAddition(
-				createBinding(property, result.addedValue(property)));
+				withAddition(
+					createBinding(property, additions.value(property)));
 		}
-		for(final URI property:result.removedProperties()) {
+		final Bindings removals=result.additions();
+		for(final URI property:removals.properties()) {
 			builder.
 				withRemoval(
-					createBinding(property, result.removedValue(property)));
+					createBinding(property, removals.value(property)));
 		}
 	}
 

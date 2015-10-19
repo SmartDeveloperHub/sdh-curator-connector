@@ -26,6 +26,8 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
+import java.util.List;
+
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentRequestMessageBuilder;
 import org.smartdeveloperhub.curator.protocol.Binding;
@@ -39,32 +41,38 @@ final class ProtocolUtil {
 	private ProtocolUtil() {
 	}
 
-	static EnrichmentResult toEnrichmentResult(EnrichmentResponseMessage response) {
-		EnrichmentResult result=EnrichmentResult.newInstance().withTargetResource(response.targetResource());
-		for(Binding addition:response.additions()) {
-			result=result.withAddition(addition.property(),addition.value());
-		}
-		for(Binding removal:response.removals()) {
-			result=result.withRemoval(removal.property(),removal.value());
+	private static Bindings toBindings(final List<Binding> bindings) {
+		Bindings result=Bindings.newInstance();
+		for(final Binding binding:bindings) {
+			result=result.withProperty(binding.property()).andValue(binding.value());
 		}
 		return result;
 	}
 
-	static EnrichmentRequestMessageBuilder toRequestBuilder(EnrichmentRequest specification) {
+	static EnrichmentResult toEnrichmentResult(final EnrichmentResponseMessage response) {
+		return
+			EnrichmentResult.
+				newInstance().
+					withTargetResource(response.targetResource()).
+					withAdditions(toBindings(response.additions())).
+					withRemovals(toBindings(response.removals()));
+	}
+
+	static EnrichmentRequestMessageBuilder toRequestBuilder(final EnrichmentRequest specification) {
 		final EnrichmentRequestMessageBuilder builder=
 			ProtocolFactory.
 				newEnrichmentRequestMessage().
 					withTargetResource(specification.targetResource());
-		for(Filter filter:specification.filters()) {
+		for(final Filter filter:specification.filters()) {
 			builder.withFilter(filter);
 		}
-		for(Constraint constraint:specification.constraints()) {
+		for(final Constraint constraint:specification.constraints()) {
 			builder.withConstraint(constraint);
 		}
 		return builder;
 	}
 
-	static Failure toFailure(FailureMessage message) {
+	static Failure toFailure(final FailureMessage message) {
 		return
 			Failure.
 				newInstance().

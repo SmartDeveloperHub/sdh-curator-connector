@@ -26,9 +26,6 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.net.URI;
-
-import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -69,14 +66,14 @@ public final class UseCase {
 	public static final EnrichmentResult EXAMPLE_RESULT =
 		EnrichmentResult.
 			newInstance().
-				withTargetResource(URI.create("urn:example")).
-				withAddition(
-					URI.create(ci("forBranch")),
-					ProtocolFactory.newResource("http://localhost:8088/harvester/service/repositories/1/branches/2/")).
-				withAddition(
-					URI.create(ci("forCommit")),
-					ProtocolFactory.newResource("http://localhost:8088/harvester/service/repositories/1/commits/32/"));
-;
+				withTargetResource("http://localhost:8080/harvester/service/builds/1/").
+				withAdditions(
+					Bindings.
+						newInstance().
+							withProperty(ci("forBranch")).
+								andResource("http://localhost:8088/harvester/service/repositories/1/branches/2/").
+							withProperty(ci("forCommit")).
+								andResource("http://localhost:8088/harvester/service/repositories/1/commits/32/"));
 
 	private UseCase() {
 	}
