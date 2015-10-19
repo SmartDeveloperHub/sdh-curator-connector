@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
-import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -306,7 +305,7 @@ public class ConnectorTest {
 						withConnectorChannel(this.deliveryChannel).
 						build();
 		connector.connect();
-		final Phaser phaser=new Phaser(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		final AtomicReference<Enrichment> result=new AtomicReference<Enrichment>();
 		final Thread thread = new Thread("awaiting-client") {
 			@Override
@@ -323,7 +322,7 @@ public class ConnectorTest {
 										}
 									}
 								);
-					phaser.arrive();
+					answered.countDown();;
 					result.set(response.get());
 				} catch (final Exception e) {
 					LOGGER.info("Something failed",e);
@@ -331,7 +330,7 @@ public class ConnectorTest {
 			}
 		};
 		thread.start();
-		phaser.awaitAdvance(1);
+		answered.await();
 		TimeUnit.MILLISECONDS.sleep(500);
 		connector.disconnect();
 		thread.join();
@@ -387,16 +386,16 @@ public class ConnectorTest {
 	@Test
 	public void testRequestEnrichment$useCase() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(3);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(2);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onEnrichmentResponse(final EnrichmentResponseMessage response) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -420,7 +419,7 @@ public class ConnectorTest {
 								@Override
 								public void onResult(final EnrichmentResult response) {
 									LOGGER.debug("Received: {}",response);
-									answered.arrive();
+									answered.countDown();
 								}
 							}
 						);
@@ -430,11 +429,11 @@ public class ConnectorTest {
 				assertThat(enrichment.isActive(),equalTo(true));
 				assertThat(enrichment.isCancelled(),equalTo(false));
 				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -444,16 +443,16 @@ public class ConnectorTest {
 	@Test
 	public void testRequestEnrichment$accepted() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onError(final UUID requestId) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -486,11 +485,11 @@ public class ConnectorTest {
 				assertThat(enrichment.isActive(),equalTo(true));
 				assertThat(enrichment.isCancelled(),equalTo(false));
 				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -500,16 +499,16 @@ public class ConnectorTest {
 	@Test
 	public void testRequestEnrichment$failed() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onFailure(final FailureMessage response) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -542,11 +541,11 @@ public class ConnectorTest {
 				assertThat(enrichment.isActive(),equalTo(false));
 				assertThat(enrichment.isCancelled(),equalTo(false));
 				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -556,16 +555,16 @@ public class ConnectorTest {
 	@Test
 	public void testRequestEnrichment$badAcknowledge() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onError(final UUID requestId) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -594,11 +593,11 @@ public class ConnectorTest {
 						);
 				response.get(1000,TimeUnit.MILLISECONDS);
 			} catch(final TimeoutException e) {
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -613,16 +612,16 @@ public class ConnectorTest {
 				throw new InterruptedException("failure");
 			}
 		};
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onFailure(final FailureMessage response) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -651,11 +650,11 @@ public class ConnectorTest {
 						);
 				response.get(1000,TimeUnit.MILLISECONDS);
 			} catch(final TimeoutException e) {
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -680,16 +679,16 @@ public class ConnectorTest {
 	@Test
 	public void testCancel$active() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onError(final UUID requestId) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -722,13 +721,13 @@ public class ConnectorTest {
 				assertThat(enrichment.isActive(),equalTo(true));
 				assertThat(enrichment.isCancelled(),equalTo(false));
 				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 				connector.cancelEnrichment(enrichment);
 				assertThat(enrichment.isCancelled(),equalTo(true));
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -738,16 +737,16 @@ public class ConnectorTest {
 	@Test
 	public void testLateAcknowledge() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onFailure(final FailureMessage response) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -782,12 +781,12 @@ public class ConnectorTest {
 					assertThat(response.isDone(),equalTo(true));
 					assertThat(response.isCancelled(),equalTo(true));
 				}
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 				TimeUnit.MILLISECONDS.sleep(1000);
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -797,13 +796,13 @@ public class ConnectorTest {
 	@Test
 	public void testLateResponse() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
 		final CountDownLatch accepted=new CountDownLatch(1);
 		final CountDownLatch replied=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 				LOGGER.info("Disconnect message sent");
 			}
 			@Override
@@ -852,7 +851,7 @@ public class ConnectorTest {
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
@@ -862,16 +861,16 @@ public class ConnectorTest {
 	@Test
 	public void testCancel$inactive() throws Exception {
 		logHeader();
-		final Phaser disconnected=new Phaser(2);
-		final Phaser answered=new Phaser(2);
+		final CountDownLatch disconnected=new CountDownLatch(1);
+		final CountDownLatch answered=new CountDownLatch(1);
 		class CustomNotifier extends Notifier {
 			@Override
 			public void onDisconnect(final DisconnectMessage response) {
-				disconnected.arrive();
+				disconnected.countDown();
 			}
 			@Override
 			public void onError(final UUID requestId) {
-				answered.arrive();
+				answered.countDown();
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
@@ -904,7 +903,7 @@ public class ConnectorTest {
 				assertThat(enrichment.isActive(),equalTo(true));
 				assertThat(enrichment.isCancelled(),equalTo(false));
 				LOGGER.info("Acknowledge: {}",enrichment);
-				answered.arriveAndAwaitAdvance();
+				answered.await();
 				connector.cancelEnrichment(enrichment);
 				assertThat(enrichment.isCancelled(),equalTo(true));
 				connector.cancelEnrichment(enrichment);
@@ -912,7 +911,7 @@ public class ConnectorTest {
 			} finally {
 				connector.disconnect();
 			}
-			disconnected.arriveAndAwaitAdvance();
+			disconnected.await();
 			LOGGER.info("Disconnection processed");
 		} finally {
 			curator.disconnect();
