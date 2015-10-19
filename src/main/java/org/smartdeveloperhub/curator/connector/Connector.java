@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -38,6 +39,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
@@ -58,8 +60,24 @@ public final class Connector {
 		private DeliveryChannel connectorChannel;
 		private MessageIdentifierFactory factory;
 		private UUID agentIdentifier;
+		private ConversionContext context;
 
 		private ConnectorBuilder() {
+			this.context=ConversionContext.newInstance();
+		}
+
+		public ConnectorBuilder withBase(final URI base) {
+			this.context=this.context.withBase(base);
+			return this;
+		}
+
+		public ConnectorBuilder withBase(final String base) {
+			return withBase(URI.create(base));
+		}
+
+		public ConnectorBuilder withNamespacePrefix(final String namespace, final String prefix) {
+			this.context=this.context.withNamespacePrefix(namespace, prefix);
+			return this;
 		}
 
 		public ConnectorBuilder withCuratorConfiguration(final CuratorConfiguration configuration) {
@@ -96,6 +114,7 @@ public final class Connector {
 					curatorConfiguration(),
 					agent(),
 					connectorChannel(),
+					this.context,
 					this.factory!=null?this.factory:new DefaultMessageIdentifierFactory());
 		}
 
@@ -181,14 +200,14 @@ public final class Connector {
 
 	private boolean connected;
 
-	private Connector(final CuratorConfiguration curatorConfiguration, final Agent agent, final DeliveryChannel connectorChannel, final MessageIdentifierFactory factory) {
+	private Connector(final CuratorConfiguration curatorConfiguration, final Agent agent, final DeliveryChannel connectorChannel, final ConversionContext context, final MessageIdentifierFactory factory) {
 		this.factory = factory;
 		this.configuration =
 			new ConnectorConfiguration().
 				withCuratorConfiguration(curatorConfiguration).
 				withConnectorChannel(connectorChannel).
 				withAgent(agent);
-		this.curatorController = new ClientCuratorController(curatorConfiguration,"connector-curator");
+		this.curatorController = new ClientCuratorController(curatorConfiguration,"connector-curator",context);
 		this.connectorController=new ClientConnectorController(connectorChannel,this.curatorController);
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();

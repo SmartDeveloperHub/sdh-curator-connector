@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.Curator;
 import org.smartdeveloperhub.curator.Notifier;
 import org.smartdeveloperhub.curator.RandomMessageIdentifierFactory;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
 import org.smartdeveloperhub.curator.protocol.Agent;
@@ -399,7 +400,17 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=
+				Curator.
+					newInstance(
+						this.deliveryChannel,
+						new CustomNotifier(),
+						ConversionContext.
+							newInstance().
+								withNamespacePrefix(UseCase.CI_NAMESPACE,"ci").
+								withNamespacePrefix(UseCase.SCM_NAMESPACE,"scm").
+								withNamespacePrefix(UseCase.DOAP_NAMESPACE,"doap")
+					);
 		curator.accept(factory.generated(0),UseCase.EXAMPLE_RESULT);
 		curator.connect();
 		try {
@@ -408,6 +419,10 @@ public class ConnectorTest {
 						builder().
 							withConnectorChannel(this.deliveryChannel).
 							withMessageIdentifierFactory(factory).
+							withBase("http://localhost:8080/harvester/service/").
+							withNamespacePrefix(UseCase.CI_NAMESPACE,"ci").
+							withNamespacePrefix(UseCase.SCM_NAMESPACE,"scm").
+							withNamespacePrefix(UseCase.DOAP_NAMESPACE,"doap").
 							build();
 			connector.connect();
 			try {

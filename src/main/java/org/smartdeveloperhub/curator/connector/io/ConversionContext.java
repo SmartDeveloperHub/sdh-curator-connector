@@ -27,50 +27,49 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
-final class ConversionContext {
+public final class ConversionContext {
 
 	private static final URI NULL_BASE = URI.create("");
 
 	private final URI base;
-	private final ImmutableMap<String, String> namespacePrefixes;
+	private final Map<String, String> namespacePrefixes;
 
-	private ConversionContext(URI base, ImmutableMap<String, String> namespacePrefixes) {
+	private ConversionContext(final URI base, final Map<String, String> namespacePrefixes) {
 		this.base=base;
 		this.namespacePrefixes=namespacePrefixes;
 	}
 
-	URI base() {
+	public URI base() {
 		return this.base;
 	}
 
-	Map<String,String> namespacePrefixes() {
-		return this.namespacePrefixes;
+	public Map<String,String> namespacePrefixes() {
+		return Collections.unmodifiableMap(this.namespacePrefixes);
 	}
 
-	ConversionContext withBase(URI base) {
+	public ConversionContext withBase(final URI base) {
 		return
 			new ConversionContext(
 				base==null?NULL_BASE:base,
 				this.namespacePrefixes);
 	}
 
-	ConversionContext withNamespacePrefix(String namespace, String prefix) {
-		return
-			new ConversionContext(
-				this.base,
-				ImmutableMap.
-					<String,String>builder().
-						putAll(this.namespacePrefixes).
-						put(namespace,prefix).
-						build());
+	public ConversionContext withNamespacePrefix(final String namespace, final String prefix) {
+		Preconditions.checkNotNull(namespace,"Namespace cannot be null");
+		Preconditions.checkNotNull(prefix,"Prefix cannot be null");
+		final Map<String, String> newNamespacePrefixes = Maps.newLinkedHashMap(this.namespacePrefixes);
+		newNamespacePrefixes.put(namespace, prefix);
+		return new ConversionContext(this.base,newNamespacePrefixes);
 	}
 
-	static ConversionContext newInstance() {
-		return new ConversionContext(NULL_BASE,ImmutableMap.<String,String>builder().build());
+	public static ConversionContext newInstance() {
+		return new ConversionContext(NULL_BASE,Maps.<String,String>newLinkedHashMap());
 	}
 
 }

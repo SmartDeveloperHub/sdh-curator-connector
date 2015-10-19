@@ -31,6 +31,10 @@ import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 public final class UseCase {
 
+	public static final String DOAP_NAMESPACE = "http://usefulinc.com/ns/doap#";
+	public static final String SCM_NAMESPACE  = "http://www.smartdeveloperhub.org/vocabulary/scm#";
+	public static final String CI_NAMESPACE   = "http://www.smartdeveloperhub.org/vocabulary/ci#";
+
 	public static final EnrichmentRequest EXAMPLE_REQUEST =
 		EnrichmentRequest.
 			newInstance().
@@ -79,15 +83,15 @@ public final class UseCase {
 	}
 
 	static String ci(final String term) {
-		return "http://www.smartdeveloperhub.org/vocabulary/ci#"+term;
+		return CI_NAMESPACE+term;
 	}
 
 	static String scm(final String term) {
-		return "http://www.smartdeveloperhub.org/vocabulary/scm#"+term;
+		return SCM_NAMESPACE+term;
 	}
 
 	static String doap(final String term) {
-		return "http://usefulinc.com/ns/doap#"+term;
+		return DOAP_NAMESPACE+term;
 	}
 
 }

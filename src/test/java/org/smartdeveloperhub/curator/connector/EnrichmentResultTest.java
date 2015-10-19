@@ -29,6 +29,7 @@ package org.smartdeveloperhub.curator.connector;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.net.URI;
 
@@ -125,6 +126,17 @@ public class EnrichmentResultTest {
 					withTargetResource(this.TR1).
 					withAdditions(this.addition1).
 					withRemovals(this.removal1);
+	}
+
+	@Test
+	public void testWithTargetResource$nullString() throws Exception {
+		assertThat(
+			EnrichmentResult.
+				newInstance().
+					withTargetResource(this.TR1).
+					withTargetResource((String)null).
+					targetResource(),
+			nullValue());
 	}
 
 }

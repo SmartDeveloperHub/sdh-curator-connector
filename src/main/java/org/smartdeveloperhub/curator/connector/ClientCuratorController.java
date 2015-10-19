@@ -28,12 +28,13 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 final class ClientCuratorController extends CuratorController {
 
-	ClientCuratorController(final CuratorConfiguration configuration, final String name) {
-		super(configuration,name);
+	ClientCuratorController(final CuratorConfiguration configuration, final String name, final ConversionContext context) {
+		super(configuration,name,context);
 	}
 
 	void publishRequest(final Message message) throws IOException {

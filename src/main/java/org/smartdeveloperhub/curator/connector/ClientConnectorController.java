@@ -34,12 +34,12 @@ import com.rabbitmq.client.Channel;
 
 final class ClientConnectorController extends ConnectorController {
 
-	ClientConnectorController(DeliveryChannel connectorConfiguration, CuratorController curatorController) {
+	ClientConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController) {
 		super(connectorConfiguration,curatorController);
 	}
 
-	void handleMessage(MessageHandler handler) throws IOException {
-		Channel channel = brokerController().channel();
+	void handleMessage(final MessageHandler handler) throws IOException {
+		final Channel channel = brokerController().channel();
 		channel.basicConsume(
 			effectiveConfiguration().queueName(),
 			true,

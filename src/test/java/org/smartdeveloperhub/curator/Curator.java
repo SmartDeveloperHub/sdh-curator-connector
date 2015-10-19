@@ -37,6 +37,7 @@ import org.smartdeveloperhub.curator.connector.EnrichmentResult;
 import org.smartdeveloperhub.curator.connector.Failure;
 import org.smartdeveloperhub.curator.connector.ResponseProvider;
 import org.smartdeveloperhub.curator.connector.SimpleCurator;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -117,9 +118,8 @@ public final class Curator {
 	private long resultDelay=150;
 	private TimeUnit resultDelayUnit=TimeUnit.MILLISECONDS;
 
-
-	private Curator(final DeliveryChannel connector, final Notifier notifier) {
-		this.delegate=new SimpleCurator(connector,notifier,new CustomResponseProvider());
+	private Curator(final DeliveryChannel connector, final Notifier notifier, final ConversionContext context) {
+		this.delegate=new SimpleCurator(connector,notifier,new CustomResponseProvider(),context);
 		this.failures=ArrayListMultimap.create();
 		this.results=ArrayListMultimap.create();
 		this.accepted=Lists.newArrayList();
@@ -179,7 +179,11 @@ public final class Curator {
 	}
 
 	public static Curator newInstance(final DeliveryChannel connector, final Notifier notifier) {
-		return new Curator(connector,notifier);
+		return new Curator(connector,notifier,ConversionContext.newInstance());
+	}
+
+	public static Curator newInstance(final DeliveryChannel connector, final Notifier notifier, final ConversionContext context) {
+		return new Curator(connector,notifier,context);
 	}
 
 }

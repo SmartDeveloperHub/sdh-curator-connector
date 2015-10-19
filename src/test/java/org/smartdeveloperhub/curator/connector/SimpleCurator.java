@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.Notifier;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.BindingBuilder;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentResponseMessageBuilder;
@@ -53,19 +54,21 @@ public final class SimpleCurator implements MessageHandler {
 	private final DeliveryChannel connectorConfiguration;
 	private final Notifier notifier;
 	private final ResponseProvider provider;
+	private final ConversionContext context;
 
 	private ServerCuratorController curatorController;
 	private ServerConnectorController connectorController;
 
-	public SimpleCurator(final DeliveryChannel connectorConfiguration, final Notifier notifier, final ResponseProvider provider) {
+	public SimpleCurator(final DeliveryChannel connectorConfiguration, final Notifier notifier, final ResponseProvider provider, final ConversionContext context) {
 		this.connectorConfiguration = connectorConfiguration;
 		this.notifier = notifier;
 		this.provider = provider;
+		this.context = context;
 	}
 
 	public void connect() throws IOException, ControllerException {
-		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator");
-		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController);
+		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator",this.context);
+		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController,this.context);
 		this.curatorController.connect();
 		this.curatorController.handleRequests(this);
 		this.connectorController.connect();

@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
@@ -39,8 +40,11 @@ final class ServerConnectorController extends ConnectorController {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(ServerConnectorController.class);
 
-	ServerConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController) {
+	private final ConversionContext context;
+
+	ServerConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController, final ConversionContext context) {
 		super(connectorConfiguration,curatorController);
+		this.context = context;
 	}
 
 	void publishMessage(final Message message) throws IOException {
@@ -48,6 +52,7 @@ final class ServerConnectorController extends ConnectorController {
 			publishMessage(
 				MessageUtil.
 					newInstance().
+						withConversionContext(this.context).
 						toString(message));
 		} catch (final MessageConversionException e) {
 			LOGGER.warn("Could not publish message {}: {}",message,e.getMessage());

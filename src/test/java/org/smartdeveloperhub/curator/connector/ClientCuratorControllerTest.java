@@ -43,6 +43,7 @@ import mockit.integration.junit4.JMockit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.Message;
@@ -69,7 +70,7 @@ public class ClientCuratorControllerTest {
 
 	@Before
 	public void setUp() {
-		this.sut=new ClientCuratorController(this.configuration, "client");
+		this.sut=new ClientCuratorController(this.configuration, "client", ConversionContext.newInstance());
 	}
 
 	@Test
