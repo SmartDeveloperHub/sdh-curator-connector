@@ -32,6 +32,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import mockit.Expectations;
@@ -43,9 +45,13 @@ import mockit.integration.junit4.JMockit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.BrokerController.Cleaner;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.rabbitmq.client.Channel;
@@ -64,9 +70,21 @@ public class ClientCuratorControllerTest {
 
 	@Mocked private Channel channel;
 
-	@Mocked private Message message;
+	@Mocked private EnrichmentRequestMessage message;
+
+	@Mocked private Message unsupportedMessage;
+
+	private final Agent agent =
+		ProtocolFactory.
+			newAgent().
+				withAgentId(UUID.randomUUID()).
+					build();
 
 	private ClientCuratorController sut;
+
+	private String requestRoutingKey() {
+		return this.configuration.requestRoutingKey()+".enrichment";
+	}
 
 	@Before
 	public void setUp() {
@@ -104,10 +122,10 @@ public class ClientCuratorControllerTest {
 			}
 		};
 		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.exchangeDeclare(ClientCuratorControllerTest.this.configuration.exchangeName(), "direct");this.result=new IOException("failure");
+			ClientCuratorControllerTest.this.channel.exchangeDeclare(ClientCuratorControllerTest.this.configuration.exchangeName(), "topic",true,true,null);this.result=new IOException("failure");
 		}};
 		try {
-			this.sut.connect();
+			this.sut.connect(this.agent);
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
@@ -115,60 +133,7 @@ public class ClientCuratorControllerTest {
 		}
 	}
 
-	@Test
-	public void testConnect$failWhenCannotCreateRequestQueue() throws Exception {
-		final String exchangeName = this.configuration.exchangeName();
-		final String requestQueueName = this.configuration.requestQueueName();
-		new MockUp<BrokerController>() {
-			@Mock
-			void connect() {
-			}
-			@Mock
-			Channel channel() {
-				return ClientCuratorControllerTest.this.channel;
-			}
-		};
-		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.exchangeDeclare(exchangeName,"direct");
-			ClientCuratorControllerTest.this.channel.queueDeclare(requestQueueName,true,false, false,null);this.result=new IOException("failure");
-		}};
-		try {
-			this.sut.connect();
-		} catch (final ControllerException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not create curator queue named '"+requestQueueName+"'"));
-		}
-	}
-
-	@Test
-	public void testConnect$failWhenCannotBindRequestQueue() throws Exception {
-		final String exchangeName = this.configuration.exchangeName();
-		final String requestQueueName = this.configuration.requestQueueName();
-		final String requestRoutingKey = this.configuration.requestRoutingKey();
-		new MockUp<BrokerController>() {
-			@Mock
-			void connect() {
-			}
-			@Mock
-			Channel channel() {
-				return ClientCuratorControllerTest.this.channel;
-			}
-		};
-		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.exchangeDeclare(exchangeName,"direct");
-			ClientCuratorControllerTest.this.channel.queueDeclare(requestQueueName,true,false,false,null);
-			ClientCuratorControllerTest.this.channel.queueBind(requestQueueName,exchangeName,requestRoutingKey);this.result=new IOException("failure");
-		}};
-		try {
-			this.sut.connect();
-		} catch (final ControllerException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not bind curator queue '"+requestQueueName+"' to exchange '"+exchangeName+"' using routing key '"+requestRoutingKey+"'"));
-		}
-	}
-
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testConnect$failWhenCannotCreateResponseQueue() throws Exception {
 		final String requestQueueName = this.configuration.responseQueueName();
@@ -182,10 +147,10 @@ public class ClientCuratorControllerTest {
 			}
 		};
 		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.queueDeclare(requestQueueName,true,false,false,null);this.result=new IOException("failure");
+			ClientCuratorControllerTest.this.channel.queueDeclare(requestQueueName,true,false,true,(Map<String,Object>)this.any);this.result=new IOException("failure");
 		}};
 		try {
-			this.sut.connect();
+			this.sut.connect(this.agent);
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
@@ -197,7 +162,7 @@ public class ClientCuratorControllerTest {
 	public void testConnect$failWhenCannotBindResponseQueue() throws Exception {
 		final String exchangeName = this.configuration.exchangeName();
 		final String requestQueueName = this.configuration.responseQueueName();
-		final String requestRoutingKey = this.configuration.responseRoutingKey();
+		final String requestRoutingKey = this.configuration.responseRoutingKey()+"."+this.agent.agentId();
 		new MockUp<BrokerController>() {
 			@Mock
 			void connect() {
@@ -206,12 +171,15 @@ public class ClientCuratorControllerTest {
 			Channel channel() {
 				return ClientCuratorControllerTest.this.channel;
 			}
+			@Mock
+			void register(final Cleaner cleaner) {
+			}
 		};
 		new Expectations() {{
 			ClientCuratorControllerTest.this.channel.queueBind(requestQueueName,exchangeName,requestRoutingKey);this.result=new IOException("failure");
 		}};
 		try {
-			this.sut.connect();
+			this.sut.connect(this.agent);
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
@@ -251,10 +219,10 @@ public class ClientCuratorControllerTest {
 			}
 		};
 		try {
-			this.sut.publishRequest(this.message);
+			this.sut.publishRequest(this.unsupportedMessage);
 		} catch (final IOException e) {
 			assertThat(e.getCause(),instanceOf(MessageConversionException.class));
-			assertThat(e.getCause().getMessage(),equalTo("Cannot convert messages of type '"+this.message.getClass().getName()+"'"));
+			assertThat(e.getCause().getMessage(),equalTo("Cannot convert messages of type '"+this.unsupportedMessage.getClass().getName()+"'"));
 			assertThat(e.getMessage(),equalTo("Could not serialize message"));
 		}
 	}
@@ -277,7 +245,7 @@ public class ClientCuratorControllerTest {
 			}
 		};
 		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.basicPublish(ClientCuratorControllerTest.this.configuration.exchangeName(),ClientCuratorControllerTest.this.configuration.requestRoutingKey(),null,"message".getBytes());this.result=new IOException("failure");
+			ClientCuratorControllerTest.this.channel.basicPublish(ClientCuratorControllerTest.this.configuration.exchangeName(),requestRoutingKey(),null,"message".getBytes());this.result=new IOException("failure");
 		}};
 		try {
 			this.sut.publishRequest(this.message);

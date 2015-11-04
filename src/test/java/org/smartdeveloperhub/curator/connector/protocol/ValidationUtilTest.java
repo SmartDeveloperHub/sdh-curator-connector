@@ -42,24 +42,24 @@ import com.rabbitmq.client.ConnectionFactory;
 
 public class ValidationUtilTest {
 
-	private void assertInvalidHostName(String hostname, String failure) {
+	private void assertInvalidHostName(final String hostname, final String failure) {
 		try {
 			ValidationUtil.validateHostname(hostname);
 			fail(failure);
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo(hostname));
 			assertThat(e.getType(),equalTo(TYPES.HOSTNAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Host name '"+hostname+"' is not valid"));
 		}
 	}
 
-	private void assertInvalidRoutingKey(String routingKey, String failure,String description) {
+	private void assertInvalidRoutingKey(final String routingKey, final String failure,final String description) {
 		try {
 			ValidationUtil.validateRoutingKey(routingKey);
 			fail(failure);
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo(routingKey));
-			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
+			assertThat(e.getType(),equalTo(AMQP.ROUTING_KEY_TYPE));
 			assertThat(e.getDescription(),equalTo(description));
 		}
 	}
@@ -79,7 +79,7 @@ public class ValidationUtilTest {
 		try {
 			ValidationUtil.validatePath(null);
 			fail("Should not accept a null path");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),nullValue());
 			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be null"));
@@ -91,7 +91,7 @@ public class ValidationUtilTest {
 		try {
 			ValidationUtil.validatePath("");
 			fail("Should not accept an empty path");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo(""));
 			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be empty"));
@@ -100,13 +100,13 @@ public class ValidationUtilTest {
 
 	@Test
 	public void testValidatePath$invalid$tooLong() throws Exception {
-		char[] chars=new char[128];
+		final char[] chars=new char[128];
 		Arrays.fill(chars, 'A');
-		String path = new String(chars);
+		final String path = new String(chars);
 		try {
 			ValidationUtil.validatePath(path);
 			fail("Should not accept a long string");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo(path));
 			assertThat(e.getType(),equalTo(AMQP.PATH_TYPE));
 			assertThat(e.getDescription(),equalTo("Path cannot be larger than 127 octets (128)"));
@@ -130,13 +130,13 @@ public class ValidationUtilTest {
 
 	@Test
 	public void testValidateName$invalid$tooLong() throws Exception {
-		char[] chars=new char[128];
+		final char[] chars=new char[128];
 		Arrays.fill(chars, 'A');
-		String name = new String(chars);
+		final String name = new String(chars);
 		try {
 			ValidationUtil.validateName(name);
 			fail("Should not accept a long string");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo(name));
 			assertThat(e.getType(),equalTo(AMQP.NAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Name cannot be larger than 127 octets (128)"));
@@ -148,7 +148,7 @@ public class ValidationUtilTest {
 		try {
 			ValidationUtil.validateName("white spaces not allowed");
 			fail("Should not accept string with invalid characters");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo("white spaces not allowed"));
 			assertThat(e.getType(),equalTo(AMQP.NAME_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid name syntax"));
@@ -172,15 +172,15 @@ public class ValidationUtilTest {
 
 	@Test
 	public void testValidateRoutingKey$invalid$tooLong() throws Exception {
-		char[] chars=new char[256];
+		final char[] chars=new char[256];
 		Arrays.fill(chars, 'A');
-		String name = new String(chars);
+		final String name = new String(chars);
 		assertInvalidRoutingKey(name,"Should not accept a long string","Routing key cannot be larger than 255 octets (256)");
 	}
 
 	@Test
 	public void testValidateRoutingKey$invalid$badSyntax() throws Exception {
-		assertInvalidRoutingKey("valid.host-name.with-lots-of-labels","Should not accept routing key with bad chars","Invalid routing key syntax");
+		assertInvalidRoutingKey("valid.host-name.with-lots-of-labels.bad$char","Should not accept routing key with bad chars","Invalid routing key syntax");
 	}
 
 	@Test
@@ -268,7 +268,7 @@ public class ValidationUtilTest {
 		try {
 			ValidationUtil.validatePort(-1);
 			fail("Should not accept a negative port");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo("-1"));
 			assertThat(e.getType(),equalTo(TYPES.PORT_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid port number (-1 is lower than 0)"));
@@ -280,7 +280,7 @@ public class ValidationUtilTest {
 		try {
 			ValidationUtil.validatePort(65536);
 			fail("Should not accept a port over 65535");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getValue(),equalTo("65536"));
 			assertThat(e.getType(),equalTo(TYPES.PORT_TYPE));
 			assertThat(e.getDescription(),equalTo("Invalid port number (65536 is greater than 65535)"));
@@ -291,7 +291,7 @@ public class ValidationUtilTest {
 	public void testCheckNotNull$null() throws Exception {
 		try {
 			ValidationUtil.checkNotNull(null, "type", "description");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("description"));
 			assertThat(e.getType(),equalTo("type"));
 			assertThat(e.getValue(),nullValue());

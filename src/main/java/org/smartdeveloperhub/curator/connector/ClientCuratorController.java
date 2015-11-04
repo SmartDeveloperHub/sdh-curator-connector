@@ -29,6 +29,9 @@ package org.smartdeveloperhub.curator.connector;
 import java.io.IOException;
 
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
+import org.smartdeveloperhub.curator.protocol.Agent;
+import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
+import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 final class ClientCuratorController extends CuratorController {
@@ -37,12 +40,30 @@ final class ClientCuratorController extends CuratorController {
 		super(configuration,name,context);
 	}
 
+	private String routingKey(final Message message) {
+		final StringBuilder builder=new StringBuilder();
+		builder.append(curatorConfiguration().requestRoutingKey());
+		if(message instanceof EnrichmentRequestMessage) {
+			builder.append(".enrichment");
+		} else if(message instanceof DisconnectMessage) {
+			builder.append(".disconnect");
+		}
+		return builder.toString();
+	}
+
 	void publishRequest(final Message message) throws IOException {
-		publishMessage(message, curatorConfiguration().requestRoutingKey());
+		publishMessage(message,routingKey(message));
 	}
 
 	void handleResponses(final MessageHandler handler) throws IOException {
 		registerMessageHandler(handler, curatorConfiguration().responseQueueName());
+	}
+
+	@Override
+	protected void prepareQueue(final Agent agent) throws ControllerException {
+		prepareQueue(
+			curatorConfiguration().responseQueueName(),
+			curatorConfiguration().responseRoutingKey()+"."+agent.agentId());
 	}
 
 }

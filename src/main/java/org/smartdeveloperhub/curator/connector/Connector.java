@@ -207,8 +207,8 @@ public final class Connector {
 				withCuratorConfiguration(curatorConfiguration).
 				withConnectorChannel(connectorChannel).
 				withAgent(agent);
-		this.curatorController = new ClientCuratorController(curatorConfiguration,"connector-curator",context);
-		this.connectorController=new ClientConnectorController(connectorChannel,this.curatorController);
+		this.curatorController=new ClientCuratorController(curatorConfiguration,"connector-curator",context);
+		this.connectorController=new ClientConnectorController(connectorChannel,context,this.curatorController);
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
@@ -294,7 +294,7 @@ public final class Connector {
 	}
 
 	private void connectToCurator() throws ConnectorException {
-		this.curatorController.connect();
+		this.curatorController.connect(this.configuration.agent());
 		try {
 			connectController();
 		} catch (final ConnectorException e) {

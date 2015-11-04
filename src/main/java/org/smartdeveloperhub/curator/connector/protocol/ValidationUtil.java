@@ -44,12 +44,12 @@ final class ValidationUtil {
 
 	private static final Pattern AMQP_NAME=Pattern.compile("^[a-zA-Z0-9\\-_\\.:]*$");
 
-	private static final Pattern AMQP_ROUTING_KEY=Pattern.compile("^[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*$");
+	private static final Pattern AMQP_ROUTING_KEY=Pattern.compile("^[a-zA-Z0-9\\-_:]+(\\.[a-zA-Z0-9\\-_:]+)*$");
 
 	private ValidationUtil() {
 	}
 
-	private static <T> T checkArgument(boolean passes, String type, T value, String message) {
+	private static <T> T checkArgument(final boolean passes, final String type, final T value, final String message) {
 		if(!passes) {
 			throw new ValidationException(value,type,String.format(message,value));
 		}
@@ -70,22 +70,22 @@ final class ValidationUtil {
 	 * &lt;digit&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= any one of the ten digits 0 through 9<br/>
 	 * </code>
 	 */
-	private static boolean isValidDomainName(String hostname) {
+	private static boolean isValidDomainName(final String hostname) {
 		return DOMAIN_NAME.matcher(hostname).matches();
 	}
 
-	static <T> T checkNotNull(T value, String valueType,String description) {
+	static <T> T checkNotNull(final T value, final String valueType,final String description) {
 		return checkArgument(value!=null,valueType,value,description);
 	}
 
-	static String validatePath(String path) {
+	static String validatePath(final String path) {
 		checkArgument(path!=null,AMQP.PATH_TYPE,path,"Path cannot be null");
 		checkArgument(path.length()>0,AMQP.PATH_TYPE,path,"Path cannot be empty");
 		checkArgument(path.length()<=MAX_SEMI_SHORT_STR_LENGTH,AMQP.PATH_TYPE,path,"Path cannot be larger than 127 octets ("+path.length()+")");
 		return path;
 	}
 
-	static String validateName(String name) {
+	static String validateName(final String name) {
 		if(name!=null) {
 			checkArgument(name.length()<=MAX_SEMI_SHORT_STR_LENGTH,AMQP.NAME_TYPE,name,"Name cannot be larger than 127 octets ("+name.length()+")");
 			checkArgument(AMQP_NAME.matcher(name).matches(),AMQP.NAME_TYPE,name,"Invalid name syntax");
@@ -93,26 +93,26 @@ final class ValidationUtil {
 		return name;
 	}
 
-	static String validateRoutingKey(String routingKey) {
+	static String validateRoutingKey(final String routingKey) {
 		if(routingKey!=null && !routingKey.isEmpty()) {
-			checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,AMQP.PATH_TYPE,routingKey,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
-			checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),AMQP.PATH_TYPE,routingKey,"Invalid routing key syntax");
+			checkArgument(routingKey.length()<=MAX_SHORT_STR_LENGTH,AMQP.ROUTING_KEY_TYPE,routingKey,"Routing key cannot be larger than 255 octets ("+routingKey.length()+")");
+			checkArgument(AMQP_ROUTING_KEY.matcher(routingKey).matches(),AMQP.ROUTING_KEY_TYPE,routingKey,"Invalid routing key syntax");
 		}
 		return routingKey;
 	}
 
-	static String validateHostname(String hostname) {
+	static String validateHostname(final String hostname) {
 		checkArgument(InetAddresses.isInetAddress(hostname) || isValidDomainName(hostname),TYPES.HOSTNAME_TYPE,hostname,"Host name '%s' is not valid");
 		return hostname;
 	}
 
-	static int validatePort(int port) {
+	static int validatePort(final int port) {
 		checkArgument(port>=0,TYPES.PORT_TYPE,port,"Invalid port number (%s is lower than 0)");
 		checkArgument(port<65536,TYPES.PORT_TYPE,port,"Invalid port number (%s is greater than 65535)");
 		return port;
 	}
 
-	static long validateUnsignedLong(Long responseNumber, String name) {
+	static long validateUnsignedLong(final Long responseNumber, final String name) {
 		checkNotNull(responseNumber,XSD.UNSIGNED_LONG_TYPE,name+" cannot be null");
 		return checkArgument(responseNumber>=0,XSD.UNSIGNED_LONG_TYPE,responseNumber,name+" must be greater than 0 ("+responseNumber+")");
 	}

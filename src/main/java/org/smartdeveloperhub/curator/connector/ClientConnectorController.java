@@ -28,14 +28,15 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 import com.rabbitmq.client.Channel;
 
 final class ClientConnectorController extends ConnectorController {
 
-	ClientConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController) {
-		super(connectorConfiguration,curatorController);
+	ClientConnectorController(final DeliveryChannel connectorConfiguration, final ConversionContext context, final CuratorController curatorController) {
+		super(connectorConfiguration,context,curatorController,true);
 	}
 
 	void handleMessage(final MessageHandler handler) throws IOException {

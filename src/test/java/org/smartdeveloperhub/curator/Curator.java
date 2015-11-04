@@ -38,6 +38,7 @@ import org.smartdeveloperhub.curator.connector.Failure;
 import org.smartdeveloperhub.curator.connector.ResponseProvider;
 import org.smartdeveloperhub.curator.connector.SimpleCurator;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
+import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -126,9 +127,9 @@ public final class Curator {
 		this.rejected=Lists.newArrayList();
 	}
 
-	public void connect() {
+	public void connect(final Agent agent) {
 		try {
-			this.delegate.connect();
+			this.delegate.connect(agent);
 		} catch (final Exception e) {
 			throw new IllegalStateException("Could not connect curator",e);
 		}

@@ -27,6 +27,7 @@
 package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
+import java.util.Deque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -35,9 +36,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
+import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
+import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
+import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -45,24 +52,35 @@ import com.rabbitmq.client.ConnectionFactory;
 
 final class BrokerController {
 
+	interface Cleaner {
+
+		void clean(Channel channel) throws IOException;
+
+	}
+
 	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
 
 	private final Broker broker;
+	private final ConversionContext context;
+	private final String name;
+
 	private final Lock read;
 	private final Lock write;
+
+	private final Deque<Cleaner> cleaners;
 
 	private Connection connection;
 	private Channel channel;
 	private boolean connected;
 
-	private final String name;
-
-	BrokerController(final Broker broker, final String name) {
-		this.broker = broker;
-		this.name = name;
+	BrokerController(final Broker broker, final String name, final ConversionContext context) {
+		this.broker=broker;
+		this.name=name;
+		this.context = context;
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
+		this.cleaners=Lists.newLinkedList();
 	}
 
 	Broker broker() {
@@ -91,6 +109,16 @@ final class BrokerController {
 		}
 	}
 
+	void register(final Cleaner cleaner) {
+		this.read.lock();
+		try {
+			Preconditions.checkState(this.connected,"Not connected");
+			this.cleaners.push(cleaner);
+		} finally {
+			this.read.unlock();
+		}
+	}
+
 	Channel channel() {
 		this.read.lock();
 		try {
@@ -107,12 +135,58 @@ final class BrokerController {
 			if(!this.connected) {
 				return;
 			}
+			cleanUp();
 			closeChannelQuietly();
 			closeConnectionQuietly();
 			this.connected=false;
 		} finally {
 			this.write.unlock();
 		}
+	}
+
+	void publishMessage(final DeliveryChannel replyTo, final Message message) throws IOException {
+		try {
+			publishMessage(
+				replyTo,
+				MessageUtil.
+					newInstance().
+						withConversionContext(this.context).
+						toString(message));
+		} catch (final MessageConversionException e) {
+			LOGGER.warn("Could not publish message {}: {}",message,e.getMessage());
+			throw new IOException("Could not serialize message",e);
+		}
+	}
+
+	void publishMessage(final DeliveryChannel replyTo, final String message) throws IOException {
+		final String exchangeName = replyTo.exchangeName();
+		final String routingKey = replyTo.routingKey();
+		LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
+		try {
+			channel().
+				basicPublish(
+					exchangeName,
+					routingKey,
+					null,
+					message.getBytes());
+		} catch (final IOException e) {
+			LOGGER.warn("Could not publish message {} to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
+			throw e;
+		}
+	}
+
+	private void cleanUp() {
+		LOGGER.debug("Cleaning up broker ({})...",this.cleaners.size());
+		while(!this.cleaners.isEmpty()) {
+			final Cleaner cleaner=this.cleaners.pop();
+			try {
+				cleaner.clean(this.channel);
+				LOGGER.trace("{} completed",cleaner);
+			} catch (final IOException e) {
+				LOGGER.warn("{} failed. Full stacktrace follows",cleaner,e);
+			}
+		}
+		LOGGER.debug("Broker clean-up completed.",this.cleaners.size());
 	}
 
 	private ThreadFactory brokerThreadFactory() {

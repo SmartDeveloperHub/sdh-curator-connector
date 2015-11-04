@@ -28,54 +28,22 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
-import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
-import org.smartdeveloperhub.curator.connector.io.MessageUtil;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 final class ServerConnectorController extends ConnectorController {
 
-	private static final Logger LOGGER=LoggerFactory.getLogger(ServerConnectorController.class);
-
-	private final ConversionContext context;
-
 	ServerConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController, final ConversionContext context) {
-		super(connectorConfiguration,curatorController);
-		this.context = context;
+		super(connectorConfiguration,context,curatorController,false);
 	}
 
-	void publishMessage(final Message message) throws IOException {
-		try {
-			publishMessage(
-				MessageUtil.
-					newInstance().
-						withConversionContext(this.context).
-						toString(message));
-		} catch (final MessageConversionException e) {
-			LOGGER.warn("Could not publish message {}: {}",message,e.getMessage());
-			throw new IOException("Could not serialize message",e);
-		}
+	void publishMessage(final DeliveryChannel replyTo, final Message message) throws IOException {
+		brokerController().publishMessage(replyTo, message);
 	}
 
-	void publishMessage(final String message) throws IOException {
-		final String routingKey = effectiveConfiguration().routingKey();
-		LOGGER.debug("Publishing message {} to routing key {}...",message,routingKey);
-		try {
-			brokerController().
-				channel().
-					basicPublish(
-						effectiveConfiguration().exchangeName(),
-						routingKey,
-						null,
-						message.getBytes());
-		} catch (final IOException e) {
-			LOGGER.warn("Could not publish message {} to routing key {}: {}",message,routingKey,e.getMessage());
-			throw e;
-		}
+	void publishMessage(final DeliveryChannel replyTo, final String message) throws IOException {
+		brokerController().publishMessage(replyTo, message);
 	}
-
 
 }

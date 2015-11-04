@@ -42,6 +42,8 @@ import mockit.integration.junit4.JMockit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.BrokerController.Cleaner;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.rabbitmq.client.Channel;
@@ -54,11 +56,12 @@ public class BrokerControllerTest {
 	@Mocked private Broker broker;
 	@Mocked private Connection connection;
 	@Mocked private Channel channel;
+	@Mocked private ConversionContext context;
 
 	private final String name="name";
 
 	private BrokerController newInstance() {
-		return new BrokerController(this.broker, this.name);
+		return new BrokerController(this.broker, this.name, this.context);
 	}
 
 	@Test
@@ -368,4 +371,73 @@ public class BrokerControllerTest {
 		}
 	}
 
+	@Test
+	public void testDisconnect$ignoreCleanerFailures(@Mocked final Cleaner cleaner, @Mocked final Cleaner failureCleaner) throws Exception {
+		final BrokerController sut=newInstance();
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			failureCleaner.clean(BrokerControllerTest.this.channel);this.result=new IOException("failure");
+			cleaner.clean(BrokerControllerTest.this.channel);
+		}};
+		sut.connect();
+		sut.register(cleaner);
+		sut.register(failureCleaner);
+		sut.disconnect();
+	}
+
+	@Test
+	public void testRegister$connected(@Mocked final Cleaner cleaner) throws Exception {
+		final BrokerController sut=newInstance();
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+		}};
+		sut.connect();
+		sut.register(cleaner);
+	}
+
+	@Test
+	public void testRegister$notConnected(@Mocked final Cleaner cleaner) throws Exception {
+		final BrokerController sut=newInstance();
+		try {
+			sut.register(cleaner);
+		} catch (final IllegalStateException e) {
+			assertThat(e.getMessage(),equalTo("Not connected"));
+		}
+	}
 }

@@ -76,11 +76,19 @@ public class ConnectorTest {
 	@Rule
 	public Timeout timeout=new Timeout(5,TimeUnit.SECONDS);
 
-	final DeliveryChannel deliveryChannel =
+	private DeliveryChannel deliveryChannel() {
+		return
 			ProtocolFactory.
 				newDeliveryChannel().
-					withQueueName("connector").
+					withQueueName("connector"+"."+this.test.getMethodName().replace('$', '.')).
 					build();
+	}
+
+	final Agent agent =
+			ProtocolFactory.
+				newAgent().
+					withAgentId(UUID.randomUUID()).
+						build();
 
 	private void logHeader() {
 		LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -109,19 +117,20 @@ public class ConnectorTest {
 	public void testKeepsConfiguration() throws Exception {
 		logHeader();
 		final CuratorConfiguration curatorConfiguration = CuratorConfiguration.newInstance();
-		final UUID agentId = UUID.randomUUID();
+		final UUID agentId = this.agent.agentId();
 		final DefaultMessageIdentifierFactory factory = new DefaultMessageIdentifierFactory();
+		final DeliveryChannel deliveryChannel = deliveryChannel();
 		final Connector connector =
 			Connector.
 				builder().
-					withConnectorChannel(this.deliveryChannel).
+					withConnectorChannel(deliveryChannel).
 					withAgentIdentifier(agentId.toString()).
 					withCuratorConfiguration(curatorConfiguration).
 					withMessageIdentifierFactory(factory).
 					build();
 		final ConnectorConfiguration configuration = Deencapsulation.getField(connector,ConnectorConfiguration.class);
 		assertThat(configuration.agent().agentId(),equalTo(agentId));
-		assertThat(configuration.connectorChannel(),sameInstance(this.deliveryChannel));
+		assertThat(configuration.connectorChannel(),sameInstance(deliveryChannel));
 		assertThat(configuration.curatorConfiguration(),sameInstance(curatorConfiguration));
 	}
 
@@ -131,7 +140,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		connector.connect();
 		try {
@@ -148,14 +158,15 @@ public class ConnectorTest {
 		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
-			void connect() throws ControllerException {
+			void connect(final Agent agent) throws ControllerException {
 				throw new ControllerException("failure",new IllegalStateException());
 			}
 		};
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.connect();
@@ -177,7 +188,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.connect();
@@ -199,7 +211,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.connect();
@@ -222,7 +235,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.connect();
@@ -245,7 +259,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		connector.connect();
 		try {
@@ -262,7 +277,7 @@ public class ConnectorTest {
 		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
-			void connect() throws ControllerException {
+			void connect(final Agent agent) throws ControllerException {
 			}
 			@Mock
 			void handleResponses(final MessageHandler handler) throws IOException {
@@ -292,7 +307,7 @@ public class ConnectorTest {
 			}
 			@Mock
 			public DeliveryChannel connectorChannel() {
-				return ConnectorTest.this.deliveryChannel;
+				return ConnectorTest.this.deliveryChannel();
 			}
 			@Override
 			@Mock
@@ -303,7 +318,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		connector.connect();
 		final CountDownLatch answered=new CountDownLatch(1);
@@ -349,7 +365,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		connector.connect();
 		connector.disconnect();
@@ -366,7 +383,8 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withAgentIdentifier(this.agent.agentId()).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.
@@ -403,7 +421,7 @@ public class ConnectorTest {
 		final Curator curator=
 				Curator.
 					newInstance(
-						this.deliveryChannel,
+						deliveryChannel(),
 						new CustomNotifier(),
 						ConversionContext.
 							newInstance().
@@ -412,12 +430,13 @@ public class ConnectorTest {
 								withNamespacePrefix(UseCase.DOAP_NAMESPACE,"doap")
 					);
 		curator.accept(factory.generated(0),UseCase.EXAMPLE_RESULT);
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							withBase("http://localhost:8080/harvester/service/").
 							withNamespacePrefix(UseCase.CI_NAMESPACE,"ci").
@@ -471,14 +490,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.accept(factory.generated(0));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -527,14 +547,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -583,14 +604,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.fail(factory.generated(0));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -640,14 +662,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -682,7 +705,7 @@ public class ConnectorTest {
 		final Connector connector =
 				Connector.
 					builder().
-						withConnectorChannel(this.deliveryChannel).
+						withConnectorChannel(deliveryChannel()).
 						build();
 		try {
 			connector.cancelEnrichment(null);
@@ -707,14 +730,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.accept(factory.generated(0));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -765,14 +789,15 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.accept(factory.generated(0));
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -825,15 +850,16 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
 		curator.delayAcknowledges(1000, TimeUnit.MILLISECONDS);
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();
@@ -892,16 +918,17 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(this.deliveryChannel,new CustomNotifier());
+		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
 		curator.accept(factory.generated(0),UseCase.EXAMPLE_RESULT);
 		curator.delayAcknowledges(1,TimeUnit.MILLISECONDS);
 		curator.delayResults(500,TimeUnit.MILLISECONDS);
-		curator.connect();
+		curator.connect(this.agent);
 		try {
 			final Connector connector =
 					Connector.
 						builder().
-							withConnectorChannel(this.deliveryChannel).
+							withAgentIdentifier(this.agent.agentId()).
+							withConnectorChannel(deliveryChannel()).
 							withMessageIdentifierFactory(factory).
 							build();
 			connector.connect();

@@ -26,41 +26,18 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.io.IOException;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-import org.smartdeveloperhub.curator.connector.io.ConversionContext;
-import org.smartdeveloperhub.curator.protocol.Agent;
-import org.smartdeveloperhub.curator.protocol.RequestMessage;
-import org.smartdeveloperhub.curator.protocol.ResponseMessage;
+import org.junit.Test;
+import org.ldp4j.commons.testing.Utils;
 
-final class ServerCuratorController extends CuratorController {
 
-	ServerCuratorController(final CuratorConfiguration configuration, final String name, final ConversionContext context) {
-		super(configuration,name,context);
+public class CleanerFactoryTest {
+
+	@Test
+	public void testIsUtilityClass() throws Exception {
+		assertThat(Utils.isUtilityClass(CleanerFactory.class),equalTo(true));
 	}
-
-	private String routingKey(final RequestMessage request) {
-		return curatorConfiguration().responseRoutingKey()+"."+request.submittedBy().agentId();
-	}
-
-	void publishResponse(final RequestMessage request, final ResponseMessage response) throws IOException {
-		publishMessage(response,routingKey(request));
-	}
-
-	void publishResponse(final RequestMessage request, final String response) throws IOException {
-		publishMessage(response,routingKey(request));
-	}
-
-	void handleRequests(final MessageHandler handler) throws IOException {
-		registerMessageHandler(handler, curatorConfiguration().requestQueueName());
-	}
-
-	@Override
-	protected void prepareQueue(final Agent agent) throws ControllerException {
-		prepareQueue(
-			curatorConfiguration().requestQueueName(),
-			curatorConfiguration().requestRoutingKey()+".*");
-	}
-
 
 }

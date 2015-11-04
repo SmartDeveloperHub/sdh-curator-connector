@@ -40,6 +40,7 @@ import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.BindingBuilder;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.EnrichmentResponseMessageBuilder;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.ResponseMessageBuilder;
+import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
@@ -66,10 +67,10 @@ public final class SimpleCurator implements MessageHandler {
 		this.context = context;
 	}
 
-	public void connect() throws IOException, ControllerException {
+	public void connect(final Agent agent) throws IOException, ControllerException {
 		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator",this.context);
 		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController,this.context);
-		this.curatorController.connect();
+		this.curatorController.connect(agent);
 		this.curatorController.handleRequests(this);
 		this.connectorController.connect();
 	}
@@ -127,9 +128,9 @@ public final class SimpleCurator implements MessageHandler {
 
 	private ResponseMessage acceptEnrichmentRequest(final EnrichmentRequestMessage request) {
 		final ResponseMessage acknowledgement=completeResponse(ProtocolFactory.newAcceptedMessage(),request);
-		acknowledgeRequest(request.messageId(),acknowledgement);
+		acknowledgeRequest(request,acknowledgement);
 		final ResponseMessage enrichment = createEnrichmentResponse(request);
-		replyToEnrichment(request.messageId(),enrichment);
+		replyToEnrichment(request,enrichment);
 		return acknowledgement;
 	}
 
@@ -146,34 +147,34 @@ public final class SimpleCurator implements MessageHandler {
 						withDetail(failure.details());
 			acknowledgement = completeResponse(builder, request);
 		}
-		acknowledgeRequest(request.messageId(),acknowledgement);
+		acknowledgeRequest(request,acknowledgement);
 		return acknowledgement;
 	}
 
-	private void acknowledgeRequest(final UUID requestId, final ResponseMessage response) {
+	private void acknowledgeRequest(final EnrichmentRequestMessage request, final ResponseMessage response) {
 		try {
-			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(requestId,TimeUnit.MILLISECONDS));
+			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(request.messageId(),TimeUnit.MILLISECONDS));
 			if(response!=null) {
-				this.curatorController.publishResponse(response);
+				this.curatorController.publishResponse(request,response);
 				this.notifier.onResponse(response);
 			} else {
-				this.curatorController.publishMessage("invalid acknowledge",this.curatorController.curatorConfiguration().responseRoutingKey());
-				this.notifier.onError(requestId);
+				this.curatorController.publishResponse(request,"invalid acknowledge");
+				this.notifier.onError(request.messageId());
 			}
 		} catch (final IOException e) {
 			LOGGER.error("Could not acknowledge {}",response,e);
 		}
 	}
 
-	private void replyToEnrichment(final UUID requestId, final ResponseMessage response) {
+	private void replyToEnrichment(final EnrichmentRequestMessage request, final ResponseMessage response) {
 		try {
-			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(requestId,TimeUnit.MILLISECONDS));
+			sleep(TimeUnit.MILLISECONDS,this.provider.acknowledgeDelay(request.messageId(),TimeUnit.MILLISECONDS));
 			if(response!=null) {
-				this.connectorController.publishMessage(response);
+				this.connectorController.publishMessage(request.replyTo(),response);
 				this.notifier.onResponse(response);
 			} else {
-				this.connectorController.publishMessage("invalid response");
-				this.notifier.onError(requestId);
+				this.connectorController.publishMessage(request.replyTo(),"invalid response");
+				this.notifier.onError(request.messageId());
 			}
 		} catch (final IOException e) {
 			LOGGER.error("Could not reply {}",response,e);

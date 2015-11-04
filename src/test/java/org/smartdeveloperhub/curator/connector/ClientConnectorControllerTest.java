@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
+import java.util.Map;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -39,6 +40,7 @@ import mockit.integration.junit4.JMockit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
@@ -65,9 +67,10 @@ public class ClientConnectorControllerTest {
 	@Mocked private BrokerController brokerController;
 	@Mocked private Broker defaultBroker;
 	@Mocked private Broker anotherBroker;
+	@Mocked private ConversionContext context;
 
 	private ClientConnectorController newController(final DeliveryChannel cfg) {
-		return new ClientConnectorController(cfg,this.curatorController);
+		return new ClientConnectorController(cfg,this.context,this.curatorController);
 	}
 
 	@Test
@@ -75,7 +78,7 @@ public class ClientConnectorControllerTest {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.exchangeDeclare("connectorExchange","direct");this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.channel.exchangeDeclare("connectorExchange","topic",true,true,null);this.result=new IOException("failure");
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -97,7 +100,7 @@ public class ClientConnectorControllerTest {
 	public void testConnect$failOnExchangeDeclaration$differentBroker() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.exchangeDeclare(ClientConnectorControllerTest.this.configuration.exchangeName(),"direct");this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.channel.exchangeDeclare(ClientConnectorControllerTest.this.configuration.exchangeName(),"topic",true,true,null);this.result=new IOException("failure");
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -158,12 +161,13 @@ public class ClientConnectorControllerTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testConnect$failOnDifferentQueueDeclaration() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.queueDeclare("connectorQueueName",true,false,false,null);this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.channel.queueDeclare("connectorQueueName",true,false,true,(Map<String,Object>)this.any);this.result=new IOException("failure");
 		}};
 		final ClientConnectorController sut=
 			newController(
