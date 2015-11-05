@@ -17,9 +17,9 @@ before_install:
     error=$?; 
     if [[ $error -ne 1 ]]; 
     then 
-      echo "Unshallowing failed with $error"; 
+      echo "Unshallowing failed with $error status code"; 
       git --version; 
-      exit 128; 
+      false; 
     fi 
   fi
 before_script:
