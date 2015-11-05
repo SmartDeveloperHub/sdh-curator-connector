@@ -44,6 +44,7 @@ import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Message;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -141,6 +142,7 @@ final class BrokerController {
 	}
 
 	String declareQueue(final String queueName) throws ControllerException {
+		final String targetQueueName=Optional.fromNullable(queueName).or("");
 		this.read.lock();
 		try {
 			final Map<String, Object> args=
@@ -148,11 +150,12 @@ final class BrokerController {
 					<String, Object>builder().
 						put("x-expires",1000).
 						build();
-			final DeclareOk result = channel().queueDeclare(queueName,true,false,true,args);
-			this.cleaners.push(CleanerFactory.queueDelete(queueName));
-			return result.getQueue();
+			final DeclareOk ok = channel().queueDeclare(targetQueueName,true,false,true,args);
+			final String declaredQueueName = ok.getQueue();
+			this.cleaners.push(CleanerFactory.queueDelete(declaredQueueName));
+			return declaredQueueName;
 		} catch (final IOException e) {
-			throw new ControllerException("Could not create "+this.name+" queue named '"+queueName+"'",e);
+			throw new ControllerException("Could not create "+this.name+" queue named '"+targetQueueName+"'",e);
 		} finally {
 			this.read.unlock();
 		}

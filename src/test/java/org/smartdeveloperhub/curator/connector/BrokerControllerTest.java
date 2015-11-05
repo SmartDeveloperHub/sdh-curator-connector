@@ -29,6 +29,8 @@ package org.smartdeveloperhub.curator.connector;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
 import java.util.concurrent.ThreadFactory;
@@ -43,6 +45,7 @@ import mockit.integration.junit4.JMockit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
+import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
 import com.rabbitmq.client.Channel;
@@ -367,7 +370,7 @@ public class BrokerControllerTest {
 	}
 
 	@Test
-	public void testRegisterHandler$unlockOnFailure() throws Exception {
+	public void testRegisterHandler$unlockOnError() throws Exception {
 		final String queueName="queueName";
 		final BrokerController sut=newInstance();
 		new MockUp<ConnectionFactory>() {
@@ -400,5 +403,13 @@ public class BrokerControllerTest {
 		}
 	}
 
-}
+	@Test
+	public void testDeclareQueue$null() throws Exception {
+		final BrokerController sut=new BrokerController(ProtocolFactory.newBroker().build(), this.name, this.context);
+		sut.connect();
+		final String queueName = sut.declareQueue(null);
+		assertThat(queueName,not(isEmptyOrNullString()));
+		sut.disconnect();
+	}
 
+}
