@@ -31,8 +31,6 @@ import java.io.IOException;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
-import com.rabbitmq.client.Channel;
-
 final class ClientConnectorController extends ConnectorController {
 
 	ClientConnectorController(final DeliveryChannel connectorConfiguration, final ConversionContext context, final CuratorController curatorController) {
@@ -40,12 +38,7 @@ final class ClientConnectorController extends ConnectorController {
 	}
 
 	void handleMessage(final MessageHandler handler) throws IOException {
-		final Channel channel = brokerController().channel();
-		channel.basicConsume(
-			effectiveConfiguration().queueName(),
-			true,
-			new MessageHandlerConsumer(channel, handler)
-		);
+		brokerController().registerConsumer(handler,effectiveConfiguration().queueName());
 	}
 
 }

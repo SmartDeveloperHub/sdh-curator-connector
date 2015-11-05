@@ -30,9 +30,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.io.IOException;
-import java.util.Map;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -78,7 +78,7 @@ public class ClientConnectorControllerTest {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.exchangeDeclare("connectorExchange","topic",true,true,null);this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareExchange("connectorExchange");this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -90,9 +90,8 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not declare connector exchange named 'connectorExchange'"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
@@ -100,7 +99,7 @@ public class ClientConnectorControllerTest {
 	public void testConnect$failOnExchangeDeclaration$differentBroker() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.exchangeDeclare(ClientConnectorControllerTest.this.configuration.exchangeName(),"topic",true,true,null);this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareExchange(ClientConnectorControllerTest.this.configuration.exchangeName());this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -112,9 +111,8 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not declare connector exchange named 'exchangeName'"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
@@ -123,7 +121,7 @@ public class ClientConnectorControllerTest {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.queueDeclare();this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareQueue(null);this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -134,9 +132,8 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not declare anonymous connector queue"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
@@ -144,7 +141,7 @@ public class ClientConnectorControllerTest {
 	public void testConnect$failOnAnonymousQueueDeclarationOnDifferentBroker() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.queueDeclare();this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareQueue(null);this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -155,19 +152,17 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not declare anonymous connector queue"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testConnect$failOnDifferentQueueDeclaration() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.queueDeclare("connectorQueueName",true,false,true,(Map<String,Object>)this.any);this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareQueue("connectorQueueName");this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -180,19 +175,17 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not declare connector queue named 'connectorQueueName'"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
 	@Test
-	public void testConnect$failOnAnonymousQueueBinding(@Mocked final DeclareOk ok) throws Exception {
+	public void testConnect$failOnAnonymousQueueBinding() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.channel.queueDeclare();this.result=ok;
-			ok.getQueue();this.result="queue";
-			ClientConnectorControllerTest.this.channel.queueBind("queue", ClientConnectorControllerTest.this.configuration.exchangeName(), "routingKey");this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.declareQueue(null);this.result="queue";
+			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), "queue", "routingKey");
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -215,7 +208,7 @@ public class ClientConnectorControllerTest {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
-			ClientConnectorControllerTest.this.channel.queueBind(ClientConnectorControllerTest.this.configuration.responseQueueName(), ClientConnectorControllerTest.this.configuration.exchangeName(), "routingKey");this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), ClientConnectorControllerTest.this.configuration.responseQueueName(), "routingKey");this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -228,18 +221,17 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not bind connector queue 'responseQueueName' using routing key 'routingKey' to exchange 'exchangeName'"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 
 	@Test
-	public void testConnect$failOnRequestQueueBinding(@Mocked final DeclareOk ok) throws Exception {
+	public void testConnect$failOnRequestQueueBinding() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
-			ClientConnectorControllerTest.this.channel.queueBind(ClientConnectorControllerTest.this.configuration.requestQueueName(), ClientConnectorControllerTest.this.configuration.exchangeName(), "routingKey");this.result=new IOException("failure");
+			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), ClientConnectorControllerTest.this.configuration.requestQueueName(), "routingKey");this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
@@ -252,9 +244,8 @@ public class ClientConnectorControllerTest {
 		try {
 			sut.connect();
 		} catch (final ConnectorException e) {
-			assertThat(e.getCause(),instanceOf(IOException.class));
-			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not bind connector queue 'requestQueueName' using routing key 'routingKey' to exchange 'exchangeName'"));
+			assertThat(e.getMessage(),equalTo("failure"));
+			assertThat(e.getCause(),nullValue());
 		}
 	}
 

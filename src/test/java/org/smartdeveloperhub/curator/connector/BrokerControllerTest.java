@@ -42,7 +42,6 @@ import mockit.integration.junit4.JMockit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.smartdeveloperhub.curator.connector.BrokerController.Cleaner;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
@@ -255,44 +254,6 @@ public class BrokerControllerTest {
 	}
 
 	@Test
-	public void testChannel$connected() throws Exception {
-		final BrokerController sut=newInstance();
-		new MockUp<ConnectionFactory>() {
-			@Mock
-			public void setHost(final String host) {
-			}
-			@Mock
-			public void setPort(final int port) {
-			}
-			@Mock
-			public void setVirtualHost(final String virtualHost) {
-			}
-			@Mock
-			public void setThreadFactory(final ThreadFactory threadFactory) {
-			}
-			@Mock
-			public Connection newConnection() throws IOException, TimeoutException {
-				return BrokerControllerTest.this.connection;
-			}
-		};
-		new Expectations() {{
-			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
-		}};
-		sut.connect();
-		assertThat(sut.channel(),equalTo(this.channel));
-	}
-
-	@Test
-	public void testChannel$notConnected() throws Exception {
-		final BrokerController sut=newInstance();
-		try {
-			sut.channel();
-		} catch (final IllegalStateException e) {
-			assertThat(e.getMessage(),equalTo("Not connected"));
-		}
-	}
-
-	@Test
 	public void testDisconnect$connected() throws Exception {
 		final BrokerController sut=newInstance();
 		new MockUp<ConnectionFactory>() {
@@ -372,7 +333,10 @@ public class BrokerControllerTest {
 	}
 
 	@Test
-	public void testDisconnect$ignoreCleanerFailures(@Mocked final Cleaner cleaner, @Mocked final Cleaner failureCleaner) throws Exception {
+	public void testDisconnect$ignoreCleanerFailures() throws Exception {
+		final String routingKey="routingKey";
+		final String queueName="queueName";
+		final String exchangeName="exchangeName";
 		final BrokerController sut=newInstance();
 		new MockUp<ConnectionFactory>() {
 			@Mock
@@ -394,17 +358,17 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
-			failureCleaner.clean(BrokerControllerTest.this.channel);this.result=new IOException("failure");
-			cleaner.clean(BrokerControllerTest.this.channel);
+			BrokerControllerTest.this.channel.queueUnbind(queueName,exchangeName,routingKey);this.result=new IOException("failure");
 		}};
 		sut.connect();
-		sut.register(cleaner);
-		sut.register(failureCleaner);
+		sut.declareQueue(queueName);
+		sut.bindQueue(exchangeName, queueName, routingKey);
 		sut.disconnect();
 	}
 
 	@Test
-	public void testRegister$connected(@Mocked final Cleaner cleaner) throws Exception {
+	public void testRegisterHandler$unlockOnFailure() throws Exception {
+		final String queueName="queueName";
 		final BrokerController sut=newInstance();
 		new MockUp<ConnectionFactory>() {
 			@Mock
@@ -426,18 +390,15 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.basicConsume(queueName, true, (MessageHandlerConsumer)this.any);this.result=new IOException("failure");
 		}};
 		sut.connect();
-		sut.register(cleaner);
-	}
-
-	@Test
-	public void testRegister$notConnected(@Mocked final Cleaner cleaner) throws Exception {
-		final BrokerController sut=newInstance();
 		try {
-			sut.register(cleaner);
-		} catch (final IllegalStateException e) {
-			assertThat(e.getMessage(),equalTo("Not connected"));
+			sut.registerConsumer(null, queueName);
+		} catch (final IOException e) {
+			assertThat(e.getMessage(),equalTo("failure"));
 		}
 	}
+
 }
+

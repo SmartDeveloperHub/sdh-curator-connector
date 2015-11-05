@@ -28,6 +28,7 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -44,8 +45,10 @@ import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Message;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -59,6 +62,8 @@ final class BrokerController {
 	}
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
+
+	private static final String EXCHANGE_TYPE="topic";
 
 	private final Broker broker;
 	private final ConversionContext context;
@@ -109,26 +114,6 @@ final class BrokerController {
 		}
 	}
 
-	void register(final Cleaner cleaner) {
-		this.read.lock();
-		try {
-			Preconditions.checkState(this.connected,"Not connected");
-			this.cleaners.push(cleaner);
-		} finally {
-			this.read.unlock();
-		}
-	}
-
-	Channel channel() {
-		this.read.lock();
-		try {
-			Preconditions.checkState(this.connected,"Not connected");
-			return this.channel;
-		} finally {
-			this.read.unlock();
-		}
-	}
-
 	void disconnect() {
 		this.write.lock();
 		try {
@@ -141,6 +126,58 @@ final class BrokerController {
 			this.connected=false;
 		} finally {
 			this.write.unlock();
+		}
+	}
+
+	void declareExchange(final String exchangeName) throws ControllerException {
+		this.read.lock();
+		try {
+			channel().exchangeDeclare(exchangeName,EXCHANGE_TYPE,true,true,null);
+		} catch (final IOException e) {
+			throw new ControllerException("Could not create "+this.name+" exchange named '"+exchangeName+"'",e);
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	String declareQueue(final String queueName) throws ControllerException {
+		this.read.lock();
+		try {
+			final Map<String, Object> args=
+				ImmutableMap.
+					<String, Object>builder().
+						put("x-expires",1000).
+						build();
+			final DeclareOk result = channel().queueDeclare(queueName,true,false,true,args);
+			this.cleaners.push(CleanerFactory.queueDelete(queueName));
+			return result.getQueue();
+		} catch (final IOException e) {
+			throw new ControllerException("Could not create "+this.name+" queue named '"+queueName+"'",e);
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	void bindQueue(final String exchangeName, final String queueName, final String routingKey) throws ControllerException {
+		this.read.lock();
+		try {
+			channel().queueBind(queueName,exchangeName,routingKey);
+			this.cleaners.push(CleanerFactory.queueUnbind(exchangeName,queueName,routingKey));
+		} catch (final IOException e) {
+			throw new ControllerException("Could not bind "+this.name+" queue '"+queueName+"' to exchange '"+exchangeName+"' using routing key '"+routingKey+"'",e);
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	String prepareQueue(final String exchangeName, final String queueName, final String routingKey) throws ControllerException {
+		this.read.lock();
+		try {
+			final String declaredQueue = declareQueue(queueName);
+			bindQueue(exchangeName, declaredQueue, routingKey);
+			return declaredQueue;
+		} finally {
+			this.read.unlock();
 		}
 	}
 
@@ -161,8 +198,9 @@ final class BrokerController {
 	void publishMessage(final DeliveryChannel replyTo, final String message) throws IOException {
 		final String exchangeName = replyTo.exchangeName();
 		final String routingKey = replyTo.routingKey();
-		LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
+		this.read.lock();
 		try {
+			LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
 			channel().
 				basicPublish(
 					exchangeName,
@@ -172,6 +210,22 @@ final class BrokerController {
 		} catch (final IOException e) {
 			LOGGER.warn("Could not publish message {} to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
 			throw e;
+		} finally {
+			this.read.unlock();
+		}
+	}
+
+	void registerConsumer(final MessageHandler handler, final String queueName) throws IOException {
+		this.read.lock();
+		try {
+			channel().
+				basicConsume(
+					queueName,
+					true,
+					new MessageHandlerConsumer(this.channel, handler)
+				);
+		} finally {
+			this.read.unlock();
 		}
 	}
 
@@ -195,6 +249,11 @@ final class BrokerController {
 				setNameFormat(this.name+"-broker-%d").
 				setUncaughtExceptionHandler(new BrokerControllerUncaughtExceptionHandler(this)).
 				build();
+	}
+
+	private Channel channel() {
+		Preconditions.checkState(this.connected,"Not connected");
+		return this.channel;
 	}
 
 	private void createChannel() throws ControllerException {

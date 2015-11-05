@@ -26,20 +26,12 @@
  */
 package org.smartdeveloperhub.curator.connector;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
-import com.google.common.collect.ImmutableMap;
-import com.rabbitmq.client.Channel;
-
 abstract class ConnectorController {
-
-	private static final String EXCHANGE_TYPE = "topic";
 
 	private final CuratorController curatorController;
 	private final BrokerController brokerController;
@@ -63,10 +55,9 @@ abstract class ConnectorController {
 		if(!this.requiresCreation) {
 			return;
 		}
-		final Channel channel = this.brokerController.channel();
-		final String exchangeName = declareConnectorExchange(channel);
-		final String queueName = declareConnectorQueue(channel);
-		final String routingKey = bindConnectorQueue(channel, exchangeName, queueName);
+		final String exchangeName = declareConnectorExchange();
+		final String queueName = declareConnectorQueue();
+		final String routingKey = bindConnectorQueue(exchangeName, queueName);
 		this.effectiveConfiguration=
 			ProtocolFactory.
 				newDeliveryChannel().
@@ -106,51 +97,24 @@ abstract class ConnectorController {
 			curatorConfiguration().responseQueueName().equals(connectorQueueName);
 	}
 
-	private String bindConnectorQueue(final Channel channel, final String exchangeName, final String queueName) throws ControllerException {
+	private String bindConnectorQueue(final String exchangeName, final String queueName) throws ControllerException {
 		final String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
-		try {
-			channel.queueBind(queueName,exchangeName,routingKey);
-			this.brokerController.register(CleanerFactory.queueUnbind(exchangeName, queueName, routingKey));
-			return routingKey;
-		} catch (final IOException e) {
-			throw new ControllerException("Could not bind connector queue '"+queueName+"' using routing key '"+routingKey+"' to exchange '"+exchangeName+"'",e);
-		}
+		this.brokerController.bindQueue(exchangeName, queueName, routingKey);
+		return routingKey;
 	}
 
-	private String declareConnectorQueue(final Channel channel) throws ControllerException {
+	private String declareConnectorQueue() throws ControllerException {
 		String queueName = this.connectorConfiguration.queueName();
 		if(usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
-			if(queueName!=null) {
-				try {
-					final Map<String, Object> args=
-						ImmutableMap.
-							<String, Object>builder().
-								put("x-expires",1000).
-								build();
-					channel.queueDeclare(queueName,true,false,true,args);
-				} catch (final IOException e) {
-					throw new ControllerException("Could not declare connector queue named '"+queueName+"'",e);
-				}
-			} else {
-				try {
-					queueName=channel.queueDeclare().getQueue();
-				} catch (final IOException e) {
-					throw new ControllerException("Could not declare anonymous connector queue",e);
-				}
-			}
+			queueName=brokerController().declareQueue(queueName);
 		}
-		this.brokerController.register(CleanerFactory.queueDelete(queueName));
 		return queueName;
 	}
 
-	private String declareConnectorExchange(final Channel channel) throws ControllerException {
+	private String declareConnectorExchange() throws ControllerException {
 		final String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), curatorConfiguration().exchangeName());
 		if(usesDifferentBrokers() || !exchangeName.equals(curatorConfiguration().exchangeName())) {
-			try {
-				channel.exchangeDeclare(exchangeName,EXCHANGE_TYPE,true,true,null);
-			} catch (final IOException e) {
-				throw new ControllerException("Could not declare connector exchange named '"+exchangeName+"'",e);
-			}
+			brokerController().declareExchange(exchangeName);
 		}
 		return exchangeName;
 	}

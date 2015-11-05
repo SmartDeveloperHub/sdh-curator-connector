@@ -45,7 +45,6 @@ import mockit.integration.junit4.JMockit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.smartdeveloperhub.curator.connector.BrokerController.Cleaner;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.io.MessageConversionException;
 import org.smartdeveloperhub.curator.connector.io.MessageUtil;
@@ -54,6 +53,7 @@ import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 
 @RunWith(JMockit.class)
@@ -129,7 +129,7 @@ public class ClientCuratorControllerTest {
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not create curator exchange named '"+this.configuration.exchangeName()+"'"));
+			assertThat(e.getMessage(),equalTo("Could not create client exchange named '"+this.configuration.exchangeName()+"'"));
 		}
 	}
 
@@ -154,15 +154,16 @@ public class ClientCuratorControllerTest {
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not create curator queue named '"+requestQueueName+"'"));
+			assertThat(e.getMessage(),equalTo("Could not create client queue named '"+requestQueueName+"'"));
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
-	public void testConnect$failWhenCannotBindResponseQueue() throws Exception {
+	public void testConnect$failWhenCannotBindResponseQueue(@Mocked final DeclareOk ok) throws Exception {
 		final String exchangeName = this.configuration.exchangeName();
-		final String requestQueueName = this.configuration.responseQueueName();
-		final String requestRoutingKey = this.configuration.responseRoutingKey()+"."+this.agent.agentId();
+		final String queueName = this.configuration.responseQueueName();
+		final String routingKey = this.configuration.responseRoutingKey()+"."+this.agent.agentId();
 		new MockUp<BrokerController>() {
 			@Mock
 			void connect() {
@@ -171,19 +172,18 @@ public class ClientCuratorControllerTest {
 			Channel channel() {
 				return ClientCuratorControllerTest.this.channel;
 			}
-			@Mock
-			void register(final Cleaner cleaner) {
-			}
 		};
 		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.queueBind(requestQueueName,exchangeName,requestRoutingKey);this.result=new IOException("failure");
+			ClientCuratorControllerTest.this.channel.queueDeclare(queueName,true,false,true,(Map<String,Object>)this.any);this.result=ok;
+			ok.getQueue();this.result=queueName;
+			ClientCuratorControllerTest.this.channel.queueBind(queueName,exchangeName,routingKey);this.result=new IOException("failure");
 		}};
 		try {
 			this.sut.connect(this.agent);
 		} catch (final ControllerException e) {
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));
-			assertThat(e.getMessage(),equalTo("Could not bind curator queue '"+requestQueueName+"' to exchange '"+exchangeName+"' using routing key '"+requestRoutingKey+"'"));
+			assertThat(e.getMessage(),equalTo("Could not bind client queue '"+queueName+"' to exchange '"+exchangeName+"' using routing key '"+routingKey+"'"));
 		}
 	}
 
