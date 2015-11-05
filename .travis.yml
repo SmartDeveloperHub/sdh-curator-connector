@@ -11,7 +11,17 @@ jdk:
 services:
 - rabbitmq
 before_install:
-- if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+- if [[ -a .git/shallow ]]; 
+  then 
+    git fetch --unshallow --verbose; 
+    error=$?; 
+    if [[ $error -ne 1 ]]; 
+    then 
+      echo "Unshallowing failed with $error"; 
+      git --version; 
+      return $error; 
+    fi 
+  fi
 before_script:
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in target/config/ci/secring.gpg.enc -out local.secring.gpg -d
 - openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in target/config/ci/pubring.gpg.enc -out local.pubring.gpg -d
