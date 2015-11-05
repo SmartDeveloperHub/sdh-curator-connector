@@ -15,7 +15,7 @@ before_install:
   then 
     git fetch --unshallow --verbose; 
     error=$?; 
-    if [[ $error -ne 1 ]]; 
+    if [[ $error -ne 0 ]]; 
     then 
       echo "Unshallowing failed with $error"; 
       git --version; 
