@@ -42,29 +42,29 @@ public final class UseCase {
 					withFilters(
 						Filters.
 							newInstance().
-								withFilter(ci("forBranch"), "branch").
-								withFilter(ci("forCommit"), "commit")).
+								withFilter(UseCase.ci("forBranch"), "branch").
+								withFilter(UseCase.ci("forCommit"), "commit")).
 					withConstraints(
 						Constraints.
 							newInstance().
 								forVariable("repository").
 									withProperty(RDF.TYPE).
-										andResource(scm("Repository")).
-									withProperty(scm("location")).
+										andResource(UseCase.scm("Repository")).
+									withProperty(UseCase.scm("location")).
 										andTypedLiteral("git://github.com/ldp4j/ldp4j.git",XSD.ANY_URI_TYPE).
-									withProperty(scm("hasBranch")).
+									withProperty(UseCase.scm("hasBranch")).
 										andVariable("branch").
 								forVariable("branch").
 									withProperty(RDF.TYPE).
-										andResource(scm("Branch")).
-									withProperty(doap("name")).
+										andResource(UseCase.scm("Branch")).
+									withProperty(UseCase.doap("name")).
 										andTypedLiteral("develop",XSD.STRING_TYPE).
-									withProperty(scm("hasCommit")).
+									withProperty(UseCase.scm("hasCommit")).
 										andVariable("commit").
 								forVariable("commit").
 									withProperty(RDF.TYPE).
-										andResource(scm("Commit")).
-									withProperty(scm("commitId")).
+										andResource(UseCase.scm("Commit")).
+									withProperty(UseCase.scm("commitId")).
 										andTypedLiteral("f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44",XSD.STRING_TYPE));
 
 	public static final EnrichmentResult EXAMPLE_RESULT =
@@ -82,15 +82,15 @@ public final class UseCase {
 	private UseCase() {
 	}
 
-	static String ci(final String term) {
+	public static String ci(final String term) {
 		return CI_NAMESPACE+term;
 	}
 
-	static String scm(final String term) {
+	public static String scm(final String term) {
 		return SCM_NAMESPACE+term;
 	}
 
-	static String doap(final String term) {
+	public static String doap(final String term) {
 		return DOAP_NAMESPACE+term;
 	}
 

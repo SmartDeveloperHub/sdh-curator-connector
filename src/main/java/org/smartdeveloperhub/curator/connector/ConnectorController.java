@@ -57,9 +57,17 @@ abstract class ConnectorController {
 
 	final void connect() throws ControllerException {
 		this.brokerController.connect();
-		if(!this.requiresCreation) {
-			return;
+		if(this.requiresCreation) {
+			try {
+				configureBroker();
+			} catch (final Exception e) {
+				this.brokerController.disconnect();
+				throw e;
+			}
 		}
+	}
+
+	private void configureBroker() throws ControllerException {
 		final String exchangeName = declareConnectorExchange();
 		this.effectiveQueueName = declareConnectorQueue();
 		final String routingKey = bindConnectorQueue(exchangeName, this.effectiveQueueName);

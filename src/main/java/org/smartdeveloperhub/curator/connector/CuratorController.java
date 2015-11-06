@@ -66,7 +66,12 @@ abstract class CuratorController {
 
 	final void connect(final Agent agent) throws ControllerException {
 		this.brokerController.connect();
-		configureBroker(agent);
+		try {
+			configureBroker(agent);
+		} catch (final ControllerException e) {
+			this.brokerController.disconnect();
+			throw e;
+		}
 	}
 
 	final void disconnect() {

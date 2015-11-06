@@ -47,6 +47,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	DefaultMessageIdentifierFactoryTest.class,
 	CuratorConfigurationTest.class,
 	CleanerFactoryTest.class,
+	FailureAnalyzerTest.class,
 	BrokerControllerUncaughtExceptionHandlerTest.class,
 	BrokerControllerExceptionHandlerTest.class,
 	BrokerControllerTest.class,

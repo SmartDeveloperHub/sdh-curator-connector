@@ -303,7 +303,7 @@ public final class Connector {
 		this.curatorController.connect(this.configuration.agent());
 		try {
 			connectController();
-		} catch (final ConnectorException e) {
+		} catch (final Exception e) {
 			this.curatorController.disconnect();
 			throw e;
 		}

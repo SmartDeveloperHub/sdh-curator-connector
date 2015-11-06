@@ -135,7 +135,11 @@ final class BrokerController {
 		try {
 			channel().exchangeDeclare(exchangeName,EXCHANGE_TYPE,true,true,null);
 		} catch (final IOException e) {
-			throw new ControllerException("Could not create "+this.name+" exchange named '"+exchangeName+"'",e);
+			if(FailureAnalyzer.isExchangeDeclarationRecoverable(e)) {
+				createChannel();
+			} else {
+				throw new ControllerException("Could not create "+this.name+" exchange named '"+exchangeName+"'",e);
+			}
 		} finally {
 			this.read.unlock();
 		}
@@ -193,7 +197,7 @@ final class BrokerController {
 						withConversionContext(this.context).
 						toString(message));
 		} catch (final MessageConversionException e) {
-			LOGGER.warn("Could not publish message {}: {}",message,e.getMessage());
+			LOGGER.warn("Could not serialize message {}: {}",message,e.getMessage());
 			throw new IOException("Could not serialize message",e);
 		}
 	}
@@ -274,10 +278,12 @@ final class BrokerController {
 	}
 
 	private void closeChannelQuietly() {
-		try {
-			this.channel.close();
-		} catch (final Exception e) {
-			LOGGER.trace("Could not close channel gracefully",e);
+		if(this.channel.isOpen()) {
+			try {
+				this.channel.close();
+			} catch (final Exception e) {
+				LOGGER.trace("Could not close channel gracefully",e);
+			}
 		}
 	}
 

@@ -42,8 +42,8 @@ public class EnrichmentResponseMessageParserTest {
 	public void testFromModel$happyPath() {
 		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
 			@Override
-			protected void exercise(Model model, Resource target) {
-				EnrichmentResponseMessage result=EnrichmentResponseMessageParser.fromModel(model, target);
+			protected void exercise(final Model model, final Resource target) {
+				final EnrichmentResponseMessage result=EnrichmentResponseMessageParser.fromModel(model, target);
 				assertThat(result,notNullValue());
 				System.out.println(result);
 			}

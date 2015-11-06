@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Map;
@@ -281,6 +282,7 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.isOpen();this.result=true;
 			BrokerControllerTest.this.channel.close();this.result=new IOException("Could not close channel");
 			BrokerControllerTest.this.connection.close();
 		}};
@@ -316,12 +318,14 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.isOpen();this.result=true;
 			BrokerControllerTest.this.channel.close();
 			BrokerControllerTest.this.connection.close();this.result=new Throwable("failure");
 		}};
 		sut.connect();
 		try {
 			sut.disconnect();
+			fail("Should not complete disconnection if failure happens");
 		} catch (final Throwable e) {
 			assertThat(e.getMessage(),equalTo("failure"));
 		}
@@ -415,6 +419,79 @@ public class BrokerControllerTest {
 		final String queueName = sut.declareQueue(null);
 		assertThat(queueName,not(isEmptyOrNullString()));
 		sut.disconnect();
+	}
+
+	@Test
+	public void testDeclareExchange$failure$recreateChannelIfRecoverable() throws Exception {
+		final String exchangeName="exchangeName";
+		final BrokerController sut=newInstance();
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new MockUp<FailureAnalyzer>() {
+			@Mock
+			public boolean isExchangeDeclarationRecoverable(final IOException e) {
+				return true;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.exchangeDeclare(exchangeName,"topic",true,true,null);this.result=new IOException("failure");
+		}};
+		sut.connect();
+		sut.declareExchange(exchangeName);
+	}
+
+	@Test
+	public void testDeclareExchange$failure$abortIfNotRecoverable() throws Exception {
+		final String exchangeName="exchangeName";
+		final BrokerController sut=newInstance();
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.exchangeDeclare(exchangeName,"topic",true,true,null);this.result=new IOException("failure");
+		}};
+		sut.connect();
+		try {
+			sut.declareExchange(exchangeName);
+			fail("Should not declare a exception if the broker fails");
+		} catch (final ControllerException e) {
+			assertThat(e.getMessage(),equalTo("Could not create name exchange named 'exchangeName'"));
+			assertThat(e.getCause(),instanceOf(IOException.class));
+			assertThat(e.getCause().getMessage(),equalTo("failure"));
+		}
 	}
 
 }
