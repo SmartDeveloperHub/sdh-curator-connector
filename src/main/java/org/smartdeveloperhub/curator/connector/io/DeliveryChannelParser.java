@@ -59,7 +59,7 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 		}
 
 		private void updateRoutingKey() {
-			optional(
+			mandatory(
 				new LiteralConsumer("routingKey","amqp:routingKey") {
 					@Override
 					protected void consumeLiteral(final DeliveryChannelBuilder builder, final Literal literal) {

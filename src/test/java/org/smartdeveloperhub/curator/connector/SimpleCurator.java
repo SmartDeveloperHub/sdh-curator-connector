@@ -60,15 +60,18 @@ public final class SimpleCurator implements MessageHandler {
 	private ServerCuratorController curatorController;
 	private ServerConnectorController connectorController;
 
-	public SimpleCurator(final DeliveryChannel connectorConfiguration, final Notifier notifier, final ResponseProvider provider, final ConversionContext context) {
+	private final CuratorConfiguration curatorConfiguration;
+
+	public SimpleCurator(final DeliveryChannel connectorConfiguration, final CuratorConfiguration curatorConfiguration, final Notifier notifier, final ResponseProvider provider, final ConversionContext context) {
 		this.connectorConfiguration = connectorConfiguration;
+		this.curatorConfiguration = curatorConfiguration;
 		this.notifier = notifier;
 		this.provider = provider;
 		this.context = context;
 	}
 
 	public void connect(final Agent agent) throws IOException, ControllerException {
-		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator",this.context);
+		this.curatorController=new ServerCuratorController(this.curatorConfiguration,"curator",this.context);
 		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController,this.context);
 		this.curatorController.connect(agent);
 		this.curatorController.registerMessageHandler(this);

@@ -27,7 +27,10 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
@@ -42,28 +45,28 @@ public class DeliveryChannelParserTest {
 	public void testFromModel$happyPath() {
 		new ParserTester("data/deliveryChannel/full.ttl",CURATOR.DELIVERY_CHANNEL_TYPE) {
 			@Override
-			protected void exercise(Model model, Resource target) {
-				DeliveryChannel result=DeliveryChannelParser.fromModel(model, target);
+			protected void exercise(final Model model, final Resource target) {
+				final DeliveryChannel result=DeliveryChannelParser.fromModel(model, target);
 				assertThat(result,notNullValue());
 				System.out.println(result);
 			}
 		}.verify();
 	}
 
-//	@Test
-//	public void testFromModel$fail$multiple() {
-//		new ParserTester("data/agent/multiple.ttl",FOAF.AGENT_TYPE) {
-//			@Override
-//			protected void exercise(Model model, Resource target) {
-//				try {
-//					AgentParser.fromModel(model, target);
-//					fail("Should not return an agent when multiple are available");
-//				} catch (Exception e) {
-//					assertThat(e.getMessage(),equalTo("Too many Agent definitions for resource '"+target+"'"));
-//					assertThat(e.getCause(),nullValue());
-//				}
-//			}
-//		}.verify();
-//	}
+	@Test
+	public void testFromModel$fail$noRoutingKey() {
+		new ParserTester("data/deliveryChannel/missing_routing_key.ttl",CURATOR.DELIVERY_CHANNEL_TYPE) {
+			@Override
+			protected void exercise(final Model model, final Resource target) {
+				try {
+					DeliveryChannelParser.fromModel(model, target);
+					fail("Should not return a delivery channel without routing key");
+				} catch (final Exception e) {
+					assertThat(e.getMessage(),equalTo("Variable routingKey (literal) not bound when resolving property amqp:routingKey of resource "+target+""));
+					assertThat(e.getCause(),nullValue());
+				}
+			}
+		}.verify();
+	}
 
 }

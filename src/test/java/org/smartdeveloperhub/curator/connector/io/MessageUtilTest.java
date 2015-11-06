@@ -211,7 +211,7 @@ public class MessageUtilTest {
 					withExchangeName("exchange.name").
 					withRoutingKey("routing.key"));
 		} else {
-			builder.withReplyTo(newDeliveryChannel());
+			builder.withReplyTo(newDeliveryChannel().withRoutingKey("routing.key"));
 		}
 		return builder.build();
 	}

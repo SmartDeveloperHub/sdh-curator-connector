@@ -115,12 +115,15 @@ public final class Connector {
 		}
 
 		public Connector build() {
+			final ConnectorConfiguration conf =
+				new ConnectorConfiguration().
+					withCuratorConfiguration(curatorConfiguration()).
+					withQueueName(this.queueName).
+					withConnectorChannel(connectorChannel()).
+					withAgent(agent());
 			return
 				new Connector(
-					curatorConfiguration(),
-					agent(),
-					this.queueName,
-					connectorChannel(),
+					conf,
 					this.context,
 					this.factory!=null?this.factory:new DefaultMessageIdentifierFactory());
 		}
@@ -207,16 +210,11 @@ public final class Connector {
 
 	private boolean connected;
 
-	private Connector(final CuratorConfiguration curatorConfiguration, final Agent agent, final String queueName, final DeliveryChannel connectorChannel, final ConversionContext context, final MessageIdentifierFactory factory) {
+	private Connector(final ConnectorConfiguration configuration, final ConversionContext context, final MessageIdentifierFactory factory) {
+		this.configuration = configuration;
 		this.factory = factory;
-		this.configuration =
-			new ConnectorConfiguration().
-				withCuratorConfiguration(curatorConfiguration).
-				withQueueName(queueName).
-				withConnectorChannel(connectorChannel).
-				withAgent(agent);
-		this.curatorController=new ClientCuratorController(curatorConfiguration,"connector-curator",context);
-		this.connectorController=new ClientConnectorController(queueName,connectorChannel,context,this.curatorController);
+		this.curatorController=new ClientCuratorController(configuration.curatorConfiguration(),"connector-curator",context);
+		this.connectorController=new ClientConnectorController(configuration.queueName(),configuration.connectorChannel(),context,this.curatorController);
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();

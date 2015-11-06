@@ -52,6 +52,7 @@ import org.smartdeveloperhub.curator.protocol.Resource;
 import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
@@ -166,7 +167,10 @@ public final class ProtocolFactory {
 				new ImmutableDeliveryChannel(
 					this.broker,
 					ValidationUtil.validateName(this.exchangeName),
-					ValidationUtil.validateRoutingKey(this.routingKey));
+					ValidationUtil.checkNotNull(
+						ValidationUtil.validateRoutingKey(this.routingKey),
+						AMQP.ROUTING_KEY_TYPE,
+						"Routing key cannot be null"));
 		}
 
 	}

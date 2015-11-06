@@ -85,6 +85,7 @@ public class ClientConnectorControllerTest {
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
 						withExchangeName("connectorExchange").
+						withRoutingKey("routingKey").
 						build());
 		try {
 			sut.connect();
@@ -107,6 +108,7 @@ public class ClientConnectorControllerTest {
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
 						withExchangeName(this.configuration.exchangeName()).
+						withRoutingKey("routingKey").
 						build());
 		try {
 			sut.connect();
@@ -129,6 +131,7 @@ public class ClientConnectorControllerTest {
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
+						withRoutingKey("routingKey").
 						build());
 		try {
 			sut.connect();
@@ -150,6 +153,7 @@ public class ClientConnectorControllerTest {
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
+						withRoutingKey("routingKey").
 						build());
 		try {
 			sut.connect();
@@ -173,6 +177,7 @@ public class ClientConnectorControllerTest {
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
 						withExchangeName(this.configuration.exchangeName()).
+						withRoutingKey("routingKey").
 						build());
 		try {
 			sut.connect();
@@ -241,6 +246,7 @@ public class ClientConnectorControllerTest {
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
+						withRoutingKey("routingKey").
 						build());
 		assertThat(sut.brokerController(),equalTo(this.brokerController));
 	}
@@ -256,6 +262,7 @@ public class ClientConnectorControllerTest {
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
+						withRoutingKey("routingKey").
 						build());
 		assertThat(sut.brokerController(),not(equalTo(this.brokerController)));
 	}
@@ -271,6 +278,7 @@ public class ClientConnectorControllerTest {
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker((Broker)null).
+						withRoutingKey("routingKey").
 						build());
 		assertThat(sut.brokerController(),equalTo(this.brokerController));
 	}

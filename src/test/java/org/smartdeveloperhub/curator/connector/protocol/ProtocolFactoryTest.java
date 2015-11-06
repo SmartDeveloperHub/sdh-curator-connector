@@ -55,6 +55,7 @@ import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Value;
+import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
@@ -86,12 +87,12 @@ public class ProtocolFactoryTest {
 					withSubmittedOn(new Date()).
 					withMessageId(UUID.randomUUID()).
 					withTargetResource("target").
-					withReplyTo(ProtocolFactory.newDeliveryChannel()).
+					withReplyTo(ProtocolFactory.newDeliveryChannel().withRoutingKey("routingKey")).
 					withFilter(this.filter).
 					withConstraint(this.constraint).
 					build();
 			fail("Should not create a message with no agent");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("Agent cannot be null"));
 			assertThat(e.getType(),equalTo(FOAF.AGENT_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -112,7 +113,7 @@ public class ProtocolFactoryTest {
 					withConstraint(this.constraint).
 					build();
 			fail("Should not create a request with no delivery channel");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No enrichment request reply delivery channel specified"));
 			assertThat(e.getType(),equalTo(CURATOR.DELIVERY_CHANNEL_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -128,7 +129,7 @@ public class ProtocolFactoryTest {
 					withValue((Builder<Value>)null).
 					build();
 			fail("Should not create a binding with no value");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("Binding value cannot be null"));
 			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -144,7 +145,7 @@ public class ProtocolFactoryTest {
 					withBinding((Builder<Binding>)null).
 					build();
 			fail("Should not create a constraint without bindings");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No constraint bindings specified"));
 			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -160,7 +161,7 @@ public class ProtocolFactoryTest {
 					withBinding((Binding)null).
 					build();
 			fail("Should not create a constraint without bindings");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No constraint bindings specified"));
 			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -169,7 +170,7 @@ public class ProtocolFactoryTest {
 
 	@Test
 	public void testFailureMessageBuilder$withSubcode$null() {
-		FailureMessage message=
+		final FailureMessage message=
 			ProtocolFactory.
 				newFailureMessage().
 					withMessageId(UUID.randomUUID()).
@@ -186,7 +187,7 @@ public class ProtocolFactoryTest {
 
 	@Test
 	public void testFailureMessageBuilder$withSubcode$Long() {
-		FailureMessage message=
+		final FailureMessage message=
 			ProtocolFactory.
 				newFailureMessage().
 					withMessageId(UUID.randomUUID()).
@@ -215,7 +216,7 @@ public class ProtocolFactoryTest {
 					withConstraint(this.constraint).
 					build();
 			fail("Should not create an enrichment request message without filters");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No enrichment request filters specified"));
 			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -236,7 +237,7 @@ public class ProtocolFactoryTest {
 					withConstraint((Builder<Constraint>)null).
 					build();
 			fail("Should not create an enrichment request message without constraints");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No enrichment request constraints specified"));
 			assertThat(e.getType(),equalTo(RDFS.RESOURCE_TYPE));
 			assertThat(e.getValue(),nullValue());
@@ -245,7 +246,7 @@ public class ProtocolFactoryTest {
 
 	@Test
 	public void testEnrichmentRequestMessageBuilder$withFilterAndConstraint() {
-		EnrichmentRequestMessage request =
+		final EnrichmentRequestMessage request =
 			ProtocolFactory.
 				newEnrichmentRequestMessage().
 					withMessageId(this.messageId).
@@ -264,7 +265,7 @@ public class ProtocolFactoryTest {
 
 	@Test
 	public void testEnrichmentResponseMessageBuilder$withoutAdditions() throws Exception {
-		EnrichmentResponseMessage message=
+		final EnrichmentResponseMessage message=
 			ProtocolFactory.
 				newEnrichmentResponseMessage().
 					withMessageId(this.messageId).
@@ -283,7 +284,7 @@ public class ProtocolFactoryTest {
 
 	@Test
 	public void testEnrichmentResponseMessageBuilder$withoutRemovals() throws Exception {
-		EnrichmentResponseMessage message=
+		final EnrichmentResponseMessage message=
 			ProtocolFactory.
 				newEnrichmentResponseMessage().
 					withMessageId(this.messageId).
@@ -303,7 +304,7 @@ public class ProtocolFactoryTest {
 	@Test
 	public void testLiteralBuilder$withLexicalForm() {
 		final String lexicalForm = "string";
-		Literal literal =
+		final Literal literal =
 			ProtocolFactory.
 				newLiteral().
 					withLexicalForm(lexicalForm).
@@ -321,9 +322,24 @@ public class ProtocolFactoryTest {
 					withLexicalForm(null).
 					build();
 			fail("Should not create a literal without a lexical form");
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("Lexical form cannot be null"));
 			assertThat(e.getType(),equalTo(XSD.STRING_TYPE));
+			assertThat(e.getValue(),nullValue());
+		}
+	}
+
+	@Test
+	public void testDeliveryChannelBuilder$nullRoutingKey() {
+		try {
+			ProtocolFactory.
+				newDeliveryChannel().
+					withRoutingKey(null).
+					build();
+			fail("Should not create a delivery channel without routing key");
+		} catch (final ValidationException e) {
+			assertThat(e.getDescription(),equalTo("Routing key cannot be null"));
+			assertThat(e.getType(),equalTo(AMQP.ROUTING_KEY_TYPE));
 			assertThat(e.getValue(),nullValue());
 		}
 	}

@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartdeveloperhub.curator.connector.CuratorConfiguration;
 import org.smartdeveloperhub.curator.connector.EnrichmentResult;
 import org.smartdeveloperhub.curator.connector.Failure;
 import org.smartdeveloperhub.curator.connector.ResponseProvider;
@@ -41,12 +42,54 @@ import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 public final class Curator {
+
+	public static final class Builder {
+
+		private CuratorConfiguration curatorConfiguration;
+		private ConversionContext conversionContext;
+		private Notifier notifier;
+		private DeliveryChannel connectorConfiguration;
+
+		public Builder withCuratorConfiguration(final CuratorConfiguration curatorConfiguration) {
+			this.curatorConfiguration = curatorConfiguration;
+			return this;
+		}
+
+		public Builder withConversionContext(final ConversionContext conversionContext) {
+			this.conversionContext = conversionContext;
+			return this;
+		}
+
+		public Builder withNotifier(final Notifier notifier) {
+			this.notifier = notifier;
+			return this;
+		}
+
+		public Builder withConnectorConfiguration(final DeliveryChannel connectorConfiguration) {
+			this.connectorConfiguration = connectorConfiguration;
+			return this;
+		}
+
+		private CuratorConfiguration curatorConfiguration() {
+			return Optional.fromNullable(this.curatorConfiguration).or(CuratorConfiguration.newInstance());
+		}
+
+		private ConversionContext conversionContext() {
+			return Optional.fromNullable(this.conversionContext).or(ConversionContext.newInstance());
+		}
+
+		public Curator build() {
+			return new Curator(this.connectorConfiguration,curatorConfiguration(),this.notifier,conversionContext());
+		}
+
+	}
 
 	private final class CustomResponseProvider implements ResponseProvider {
 
@@ -119,8 +162,8 @@ public final class Curator {
 	private long resultDelay=150;
 	private TimeUnit resultDelayUnit=TimeUnit.MILLISECONDS;
 
-	private Curator(final DeliveryChannel connector, final Notifier notifier, final ConversionContext context) {
-		this.delegate=new SimpleCurator(connector,notifier,new CustomResponseProvider(),context);
+	private Curator(final DeliveryChannel connector, final CuratorConfiguration curatorConfiguration, final Notifier notifier, final ConversionContext context) {
+		this.delegate=new SimpleCurator(connector,curatorConfiguration,notifier,new CustomResponseProvider(),context);
 		this.failures=ArrayListMultimap.create();
 		this.results=ArrayListMultimap.create();
 		this.accepted=Lists.newArrayList();
@@ -179,12 +222,8 @@ public final class Curator {
 		}
 	}
 
-	public static Curator newInstance(final DeliveryChannel connector, final Notifier notifier) {
-		return new Curator(connector,notifier,ConversionContext.newInstance());
-	}
-
-	public static Curator newInstance(final DeliveryChannel connector, final Notifier notifier, final ConversionContext context) {
-		return new Curator(connector,notifier,context);
+	public static Builder builder() {
+		return new Builder();
 	}
 
 }

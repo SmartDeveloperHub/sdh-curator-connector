@@ -30,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 
 import java.io.IOException;
@@ -70,6 +71,12 @@ public class ConnectorTest {
 
 	private static final Logger LOGGER=LoggerFactory.getLogger(ConnectorTest.class);
 
+	private final Agent agent =
+	ProtocolFactory.
+		newAgent().
+			withAgentId(UUID.randomUUID()).
+				build();
+
 	@Rule
 	public TestName test=new TestName();
 
@@ -80,15 +87,27 @@ public class ConnectorTest {
 		return
 			ProtocolFactory.
 				newDeliveryChannel().
-					withRoutingKey("connector"+"."+this.test.getMethodName().replace('$', '.')).
+					withRoutingKey("connector."+this.test.getMethodName().replace('$', '.')).
 					build();
 	}
 
-	final Agent agent =
-			ProtocolFactory.
-				newAgent().
-					withAgentId(UUID.randomUUID()).
-						build();
+	private Curator newCurator(final Notifier notifier) {
+		return Curator.
+			builder().
+				withCuratorConfiguration(
+					CuratorConfiguration.
+						newInstance().
+							withQueueName("curator."+this.test.getMethodName().replace('$', '.'))).
+				withConnectorConfiguration(deliveryChannel()).
+				withNotifier(notifier).
+				withConversionContext(
+					ConversionContext.
+						newInstance().
+							withNamespacePrefix(UseCase.CI_NAMESPACE,"ci").
+							withNamespacePrefix(UseCase.SCM_NAMESPACE,"scm").
+								withNamespacePrefix(UseCase.DOAP_NAMESPACE,"doap")).
+				build();
+	}
 
 	private void logHeader() {
 		LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -106,11 +125,13 @@ public class ConnectorTest {
 					withAgentIdentifier((String)null).
 					withCuratorConfiguration(null).
 					withMessageIdentifierFactory(null).
+					withQueueName(null).
 					build();
 		final ConnectorConfiguration configuration = Deencapsulation.getField(connector,ConnectorConfiguration.class);
 		assertThat(configuration.agent(),notNullValue());
 		assertThat(configuration.connectorChannel(),notNullValue());
 		assertThat(configuration.curatorConfiguration(),equalTo(CuratorConfiguration.newInstance()));
+		assertThat(configuration.queueName(),nullValue());
 	}
 	@Test
 	public void testKeepsConfiguration() throws Exception {
@@ -417,17 +438,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=
-				Curator.
-					newInstance(
-						deliveryChannel(),
-						new CustomNotifier(),
-						ConversionContext.
-							newInstance().
-								withNamespacePrefix(UseCase.CI_NAMESPACE,"ci").
-								withNamespacePrefix(UseCase.SCM_NAMESPACE,"scm").
-								withNamespacePrefix(UseCase.DOAP_NAMESPACE,"doap")
-					);
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.accept(factory.generated(0),UseCase.EXAMPLE_RESULT);
 		curator.connect(this.agent);
 		try {
@@ -489,7 +500,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.accept(factory.generated(0));
 		curator.connect(this.agent);
 		try {
@@ -546,7 +557,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
 		curator.connect(this.agent);
 		try {
@@ -603,7 +614,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.fail(factory.generated(0));
 		curator.connect(this.agent);
 		try {
@@ -661,7 +672,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
 		curator.connect(this.agent);
 		try {
@@ -729,7 +740,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.accept(factory.generated(0));
 		curator.connect(this.agent);
 		try {
@@ -788,7 +799,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.accept(factory.generated(0));
 		curator.connect(this.agent);
 		try {
@@ -849,7 +860,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.fail(factory.generated(0),Failure.newInstance().withCode(1).withReason("A failure"));
 		curator.delayAcknowledges(1000, TimeUnit.MILLISECONDS);
 		curator.connect(this.agent);
@@ -917,7 +928,7 @@ public class ConnectorTest {
 			}
 		}
 		final RandomMessageIdentifierFactory factory=RandomMessageIdentifierFactory.create(2);
-		final Curator curator=Curator.newInstance(deliveryChannel(),new CustomNotifier());
+		final Curator curator=newCurator(new CustomNotifier());
 		curator.accept(factory.generated(0),UseCase.EXAMPLE_RESULT);
 		curator.delayAcknowledges(1,TimeUnit.MILLISECONDS);
 		curator.delayResults(500,TimeUnit.MILLISECONDS);
