@@ -33,19 +33,16 @@ import com.google.common.base.MoreObjects;
 
 final class ImmutableDeliveryChannel implements DeliveryChannel {
 
+	private final Broker broker;
 	private final String exchangeName;
 	private final String routingKey;
-	private final Broker broker;
-	private final String queueName;
 
 	ImmutableDeliveryChannel(
-			Broker broker,
-			String exchangeName,
-			String queueName,
-			String routingKey) {
+			final Broker broker,
+			final String exchangeName,
+			final String routingKey) {
 		this.broker = broker;
 		this.exchangeName = exchangeName;
-		this.queueName = queueName;
 		this.routingKey = routingKey;
 	}
 
@@ -57,11 +54,6 @@ final class ImmutableDeliveryChannel implements DeliveryChannel {
 	@Override
 	public String exchangeName() {
 		return this.exchangeName;
-	}
-
-	@Override
-	public String queueName() {
-		return this.queueName;
 	}
 
 	@Override
@@ -77,7 +69,6 @@ final class ImmutableDeliveryChannel implements DeliveryChannel {
 					omitNullValues().
 					add("broker",this.broker).
 					add("exchangeName",this.exchangeName).
-					add("queueName",this.queueName).
 					add("routingKey",this.routingKey).
 					toString();
 	}

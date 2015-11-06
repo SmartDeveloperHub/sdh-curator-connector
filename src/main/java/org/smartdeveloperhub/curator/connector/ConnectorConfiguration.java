@@ -38,11 +38,17 @@ final class ConnectorConfiguration {
 	private DeliveryChannel connectorChannel;
 	private Agent agent;
 
+	private String queueName;
+
 	ConnectorConfiguration() {
 	}
 
 	Agent agent() {
 		return this.agent;
+	}
+
+	String queueName() {
+		return this.queueName;
 	}
 
 	DeliveryChannel connectorChannel() {
@@ -55,6 +61,11 @@ final class ConnectorConfiguration {
 
 	ConnectorConfiguration withCuratorConfiguration(final CuratorConfiguration configuration) {
 		this.curatorConfiguration=configuration;
+		return this;
+	}
+
+	ConnectorConfiguration withQueueName(final String queueName) {
+		this.queueName=queueName;
 		return this;
 	}
 
@@ -80,7 +91,7 @@ final class ConnectorConfiguration {
 		builder.append("   + Connector configuration:").append(ConnectorConfiguration.NL);
 		appendBrokerDetails(builder, this.connectorChannel.broker());
 		appendExchangeName(builder, this.connectorChannel.exchangeName());
-		appendConnectorQueueDetails(builder, this.connectorChannel.queueName(),this.connectorChannel().routingKey());
+		appendConnectorQueueDetails(builder, this.queueName,this.connectorChannel().routingKey());
 		return builder.toString();
 	}
 

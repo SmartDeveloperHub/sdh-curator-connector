@@ -55,8 +55,8 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 	private static final String DELIVERY_CHANNEL_BNODE = "deliveryChannel";
 
 	@Override
-	protected void toString(EnrichmentRequestMessage message, ModelHelper helper) {
-		EnrichmentUtil util=
+	protected void toString(final EnrichmentRequestMessage message, final ModelHelper helper) {
+		final EnrichmentUtil util=
 			EnrichmentUtil.
 				builder().
 					withFilters(message.filters()).
@@ -88,7 +88,7 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 	}
 
 	@Override
-	protected EnrichmentRequestMessage parse(Model model, Resource resource) {
+	protected EnrichmentRequestMessage parse(final Model model, final Resource resource) {
 		return EnrichmentRequestMessageParser.fromModel(model, resource);
 	}
 
@@ -97,17 +97,17 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 		return CURATOR.ENRICHMENT_REQUEST_TYPE;
 	}
 
-	private void serializeConstraints(ModelHelper helper, List<Constraint> constraints) {
+	private void serializeConstraints(final ModelHelper helper, final List<Constraint> constraints) {
 		final BindingSerializer serializer=BindingSerializer.newInstance(helper);
-		for(Constraint constraint:constraints) {
-			NamedValue target=constraint.target();
-			for(Binding binding:constraint.bindings()) {
+		for(final Constraint constraint:constraints) {
+			final NamedValue target=constraint.target();
+			for(final Binding binding:constraint.bindings()) {
 				serializer.serialize(target,binding);
 			}
 		}
 	}
 
-	private void serializeFilters(ModelHelper helper, URI targetResource, List<Filter> filters) {
+	private void serializeFilters(final ModelHelper helper, final URI targetResource, final List<Filter> filters) {
 		final ResourceHelper resource=helper.resource(targetResource);
 		for(final Filter filter:filters) {
 			resource.
@@ -118,14 +118,13 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 		}
 	}
 
-	private void serializeReplyTo(EnrichmentUtil util, ModelHelper helper, DeliveryChannel deliveryChannel) {
+	private void serializeReplyTo(final EnrichmentUtil util, final ModelHelper helper, final DeliveryChannel deliveryChannel) {
 		serializeBroker(util, helper, deliveryChannel.broker());
 		deliveryChannelProperty(util,helper,AMQP.EXCHANGE_NAME,deliveryChannel.exchangeName(),AMQP.NAME_TYPE);
-		deliveryChannelProperty(util,helper,AMQP.QUEUE_NAME,deliveryChannel.queueName(), AMQP.NAME_TYPE);
 		deliveryChannelProperty(util,helper,AMQP.ROUTING_KEY,deliveryChannel.routingKey(), AMQP.ROUTING_KEY_TYPE);
 	}
 
-	private void serializeBroker(EnrichmentUtil util, ModelHelper helper, Broker broker) {
+	private void serializeBroker(final EnrichmentUtil util, final ModelHelper helper, final Broker broker) {
 		if(broker==null) {
 			return;
 		}
@@ -143,7 +142,7 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 					withTypedLiteral(broker.virtualHost(),AMQP.PATH_TYPE);
 	}
 
-	private void deliveryChannelProperty(EnrichmentUtil util, ModelHelper helper, String property, String value, String type) {
+	private void deliveryChannelProperty(final EnrichmentUtil util, final ModelHelper helper, final String property, final String value, final String type) {
 		if(value!=null) {
 			helper.
 				blankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).

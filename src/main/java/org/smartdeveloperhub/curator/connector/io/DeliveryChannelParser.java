@@ -44,7 +44,6 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 		protected void parse() {
 			updateBroker();
 			updateExchangeName();
-			updateQueueName();
 			updateRoutingKey();
 		}
 
@@ -52,7 +51,7 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 			optional(
 				new ResourceConsumer("broker","amqp:broker") {
 					@Override
-					protected void consumeResource(DeliveryChannelBuilder builder, Resource resource) {
+					protected void consumeResource(final DeliveryChannelBuilder builder, final Resource resource) {
 						builder.withBroker(BrokerParser.fromModel(model(), resource));
 					}
 				}
@@ -63,19 +62,8 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 			optional(
 				new LiteralConsumer("routingKey","amqp:routingKey") {
 					@Override
-					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
+					protected void consumeLiteral(final DeliveryChannelBuilder builder, final Literal literal) {
 						builder.withRoutingKey(literal.getLexicalForm());
-					}
-				}
-			);
-		}
-
-		private void updateQueueName() {
-			optional(
-				new LiteralConsumer("queueName","amqp:queueName") {
-					@Override
-					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
-						builder.withQueueName(literal.getLexicalForm());
 					}
 				}
 			);
@@ -85,7 +73,7 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 			optional(
 				new LiteralConsumer("exchangeName","amqp:exchangeName") {
 					@Override
-					protected void consumeLiteral(DeliveryChannelBuilder builder, Literal literal) {
+					protected void consumeLiteral(final DeliveryChannelBuilder builder, final Literal literal) {
 						builder.withExchangeName(literal.getLexicalForm());
 					}
 				}
@@ -98,7 +86,7 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 		QueryFactory.create(
 			ResourceUtil.loadResource(DeliveryChannelParser.class,"deliveryChannel.sparql"));
 
-	private DeliveryChannelParser(Model model, Resource resource) {
+	private DeliveryChannelParser(final Model model, final Resource resource) {
 		super(model, resource, "curator:DeliveryChannel","deliveryChannel", QUERY);
 	}
 
@@ -112,7 +100,7 @@ final class DeliveryChannelParser extends Parser<DeliveryChannel,DeliveryChannel
 		return ProtocolFactory.newDeliveryChannel();
 	}
 
-	static DeliveryChannel fromModel(Model model, Resource resource) {
+	static DeliveryChannel fromModel(final Model model, final Resource resource) {
 		return new DeliveryChannelParser(model, resource).parse();
 	}
 

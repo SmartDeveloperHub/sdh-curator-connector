@@ -72,26 +72,26 @@ public final class ProtocolFactory {
 		private BrokerBuilder() {
 		}
 
-		private void setPort(Integer port) {
+		private void setPort(final Integer port) {
 			this.port=port;
 		}
 
-		public BrokerBuilder withHost(String host) {
+		public BrokerBuilder withHost(final String host) {
 			this.host=host;
 			return this;
 		}
 
-		public BrokerBuilder withPort(String port) {
+		public BrokerBuilder withPort(final String port) {
 			setPort(ParsingUtil.toPort(port));
 			return this;
 		}
 
-		public BrokerBuilder withPort(int port) {
+		public BrokerBuilder withPort(final int port) {
 			setPort(port);
 			return this;
 		}
 
-		public BrokerBuilder withVirtualHost(String virtualHost) {
+		public BrokerBuilder withVirtualHost(final String virtualHost) {
 			this.virtualHost = virtualHost;
 			return this;
 		}
@@ -114,12 +114,12 @@ public final class ProtocolFactory {
 		private AgentBuilder() {
 		}
 
-		public AgentBuilder withAgentId(UUID agentId) {
+		public AgentBuilder withAgentId(final UUID agentId) {
 			this.agentId=agentId;
 			return this;
 		}
 
-		public AgentBuilder withAgentId(String agentId) {
+		public AgentBuilder withAgentId(final String agentId) {
 			return withAgentId(ParsingUtil.toUUID(agentId));
 		}
 
@@ -136,32 +136,26 @@ public final class ProtocolFactory {
 
 		private Broker broker;
 		private String exchangeName;
-		private String queueName;
 		private String routingKey;
 
 		private DeliveryChannelBuilder() {
 		}
 
-		public DeliveryChannelBuilder withBroker(Broker broker) {
+		public DeliveryChannelBuilder withBroker(final Broker broker) {
 			this.broker=broker;
 			return this;
 		}
 
-		public DeliveryChannelBuilder withBroker(Builder<Broker> builder) {
+		public DeliveryChannelBuilder withBroker(final Builder<Broker> builder) {
 			return withBroker(builder.build());
 		}
 
-		public DeliveryChannelBuilder withExchangeName(String exchangeName) {
+		public DeliveryChannelBuilder withExchangeName(final String exchangeName) {
 			this.exchangeName = exchangeName;
 			return this;
 		}
 
-		public DeliveryChannelBuilder withQueueName(String queueName) {
-			this.queueName = queueName;
-			return this;
-		}
-
-		public DeliveryChannelBuilder withRoutingKey(String routingKey) {
+		public DeliveryChannelBuilder withRoutingKey(final String routingKey) {
 			this.routingKey = routingKey;
 			return this;
 		}
@@ -172,7 +166,6 @@ public final class ProtocolFactory {
 				new ImmutableDeliveryChannel(
 					this.broker,
 					ValidationUtil.validateName(this.exchangeName),
-					ValidationUtil.validateName(this.queueName),
 					ValidationUtil.validateRoutingKey(this.routingKey));
 		}
 
@@ -186,7 +179,7 @@ public final class ProtocolFactory {
 		private DateTime submittedOn;
 		private Agent agent;
 
-		private MessageBuilder(Class<? extends B> builderClass) {
+		private MessageBuilder(final Class<? extends B> builderClass) {
 			this.builder = builderClass.cast(this);
 		}
 
@@ -206,34 +199,34 @@ public final class ProtocolFactory {
 			return this.builder;
 		}
 
-		public B withMessageId(UUID messageId) {
+		public B withMessageId(final UUID messageId) {
 			this.messageId=messageId;
 			return this.builder;
 		}
 
-		public B withMessageId(String messageId) {
+		public B withMessageId(final String messageId) {
 			return withMessageId(ParsingUtil.toUUID(messageId));
 		}
 
-		public B withSubmittedOn(DateTime submittedOn) {
+		public B withSubmittedOn(final DateTime submittedOn) {
 			this.submittedOn = submittedOn;
 			return this.builder;
 		}
 
-		public B withSubmittedOn(Date submittedOn) {
+		public B withSubmittedOn(final Date submittedOn) {
 			return withSubmittedOn(ParsingUtil.toDateTime(submittedOn));
 		}
 
-		public B withSubmittedOn(String submittedOn) {
+		public B withSubmittedOn(final String submittedOn) {
 			return withSubmittedOn(ParsingUtil.toDateTime(submittedOn));
 		}
 
-		public B withSubmittedBy(Agent agent) {
+		public B withSubmittedBy(final Agent agent) {
 			this.agent=agent;
 			return this.builder;
 		}
 
-		public B withSubmittedBy(Builder<Agent> builder) {
+		public B withSubmittedBy(final Builder<Agent> builder) {
 			if(builder==null) {
 				return this.builder;
 			}
@@ -246,7 +239,7 @@ public final class ProtocolFactory {
 
 		private DeliveryChannel deliveryChannel;
 
-		private RequestMessageBuilder(Class<? extends B> builderClass) {
+		private RequestMessageBuilder(final Class<? extends B> builderClass) {
 			super(builderClass);
 		}
 
@@ -254,12 +247,12 @@ public final class ProtocolFactory {
 			return this.deliveryChannel;
 		}
 
-		public B withReplyTo(DeliveryChannel deliveryChannel) {
+		public B withReplyTo(final DeliveryChannel deliveryChannel) {
 			this.deliveryChannel=deliveryChannel;
 			return builder();
 		}
 
-		public B withReplyTo(Builder<DeliveryChannel> builder) {
+		public B withReplyTo(final Builder<DeliveryChannel> builder) {
 			if(builder==null) {
 				return builder();
 			}
@@ -281,37 +274,37 @@ public final class ProtocolFactory {
 			this.constraints=Lists.newArrayList();
 		}
 
-		public EnrichmentRequestMessageBuilder withTargetResource(String targetResource) {
+		public EnrichmentRequestMessageBuilder withTargetResource(final String targetResource) {
 			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
-		public EnrichmentRequestMessageBuilder withTargetResource(URI targetResource) {
+		public EnrichmentRequestMessageBuilder withTargetResource(final URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
-		public EnrichmentRequestMessageBuilder withFilter(Filter filter) {
+		public EnrichmentRequestMessageBuilder withFilter(final Filter filter) {
 			if(filter!=null) {
 				this.filters.add(filter);
 			}
 			return this;
 		}
 
-		public EnrichmentRequestMessageBuilder withFilter(Builder<Filter> builder) {
+		public EnrichmentRequestMessageBuilder withFilter(final Builder<Filter> builder) {
 			if(builder==null) {
 				return this;
 			}
 			return withFilter(builder.build());
 		}
 
-		public EnrichmentRequestMessageBuilder withConstraint(Constraint constraint) {
+		public EnrichmentRequestMessageBuilder withConstraint(final Constraint constraint) {
 			if(constraint!=null) {
 				this.constraints.add(constraint);
 			}
 			return this;
 		}
 
-		public EnrichmentRequestMessageBuilder withConstraint(Builder<Constraint> builder) {
+		public EnrichmentRequestMessageBuilder withConstraint(final Builder<Constraint> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -362,11 +355,11 @@ public final class ProtocolFactory {
 		private UUID responseTo;
 		private Long responseNumber;
 
-		private ResponseMessageBuilder(Class<? extends B> builderClass) {
+		private ResponseMessageBuilder(final Class<? extends B> builderClass) {
 			super(builderClass);
 		}
 
-		private void setResponseNumber(Long responseNumber) {
+		private void setResponseNumber(final Long responseNumber) {
 			this.responseNumber = responseNumber;
 		}
 
@@ -378,21 +371,21 @@ public final class ProtocolFactory {
 			return ValidationUtil.validateUnsignedLong(this.responseNumber,"Response number");
 		}
 
-		public final B withResponseTo(String messageId) {
+		public final B withResponseTo(final String messageId) {
 			return withResponseTo(ParsingUtil.toUUID(messageId));
 		}
 
-		public final B withResponseTo(UUID messageId) {
+		public final B withResponseTo(final UUID messageId) {
 			this.responseTo = messageId;
 			return builder();
 		}
 
-		public final B withResponseNumber(long responseNumber) {
+		public final B withResponseNumber(final long responseNumber) {
 			setResponseNumber(responseNumber);
 			return builder();
 		}
 
-		public final B withResponseNumber(String responseNumber) {
+		public final B withResponseNumber(final String responseNumber) {
 			setResponseNumber(ParsingUtil.toUnsignedLong(responseNumber));
 			return builder();
 		}
@@ -430,48 +423,48 @@ public final class ProtocolFactory {
 			super(FailureMessageBuilder.class);
 		}
 
-		private void setCode(long code) {
+		private void setCode(final long code) {
 			this.code=code;
 		}
 
-		private void setSubcode(long subcode) {
+		private void setSubcode(final long subcode) {
 			this.subcode=subcode;
 		}
 
-		public FailureMessageBuilder withCode(long code) {
+		public FailureMessageBuilder withCode(final long code) {
 			setCode(code);
 			return this;
 		}
 
-		public FailureMessageBuilder withCode(String code) {
+		public FailureMessageBuilder withCode(final String code) {
 			setCode(ParsingUtil.toUnsignedLong(code));
 			return this;
 		}
 
-		public FailureMessageBuilder withSubcode(long subcode) {
+		public FailureMessageBuilder withSubcode(final long subcode) {
 			setSubcode(subcode);
 			return this;
 		}
 
-		public FailureMessageBuilder withSubcode(Long subcode) {
+		public FailureMessageBuilder withSubcode(final Long subcode) {
 			if(subcode!=null) {
 				setSubcode(subcode);
 			}
 			return this;
 		}
 
-		public FailureMessageBuilder withSubcode(String subcode) {
+		public FailureMessageBuilder withSubcode(final String subcode) {
 			setSubcode(ParsingUtil.toUnsignedLong(subcode));
 			return this;
 		}
 
 
-		public FailureMessageBuilder withReason(String reason) {
+		public FailureMessageBuilder withReason(final String reason) {
 			this.reason = reason;
 			return this;
 		}
 
-		public FailureMessageBuilder withDetail(String detail) {
+		public FailureMessageBuilder withDetail(final String detail) {
 			this.detail = detail;
 			return this;
 		}
@@ -496,8 +489,8 @@ public final class ProtocolFactory {
 	public static final class EnrichmentResponseMessageBuilder extends ResponseMessageBuilder<EnrichmentResponseMessage,EnrichmentResponseMessageBuilder> {
 
 		private URI targetResource;
-		private List<Binding> additions;
-		private List<Binding> removals;
+		private final List<Binding> additions;
+		private final List<Binding> removals;
 
 		private EnrichmentResponseMessageBuilder() {
 			super(EnrichmentResponseMessageBuilder.class);
@@ -505,37 +498,37 @@ public final class ProtocolFactory {
 			this.removals=Lists.newArrayList();
 		}
 
-		public EnrichmentResponseMessageBuilder withTargetResource(URI targetResource) {
+		public EnrichmentResponseMessageBuilder withTargetResource(final URI targetResource) {
 			this.targetResource = targetResource;
 			return this;
 		}
 
-		public EnrichmentResponseMessageBuilder withTargetResource(String targetResource) {
+		public EnrichmentResponseMessageBuilder withTargetResource(final String targetResource) {
 			return withTargetResource(ParsingUtil.toURI(targetResource));
 		}
 
-		public EnrichmentResponseMessageBuilder withAddition(Binding binding) {
+		public EnrichmentResponseMessageBuilder withAddition(final Binding binding) {
 			if(binding!=null) {
 				this.additions.add(binding);
 			}
 			return this;
 		}
 
-		public EnrichmentResponseMessageBuilder withAddition(Builder<Binding> builder) {
+		public EnrichmentResponseMessageBuilder withAddition(final Builder<Binding> builder) {
 			if(builder==null) {
 				return this;
 			}
 			return withAddition(builder.build());
 		}
 
-		public EnrichmentResponseMessageBuilder withRemoval(Binding binding) {
+		public EnrichmentResponseMessageBuilder withRemoval(final Binding binding) {
 			if(binding!=null) {
 				this.removals.add(binding);
 			}
 			return this;
 		}
 
-		public EnrichmentResponseMessageBuilder withRemoval(Builder<Binding> builder) {
+		public EnrichmentResponseMessageBuilder withRemoval(final Builder<Binding> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -567,23 +560,23 @@ public final class ProtocolFactory {
 		private LiteralBuilder() {
 		}
 
-		public LiteralBuilder withLexicalForm(Object object) {
+		public LiteralBuilder withLexicalForm(final Object object) {
 			if(object!=null) {
 				this.lexicalForm=object.toString();
 			}
 			return this;
 		}
 
-		public LiteralBuilder withDatatype(String datatype) {
+		public LiteralBuilder withDatatype(final String datatype) {
 			return withDatatype(ParsingUtil.toURI(datatype));
 		}
 
-		public LiteralBuilder withDatatype(URI datatype) {
+		public LiteralBuilder withDatatype(final URI datatype) {
 			this.datatype = datatype;
 			return this;
 		}
 
-		public LiteralBuilder withLanguage(String language) {
+		public LiteralBuilder withLanguage(final String language) {
 			this.language = language;
 			return this;
 		}
@@ -605,21 +598,21 @@ public final class ProtocolFactory {
 		private URI property;
 		private Value value;
 
-		public BindingBuilder withProperty(String property) {
+		public BindingBuilder withProperty(final String property) {
 			return withProperty(ParsingUtil.toURI(property));
 		}
 
-		public BindingBuilder withProperty(URI property) {
+		public BindingBuilder withProperty(final URI property) {
 			this.property = property;
 			return this;
 		}
 
-		public BindingBuilder withValue(Value value) {
+		public BindingBuilder withValue(final Value value) {
 			this.value=value;
 			return this;
 		}
 
-		public BindingBuilder withValue(Builder<? extends Value> builder) {
+		public BindingBuilder withValue(final Builder<? extends Value> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -639,25 +632,25 @@ public final class ProtocolFactory {
 	public static final class ConstraintBuilder implements Builder<Constraint> {
 
 		private NamedValue target;
-		private List<Binding> bindings;
+		private final List<Binding> bindings;
 
 		private ConstraintBuilder() {
 			this.bindings=Lists.newArrayList();
 		}
 
-		public ConstraintBuilder withTarget(NamedValue target) {
+		public ConstraintBuilder withTarget(final NamedValue target) {
 			this.target = target;
 			return this;
 		}
 
-		public ConstraintBuilder withBinding(Binding binding) {
+		public ConstraintBuilder withBinding(final Binding binding) {
 			if(binding!=null) {
 				this.bindings.add(binding);
 			}
 			return this;
 		}
 
-		public ConstraintBuilder withBinding(Builder<Binding> builder) {
+		public ConstraintBuilder withBinding(final Builder<Binding> builder) {
 			if(builder==null) {
 				return this;
 			}
@@ -685,16 +678,16 @@ public final class ProtocolFactory {
 		private FilterBuilder() {
 		}
 
-		public FilterBuilder withVariable(Variable variable) {
+		public FilterBuilder withVariable(final Variable variable) {
 			this.variable = variable;
 			return this;
 		}
 
-		public FilterBuilder withProperty(String property) {
+		public FilterBuilder withProperty(final String property) {
 			return withProperty(ParsingUtil.toURI(property));
 		}
 
-		public FilterBuilder withProperty(URI property) {
+		public FilterBuilder withProperty(final URI property) {
 			this.property = property;
 			return this;
 		}

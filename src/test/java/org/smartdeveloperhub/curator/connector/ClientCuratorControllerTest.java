@@ -63,9 +63,8 @@ public class ClientCuratorControllerTest {
 		CuratorConfiguration.
 			newInstance().
 				withExchangeName("exchangeName").
-				withRequestQueueName("requestQueueName").
+				withQueueName("requestQueueName").
 				withRequestRoutingKey("requestRoutingKey").
-				withResponseQueueName("responseQueueName").
 				withResponseRoutingKey("responseRoutingKey");
 
 	@Mocked private Channel channel;

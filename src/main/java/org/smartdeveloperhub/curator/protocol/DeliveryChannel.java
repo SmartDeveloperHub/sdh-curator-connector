@@ -32,8 +32,6 @@ public interface DeliveryChannel {
 
 	String exchangeName();
 
-	String queueName();
-
 	String routingKey();
 
 }

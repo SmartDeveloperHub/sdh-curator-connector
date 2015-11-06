@@ -27,7 +27,8 @@
 package org.smartdeveloperhub.curator.connector.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.fail;
 import static org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.newAcceptedMessage;
 import static org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory.newAgent;
@@ -102,12 +103,12 @@ public class MessageUtilTest {
 		}
 
 		@Override
-		public UnknownMessage fromString(ConversionContext context, String body) throws MessageConversionException {
+		public UnknownMessage fromString(final ConversionContext context, final String body) throws MessageConversionException {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public String toString(ConversionContext context, UnknownMessage message) throws MessageConversionException {
+		public String toString(final ConversionContext context, final UnknownMessage message) throws MessageConversionException {
 			throw new UnsupportedOperationException();
 		}
 
@@ -118,7 +119,7 @@ public class MessageUtilTest {
 	private static final String CI = "http://www.smartdeveloperhub.org/vocabulary/ci#";
 	private static final String ORG = "http://www.smartdeveloperhub.org/vocabulary/organization#";
 
-	private EnrichmentRequestMessage request(boolean full) {
+	private EnrichmentRequestMessage request(final boolean full) {
 		final EnrichmentRequestMessageBuilder builder =
 			newEnrichmentRequestMessage().
 				withMessageId(UUID.randomUUID()).
@@ -208,7 +209,6 @@ public class MessageUtilTest {
 							withPort(12345).
 							withVirtualHost("/virtualHost")).
 					withExchangeName("exchange.name").
-					withQueueName("queue.name").
 					withRoutingKey("routing.key"));
 		} else {
 			builder.withReplyTo(newDeliveryChannel());
@@ -216,7 +216,7 @@ public class MessageUtilTest {
 		return builder.build();
 	}
 
-	private EnrichmentResponseMessage response(boolean full) {
+	private EnrichmentResponseMessage response(final boolean full) {
 		final EnrichmentResponseMessageBuilder builder =
 			newEnrichmentResponseMessage().
 				withMessageId(UUID.randomUUID()).
@@ -266,8 +266,8 @@ public class MessageUtilTest {
 				build();
 	}
 
-	private FailureMessage failure(boolean full) {
-		FailureMessageBuilder builder=
+	private FailureMessage failure(final boolean full) {
+		final FailureMessageBuilder builder=
 			newFailureMessage().
 				withMessageId(UUID.randomUUID()).
 				withSubmittedOn(new Date()).
@@ -311,7 +311,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testWithConversionContext$neverUpdateNull() throws Exception {
-		MessageUtil sut = MessageUtil.newInstance().withConversionContext(null);
+		final MessageUtil sut = MessageUtil.newInstance().withConversionContext(null);
 		assertThat(Deencapsulation.getField(sut,"context"),notNullValue());
 	}
 
@@ -321,7 +321,7 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString("body",UnknownMessage.class);
 			fail("Should not parse an unsupported class");
-		} catch (MessageConversionException e) {
+		} catch (final MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Cannot convert messages of type 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessage'"));
 		}
 	}
@@ -332,7 +332,7 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString("body",UnknownMessage.class);
 			fail("Should not parse an supported class if the converter cannot be instantiated");
-		} catch (MessageConversionException e) {
+		} catch (final MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Could not instantiate converter 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessageConverter' for message of type 'org.smartdeveloperhub.curator.connector.io.MessageUtilTest$UnknownMessage'"));
 		}
 	}
@@ -342,7 +342,7 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString("bad body",AcceptedMessage.class);
 			fail("Should not parse an bad body");
-		} catch (MessageConversionException e) {
+		} catch (final MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Could not parse body 'bad body' as Turtle"));
 		}
 	}
@@ -352,10 +352,10 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString("",AcceptedMessage.class);
 			fail("Should not parse input with no definition");
-		} catch (NoDefinitionFoundException e) {
+		} catch (final NoDefinitionFoundException e) {
 			assertThat(e.getMessage(),equalTo("No <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found"));
 			assertThat(e.getMissingDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
-		} catch(MessageConversionException e) {
+		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
 		}
 	}
@@ -365,11 +365,11 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
-		} catch (TooManyDefinitionsFoundException e) {
+		} catch (final TooManyDefinitionsFoundException e) {
 			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found (2)"));
 			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
 			assertThat(e.getDefinitionsFound(),equalTo(2));
-		} catch(MessageConversionException e) {
+		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
 		}
 	}
@@ -379,10 +379,10 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/bad_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
-		} catch (InvalidDefinitionFoundException e) {
+		} catch (final InvalidDefinitionFoundException e) {
 			assertThat(e.getMessage(),equalTo("Invalid <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found: Value '-1' is not a valid http://www.w3.org/2001/XMLSchema#unsignedLong: Response number must be greater than 0 (-1)"));
 			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
-		} catch(MessageConversionException e) {
+		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
 		}
 	}
@@ -398,14 +398,14 @@ public class MessageUtilTest {
 		try {
 			MessageUtil.newInstance().toString(request(true));
 			fail("Should not produce result when serialization failure occurs");
-		} catch (MessageConversionException e) {
+		} catch (final MessageConversionException e) {
 			assertThat(e.getMessage(),equalTo("Could not serialize message"));
 		}
 	}
 
 	@Test
 	public void testRoundtrip$enrichmentRequest() throws Exception {
-		String strRequest = MessageUtil.newInstance().withConversionContext(context()).toString(request(true));
+		final String strRequest = MessageUtil.newInstance().withConversionContext(context()).toString(request(true));
 		System.out.println(strRequest);
 		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequestMessage.class));
 		System.out.println();
@@ -413,7 +413,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentRequest$partialDeliveryChannel() throws Exception {
-		String strRequest = MessageUtil.newInstance().toString(request(false));
+		final String strRequest = MessageUtil.newInstance().toString(request(false));
 		System.out.println(strRequest);
 		System.out.println(MessageUtil.newInstance().fromString(strRequest, EnrichmentRequestMessage.class));
 		System.out.println();
@@ -421,7 +421,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentResponse() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(response(true));
+		final String strResponse = MessageUtil.newInstance().toString(response(true));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponseMessage.class));
 		System.out.println();
@@ -429,7 +429,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$enrichmentResponse$partial() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(response(false));
+		final String strResponse = MessageUtil.newInstance().toString(response(false));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, EnrichmentResponseMessage.class));
 		System.out.println();
@@ -437,7 +437,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$accepted() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(accepted());
+		final String strResponse = MessageUtil.newInstance().toString(accepted());
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, AcceptedMessage.class));
 		System.out.println();
@@ -445,7 +445,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$failure() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(failure(true));
+		final String strResponse = MessageUtil.newInstance().toString(failure(true));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, FailureMessage.class));
 		System.out.println();
@@ -453,7 +453,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$failure$min() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(failure(false));
+		final String strResponse = MessageUtil.newInstance().toString(failure(false));
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, FailureMessage.class));
 		System.out.println();
@@ -461,7 +461,7 @@ public class MessageUtilTest {
 
 	@Test
 	public void testRoundtrip$disconnect() throws Exception {
-		String strResponse = MessageUtil.newInstance().toString(disconnect());
+		final String strResponse = MessageUtil.newInstance().toString(disconnect());
 		System.out.println(strResponse);
 		System.out.println(MessageUtil.newInstance().fromString(strResponse, DisconnectMessage.class));
 		System.out.println();

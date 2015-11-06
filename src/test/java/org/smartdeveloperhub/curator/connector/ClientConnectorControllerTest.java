@@ -55,9 +55,8 @@ public class ClientConnectorControllerTest {
 		CuratorConfiguration.
 			newInstance().
 				withExchangeName("exchangeName").
-				withRequestQueueName("requestQueueName").
+				withQueueName("requestQueueName").
 				withRequestRoutingKey("requestRoutingKey").
-				withResponseQueueName("responseQueueName").
 				withResponseRoutingKey("responseRoutingKey");
 
 	@Mocked private Channel channel;
@@ -68,8 +67,8 @@ public class ClientConnectorControllerTest {
 	@Mocked private Broker anotherBroker;
 	@Mocked private ConversionContext context;
 
-	private ClientConnectorController newController(final DeliveryChannel cfg) {
-		return new ClientConnectorController(cfg,this.context,this.curatorController);
+	private ClientConnectorController newController(final String queueName, final DeliveryChannel cfg) {
+		return new ClientConnectorController(queueName,cfg,this.context,this.curatorController);
 	}
 
 	@Test
@@ -81,6 +80,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
@@ -102,6 +102,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
@@ -124,6 +125,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
@@ -144,6 +146,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
@@ -165,11 +168,11 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				"connectorQueueName",
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
 						withExchangeName(this.configuration.exchangeName()).
-						withQueueName("connectorQueueName").
 						build());
 		try {
 			sut.connect();
@@ -188,6 +191,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
@@ -211,10 +215,10 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				this.configuration.queueName(),
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
-						withQueueName(this.configuration.queueName()).
 						withRoutingKey("routingKey").
 						build());
 		try {
@@ -233,6 +237,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
@@ -247,6 +252,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.anotherBroker).
@@ -261,6 +267,7 @@ public class ClientConnectorControllerTest {
 		}};
 		final ClientConnectorController sut=
 			newController(
+				null,
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker((Broker)null).

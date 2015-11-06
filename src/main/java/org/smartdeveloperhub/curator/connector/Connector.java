@@ -61,6 +61,7 @@ public final class Connector {
 		private MessageIdentifierFactory factory;
 		private UUID agentIdentifier;
 		private ConversionContext context;
+		private String queueName;
 
 		private ConnectorBuilder() {
 			this.context=ConversionContext.newInstance();
@@ -108,11 +109,17 @@ public final class Connector {
 			return this;
 		}
 
+		public ConnectorBuilder withQueueName(final String queueName) {
+			this.queueName = queueName;
+			return this;
+		}
+
 		public Connector build() {
 			return
 				new Connector(
 					curatorConfiguration(),
 					agent(),
+					this.queueName,
 					connectorChannel(),
 					this.context,
 					this.factory!=null?this.factory:new DefaultMessageIdentifierFactory());
@@ -124,7 +131,7 @@ public final class Connector {
 					this.connectorChannel:
 					ProtocolFactory.
 						newDeliveryChannel().
-							withQueueName("connector").
+							withRoutingKey("connector").
 							build();
 		}
 
@@ -200,15 +207,16 @@ public final class Connector {
 
 	private boolean connected;
 
-	private Connector(final CuratorConfiguration curatorConfiguration, final Agent agent, final DeliveryChannel connectorChannel, final ConversionContext context, final MessageIdentifierFactory factory) {
+	private Connector(final CuratorConfiguration curatorConfiguration, final Agent agent, final String queueName, final DeliveryChannel connectorChannel, final ConversionContext context, final MessageIdentifierFactory factory) {
 		this.factory = factory;
 		this.configuration =
 			new ConnectorConfiguration().
 				withCuratorConfiguration(curatorConfiguration).
+				withQueueName(queueName).
 				withConnectorChannel(connectorChannel).
 				withAgent(agent);
 		this.curatorController=new ClientCuratorController(curatorConfiguration,"connector-curator",context);
-		this.connectorController=new ClientConnectorController(connectorChannel,context,this.curatorController);
+		this.connectorController=new ClientConnectorController(queueName,connectorChannel,context,this.curatorController);
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();

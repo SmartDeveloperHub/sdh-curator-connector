@@ -92,16 +92,12 @@ public final class CuratorConfiguration {
 		return new CuratorConfiguration(this.broker,exchangeName,this.queueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
-	public CuratorConfiguration withRequestQueueName(final String requestQueueName) {
+	public CuratorConfiguration withQueueName(final String requestQueueName) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,requestQueueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withRequestRoutingKey(final String requestRoutingKey) {
 		return new CuratorConfiguration(this.broker,this.exchangeName,this.queueName,requestRoutingKey,this.responseRoutingKey);
-	}
-
-	public CuratorConfiguration withResponseQueueName(final String responseQueueName) {
-		return new CuratorConfiguration(this.broker,this.exchangeName,this.queueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withResponseRoutingKey(final String responseRoutingKey) {

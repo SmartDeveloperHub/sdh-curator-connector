@@ -33,18 +33,23 @@ import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 abstract class ConnectorController {
 
+	private final DeliveryChannel defaultConfiguration;
+	private final String defaultQueueName;
+	private final boolean requiresCreation;
+
 	private final CuratorController curatorController;
 	private final BrokerController brokerController;
-	private final DeliveryChannel connectorConfiguration;
-	private final boolean requiresCreation;
-	private DeliveryChannel effectiveConfiguration;
 
-	ConnectorController(final DeliveryChannel connectorConfiguration, final ConversionContext context, final CuratorController curatorController, final boolean requiresCreation) {
-		this.connectorConfiguration = connectorConfiguration;
+	private DeliveryChannel effectiveConfiguration;
+	private String effectiveQueueName;
+
+	ConnectorController(final String queueName, final DeliveryChannel configuration, final ConversionContext context, final CuratorController curatorController, final boolean requiresCreation) {
+		this.defaultQueueName = queueName;
+		this.defaultConfiguration = configuration;
 		this.curatorController = curatorController;
 		this.requiresCreation = requiresCreation;
 		if(usesDifferentBrokers()) {
-			this.brokerController=new BrokerController(this.connectorConfiguration.broker(),"connector-custom",context);
+			this.brokerController=new BrokerController(this.defaultConfiguration.broker(),"connector-custom",context);
 		} else {
 			this.brokerController=this.curatorController.brokerController();
 		}
@@ -56,20 +61,23 @@ abstract class ConnectorController {
 			return;
 		}
 		final String exchangeName = declareConnectorExchange();
-		final String queueName = declareConnectorQueue();
-		final String routingKey = bindConnectorQueue(exchangeName, queueName);
+		this.effectiveQueueName = declareConnectorQueue();
+		final String routingKey = bindConnectorQueue(exchangeName, this.effectiveQueueName);
 		this.effectiveConfiguration=
 			ProtocolFactory.
 				newDeliveryChannel().
 					withBroker(this.brokerController.broker()).
 					withExchangeName(exchangeName).
-					withQueueName(queueName).
 					withRoutingKey(routingKey).
 					build();
 	}
 
 	final DeliveryChannel effectiveConfiguration() {
 		return this.effectiveConfiguration;
+	}
+
+	final String effectiveQueueName() {
+		return this.effectiveQueueName;
 	}
 
 	final BrokerController brokerController() {
@@ -81,7 +89,7 @@ abstract class ConnectorController {
 	}
 
 	private boolean usesDifferentBrokers() {
-		final Broker connectorBroker = this.connectorConfiguration.broker();
+		final Broker connectorBroker = this.defaultConfiguration.broker();
 		return
 			connectorBroker!=null &&
 			!connectorBroker.equals(curatorConfiguration().broker());
@@ -96,21 +104,21 @@ abstract class ConnectorController {
 	}
 
 	private String bindConnectorQueue(final String exchangeName, final String queueName) throws ControllerException {
-		final String routingKey=firstNonNull(this.connectorConfiguration.routingKey(), "");
+		final String routingKey=firstNonNull(this.defaultConfiguration.routingKey(), "");
 		this.brokerController.bindQueue(exchangeName, queueName, routingKey);
 		return routingKey;
 	}
 
 	private String declareConnectorQueue() throws ControllerException {
-		String queueName = this.connectorConfiguration.queueName();
-		if(usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(queueName)) {
-			queueName=brokerController().declareQueue(queueName);
+		String result=this.defaultQueueName;
+		if(usesDifferentBrokers() || !connectorUsesSameQueueAsCurator(result)) {
+			result=brokerController().declareQueue(result);
 		}
-		return queueName;
+		return result;
 	}
 
 	private String declareConnectorExchange() throws ControllerException {
-		final String exchangeName=firstNonNull(this.connectorConfiguration.exchangeName(), curatorConfiguration().exchangeName());
+		final String exchangeName=firstNonNull(this.defaultConfiguration.exchangeName(), curatorConfiguration().exchangeName());
 		if(usesDifferentBrokers() || !exchangeName.equals(curatorConfiguration().exchangeName())) {
 			brokerController().declareExchange(exchangeName);
 		}

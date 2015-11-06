@@ -35,7 +35,7 @@ import org.smartdeveloperhub.curator.protocol.Message;
 final class ServerConnectorController extends ConnectorController {
 
 	ServerConnectorController(final DeliveryChannel connectorConfiguration, final CuratorController curatorController, final ConversionContext context) {
-		super(connectorConfiguration,context,curatorController,false);
+		super(null,connectorConfiguration,context,curatorController,false);
 	}
 
 	void publishMessage(final DeliveryChannel replyTo, final Message message) throws IOException {

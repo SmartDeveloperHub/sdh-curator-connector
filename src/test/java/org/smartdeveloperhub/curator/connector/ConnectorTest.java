@@ -80,7 +80,7 @@ public class ConnectorTest {
 		return
 			ProtocolFactory.
 				newDeliveryChannel().
-					withQueueName("connector"+"."+this.test.getMethodName().replace('$', '.')).
+					withRoutingKey("connector"+"."+this.test.getMethodName().replace('$', '.')).
 					build();
 	}
 
@@ -110,7 +110,6 @@ public class ConnectorTest {
 		final ConnectorConfiguration configuration = Deencapsulation.getField(connector,ConnectorConfiguration.class);
 		assertThat(configuration.agent(),notNullValue());
 		assertThat(configuration.connectorChannel(),notNullValue());
-		assertThat(configuration.connectorChannel().queueName(),equalTo("connector"));
 		assertThat(configuration.curatorConfiguration(),equalTo(CuratorConfiguration.newInstance()));
 	}
 	@Test

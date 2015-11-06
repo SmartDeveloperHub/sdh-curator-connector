@@ -55,7 +55,7 @@ public class CuratorConfigurationTest {
 	}
 
 	private CuratorConfiguration withDifferentQueueName() {
-		return defaultCuratorConfiguration().withRequestQueueName("anotherRequestQueueName");
+		return defaultCuratorConfiguration().withQueueName("anotherRequestQueueName");
 	}
 
 	private CuratorConfiguration withDifferentRequestRoutingKey() {

@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 
@@ -48,6 +49,7 @@ import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -335,8 +337,9 @@ public class BrokerControllerTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
-	public void testDisconnect$ignoreCleanerFailures() throws Exception {
+	public void testDisconnect$ignoreCleanerFailures(@Mocked final DeclareOk ok) throws Exception {
 		final String routingKey="routingKey";
 		final String queueName="queueName";
 		final String exchangeName="exchangeName";
@@ -361,6 +364,8 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.queueDeclare(queueName,true,false,true,(Map<String,Object>)this.any);this.result=ok;
+			ok.getQueue();this.result=queueName;
 			BrokerControllerTest.this.channel.queueUnbind(queueName,exchangeName,routingKey);this.result=new IOException("failure");
 		}};
 		sut.connect();

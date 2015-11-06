@@ -33,12 +33,12 @@ import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 final class ClientConnectorController extends ConnectorController {
 
-	ClientConnectorController(final DeliveryChannel connectorConfiguration, final ConversionContext context, final CuratorController curatorController) {
-		super(connectorConfiguration,context,curatorController,true);
+	ClientConnectorController(final String queueName,final DeliveryChannel configuration, final ConversionContext context, final CuratorController curatorController) {
+		super(queueName,configuration,context,curatorController,true);
 	}
 
 	void handleMessage(final MessageHandler handler) throws IOException {
-		brokerController().registerConsumer(handler,effectiveConfiguration().queueName());
+		brokerController().registerConsumer(handler,effectiveQueueName());
 	}
 
 }
