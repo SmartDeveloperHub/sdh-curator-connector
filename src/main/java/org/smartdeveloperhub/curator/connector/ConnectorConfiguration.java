@@ -76,29 +76,34 @@ final class ConnectorConfiguration {
 		builder.append("   + Curator configuration:").append(ConnectorConfiguration.NL);
 		appendBrokerDetails(builder, this.curatorConfiguration.broker());
 		appendExchangeName(builder, this.curatorConfiguration.exchangeName());
-		builder.append("     - Request queue name.: ").append(this.curatorConfiguration.requestQueueName()).append(ConnectorConfiguration.NL);
-		appendResponseQueueDetails(builder, this.curatorConfiguration.responseQueueName());
+		appendCuratorQueueDetails(builder, this.curatorConfiguration.queueName(), this.curatorConfiguration.requestRoutingKey(), this.curatorConfiguration.responseRoutingKey());
 		builder.append("   + Connector configuration:").append(ConnectorConfiguration.NL);
 		appendBrokerDetails(builder, this.connectorChannel.broker());
 		appendExchangeName(builder, this.connectorChannel.exchangeName());
-		appendResponseQueueDetails(builder, this.connectorChannel.queueName());
-		builder.append("     - Routing key........: ").append(this.connectorChannel.routingKey());
+		appendConnectorQueueDetails(builder, this.connectorChannel.queueName(),this.connectorChannel().routingKey());
 		return builder.toString();
 	}
 
-	private void appendResponseQueueDetails(final StringBuilder builder, final String responseQueueName) {
-		builder.append("     - Response queue name: ").append(responseQueueName).append(ConnectorConfiguration.NL);
+	private void appendCuratorQueueDetails(final StringBuilder builder, final String queueName, final String requestRoutingKey, final String responseRoutingKey) {
+		builder.append("     - Queue name..........: ").append(queueName).append(ConnectorConfiguration.NL);
+		builder.append("     - Request routing key.: ").append(requestRoutingKey).append(ConnectorConfiguration.NL);
+		builder.append("     - Response routing key: ").append(responseRoutingKey).append(ConnectorConfiguration.NL);
+	}
+
+	private void appendConnectorQueueDetails(final StringBuilder builder, final String queueName, final String routingKey) {
+		builder.append("     - Queue name..........: ").append(queueName).append(ConnectorConfiguration.NL);
+		builder.append("     - Routing key.........: ").append(routingKey).append(ConnectorConfiguration.NL);
 	}
 
 	private void appendExchangeName(final StringBuilder builder, final String exchangeName) {
-		builder.append("     - Exchange name......: ").append(exchangeName).append(ConnectorConfiguration.NL);
+		builder.append("     - Exchange name.......: ").append(exchangeName).append(ConnectorConfiguration.NL);
 	}
 
 	private void appendBrokerDetails(final StringBuilder builder, final Broker broker) {
-		builder.append("     - Broker").append(ConnectorConfiguration.NL);
-		builder.append("       + Host.............: ").append(broker.host()).append(ConnectorConfiguration.NL);
-		builder.append("       + Port.............: ").append(broker.port()).append(ConnectorConfiguration.NL);
-		builder.append("       + Virtual host.....: ").append(broker.virtualHost()).append(ConnectorConfiguration.NL);
+		builder.append("     - Broker:").append(ConnectorConfiguration.NL);
+		builder.append("       + Host..............: ").append(broker.host()).append(ConnectorConfiguration.NL);
+		builder.append("       + Port..............: ").append(broker.port()).append(ConnectorConfiguration.NL);
+		builder.append("       + Virtual host......: ").append(broker.virtualHost()).append(ConnectorConfiguration.NL);
 	}
 
 }

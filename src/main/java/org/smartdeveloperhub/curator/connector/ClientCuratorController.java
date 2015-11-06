@@ -55,15 +55,12 @@ final class ClientCuratorController extends CuratorController {
 		publishMessage(message,routingKey(message));
 	}
 
-	void handleResponses(final MessageHandler handler) throws IOException {
-		registerMessageHandler(handler, curatorConfiguration().responseQueueName());
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	protected void prepareQueue(final Agent agent) throws ControllerException {
-		prepareQueue(
-			curatorConfiguration().responseQueueName(),
-			curatorConfiguration().responseRoutingKey()+"."+agent.agentId());
+	protected String routingKey(final CuratorConfiguration configuration, final Agent agent) throws ControllerException {
+		return configuration.responseRoutingKey()+"."+agent.agentId();
 	}
 
 }

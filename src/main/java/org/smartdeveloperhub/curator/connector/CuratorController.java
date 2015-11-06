@@ -44,8 +44,8 @@ abstract class CuratorController {
 		this.brokerController=new BrokerController(configuration.broker(),name,context);
 	}
 
-	final void registerMessageHandler(final MessageHandler handler, final String queueName) throws IOException {
-		this.brokerController.registerConsumer(handler,queueName);
+	final void registerMessageHandler(final MessageHandler handler) throws IOException {
+		this.brokerController.registerConsumer(handler,this.configuration.queueName());
 	}
 
 	final void publishMessage(final Message message, final String routingKey) throws IOException {
@@ -73,6 +73,8 @@ abstract class CuratorController {
 		this.brokerController.disconnect();
 	}
 
+	protected abstract String routingKey(CuratorConfiguration configuration2, Agent agent) throws ControllerException;
+
 	private DeliveryChannel replyTo(final String routingKey) {
 		return
 			ProtocolFactory.
@@ -84,13 +86,8 @@ abstract class CuratorController {
 
 	private void configureBroker(final Agent agent) throws ControllerException {
 		this.brokerController.declareExchange(this.configuration.exchangeName());
-		prepareQueue(agent);
-	}
-
-	protected abstract void prepareQueue(Agent agent) throws ControllerException;
-
-	final void prepareQueue(final String queueName, final String routingKey) throws ControllerException {
-		this.brokerController.prepareQueue(this.configuration.exchangeName(), queueName, routingKey);
+		final String routingKey = routingKey(this.configuration,agent);
+		this.brokerController.prepareQueue(this.configuration.exchangeName(), this.configuration.queueName(), routingKey);
 	}
 
 }

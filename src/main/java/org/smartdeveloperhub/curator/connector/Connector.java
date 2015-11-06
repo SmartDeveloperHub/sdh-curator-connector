@@ -279,7 +279,7 @@ public final class Connector {
 
 	private void addCuratorResponseHandler(final MessageHandler handler) throws ConnectorException {
 		try {
-			this.curatorController.handleResponses(handler);
+			this.curatorController.registerMessageHandler(handler);
 		} catch (final Exception e) {
 			throw new ConnectorException("Could not setup the curator response message handler",e);
 		}

@@ -136,7 +136,7 @@ public class ClientCuratorControllerTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testConnect$failWhenCannotCreateResponseQueue() throws Exception {
-		final String requestQueueName = this.configuration.responseQueueName();
+		final String requestQueueName = this.configuration.queueName();
 		new MockUp<BrokerController>() {
 			@Mock
 			void connect() {
@@ -162,7 +162,7 @@ public class ClientCuratorControllerTest {
 	@Test
 	public void testConnect$failWhenCannotBindResponseQueue(@Mocked final DeclareOk ok) throws Exception {
 		final String exchangeName = this.configuration.exchangeName();
-		final String queueName = this.configuration.responseQueueName();
+		final String queueName = this.configuration.queueName();
 		final String routingKey = this.configuration.responseRoutingKey()+"."+this.agent.agentId();
 		new MockUp<BrokerController>() {
 			@Mock

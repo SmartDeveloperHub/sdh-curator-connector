@@ -51,16 +51,12 @@ final class ServerCuratorController extends CuratorController {
 		publishMessage(response,routingKey(request));
 	}
 
-	void handleRequests(final MessageHandler handler) throws IOException {
-		registerMessageHandler(handler, curatorConfiguration().requestQueueName());
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	protected void prepareQueue(final Agent agent) throws ControllerException {
-		prepareQueue(
-			curatorConfiguration().requestQueueName(),
-			curatorConfiguration().requestRoutingKey()+".*");
+	protected String routingKey(final CuratorConfiguration configuration, final Agent agent) throws ControllerException {
+		return configuration.requestRoutingKey()+".*";
 	}
-
 
 }

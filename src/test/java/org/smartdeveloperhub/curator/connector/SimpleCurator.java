@@ -71,7 +71,7 @@ public final class SimpleCurator implements MessageHandler {
 		this.curatorController=new ServerCuratorController(CuratorConfiguration.newInstance(),"curator",this.context);
 		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController,this.context);
 		this.curatorController.connect(agent);
-		this.curatorController.handleRequests(this);
+		this.curatorController.registerMessageHandler(this);
 		this.connectorController.connect();
 	}
 

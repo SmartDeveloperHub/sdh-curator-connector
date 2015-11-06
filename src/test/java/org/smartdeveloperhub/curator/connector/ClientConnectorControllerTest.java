@@ -46,7 +46,6 @@ import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 import org.smartdeveloperhub.curator.protocol.Message;
 
-import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 
 @RunWith(JMockit.class)
@@ -204,41 +203,18 @@ public class ClientConnectorControllerTest {
 	}
 
 	@Test
-	public void testConnect$failOnResponseQueueBinding(@Mocked final DeclareOk ok) throws Exception {
-		new Expectations() {{
-			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
-			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
-			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), ClientConnectorControllerTest.this.configuration.responseQueueName(), "routingKey");this.result=new ConnectorException("failure",null);
-		}};
-		final ClientConnectorController sut=
-			newController(
-				ProtocolFactory.
-					newDeliveryChannel().
-						withBroker(this.defaultBroker).
-						withQueueName(this.configuration.responseQueueName()).
-						withRoutingKey("routingKey").
-						build());
-		try {
-			sut.connect();
-		} catch (final ConnectorException e) {
-			assertThat(e.getMessage(),equalTo("failure"));
-			assertThat(e.getCause(),nullValue());
-		}
-	}
-
-	@Test
 	public void testConnect$failOnRequestQueueBinding() throws Exception {
 		new Expectations() {{
 			ClientConnectorControllerTest.this.curatorController.curatorConfiguration();this.result=ClientConnectorControllerTest.this.configuration.withBroker(ClientConnectorControllerTest.this.defaultBroker);
 			ClientConnectorControllerTest.this.curatorController.brokerController();this.result=ClientConnectorControllerTest.this.brokerController;
-			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), ClientConnectorControllerTest.this.configuration.requestQueueName(), "routingKey");this.result=new ConnectorException("failure",null);
+			ClientConnectorControllerTest.this.brokerController.bindQueue(ClientConnectorControllerTest.this.configuration.exchangeName(), ClientConnectorControllerTest.this.configuration.queueName(), "routingKey");this.result=new ConnectorException("failure",null);
 		}};
 		final ClientConnectorController sut=
 			newController(
 				ProtocolFactory.
 					newDeliveryChannel().
 						withBroker(this.defaultBroker).
-						withQueueName(this.configuration.requestQueueName()).
+						withQueueName(this.configuration.queueName()).
 						withRoutingKey("routingKey").
 						build());
 		try {

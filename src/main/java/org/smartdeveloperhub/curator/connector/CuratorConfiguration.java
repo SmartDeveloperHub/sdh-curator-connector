@@ -37,9 +37,7 @@ public final class CuratorConfiguration {
 
 	public static final String DEFAULT_EXCHANGE_NAME        = "sdh";
 
-	public static final String DEFAULT_REQUEST_QUEUE_NAME   = "curator.requests";
-
-	public static final String DEFAULT_RESPONSE_QUEUE_NAME  = "curator.responses";
+	public static final String DEFAULT_REQUEST_QUEUE_NAME   = "curator.queue";
 
 	public static final String DEFAULT_REQUEST_ROUTING_KEY  = "curator.request";
 
@@ -49,23 +47,20 @@ public final class CuratorConfiguration {
 
 	private final Broker broker;
 	private final String exchangeName;
-	private final String requestQueueName;
-	private final String responseQueueName;
+	private final String queueName;
 	private final String requestRoutingKey;
 	private final String responseRoutingKey;
 
 	private CuratorConfiguration(
 			final Broker broker,
 			final String exchangeName,
-			final String requestQueueName,
+			final String queueName,
 			final String requestRoutingKey,
-			final String responseQueueName,
 			final String responseRoutingKey) {
 		this.broker = Objects.requireNonNull(broker,"Broker cannot be null");
 		this.exchangeName = Objects.requireNonNull(exchangeName,"Exchange name cannot be null");
-		this.requestQueueName = Objects.requireNonNull(requestQueueName,"Request queue name cannot be null");
+		this.queueName = Objects.requireNonNull(queueName,"Queue name cannot be null");
 		this.requestRoutingKey = Objects.requireNonNull(requestRoutingKey,"Response routing key cannot be null");
-		this.responseQueueName = Objects.requireNonNull(responseQueueName,"Response queue name cannot be null");
 		this.responseRoutingKey = Objects.requireNonNull(responseRoutingKey,"Response routing key cannot be null");
 	}
 
@@ -77,16 +72,12 @@ public final class CuratorConfiguration {
 		return this.exchangeName;
 	}
 
-	public String requestQueueName() {
-		return this.requestQueueName;
+	public String queueName() {
+		return this.queueName;
 	}
 
 	public String requestRoutingKey() {
 		return this.requestRoutingKey;
-	}
-
-	public String responseQueueName() {
-		return this.responseQueueName;
 	}
 
 	public String responseRoutingKey() {
@@ -94,27 +85,27 @@ public final class CuratorConfiguration {
 	}
 
 	public CuratorConfiguration withBroker(final Broker broker) {
-		return new CuratorConfiguration(broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
+		return new CuratorConfiguration(broker,this.exchangeName,this.queueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withExchangeName(final String exchangeName) {
-		return new CuratorConfiguration(this.broker,exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
+		return new CuratorConfiguration(this.broker,exchangeName,this.queueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withRequestQueueName(final String requestQueueName) {
-		return new CuratorConfiguration(this.broker,this.exchangeName,requestQueueName,this.requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
+		return new CuratorConfiguration(this.broker,this.exchangeName,requestQueueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withRequestRoutingKey(final String requestRoutingKey) {
-		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,requestRoutingKey,this.responseQueueName,this.responseRoutingKey);
+		return new CuratorConfiguration(this.broker,this.exchangeName,this.queueName,requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withResponseQueueName(final String responseQueueName) {
-		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,responseQueueName,this.responseRoutingKey);
+		return new CuratorConfiguration(this.broker,this.exchangeName,this.queueName,this.requestRoutingKey,this.responseRoutingKey);
 	}
 
 	public CuratorConfiguration withResponseRoutingKey(final String responseRoutingKey) {
-		return new CuratorConfiguration(this.broker,this.exchangeName,this.requestQueueName,this.requestRoutingKey,this.responseQueueName,responseRoutingKey);
+		return new CuratorConfiguration(this.broker,this.exchangeName,this.queueName,this.requestRoutingKey,responseRoutingKey);
 	}
 
 	/**
@@ -127,8 +118,9 @@ public final class CuratorConfiguration {
 				hash(
 					this.broker,
 					this.exchangeName,
-					this.requestQueueName,this.requestRoutingKey,
-					this.responseQueueName,this.responseRoutingKey);
+					this.queueName,
+					this.requestRoutingKey,
+					this.responseRoutingKey);
 	}
 
 	/**
@@ -148,21 +140,15 @@ public final class CuratorConfiguration {
 	}
 
 	private boolean hasSameQueueConfig(final CuratorConfiguration that) {
-		return hasSameRequestQueueConfig(that) && hasSameResponseQueueConfig(that);
-	}
-
-	private boolean hasSameRequestQueueConfig(final CuratorConfiguration that) {
 		return
-			Objects.equals(this.requestQueueName,that.requestQueueName) &&
-			Objects.equals(this.requestRoutingKey,that.requestRoutingKey);
-	}
-
-	private boolean hasSameResponseQueueConfig(final CuratorConfiguration that) {
-		return
-			Objects.equals(this.responseQueueName,that.responseQueueName) &&
+			Objects.equals(this.queueName,that.queueName) &&
+			Objects.equals(this.requestRoutingKey,that.requestRoutingKey) &&
 			Objects.equals(this.responseRoutingKey,that.responseRoutingKey);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String toString() {
 		return
@@ -170,9 +156,8 @@ public final class CuratorConfiguration {
 				toStringHelper(getClass()).
 					add("broker",this.broker).
 					add("exchangeName", this.exchangeName).
-					add("requestQueueName",this.requestQueueName).
+					add("queueName",this.queueName).
 					add("requestRoutingKey",this.requestRoutingKey).
-					add("responseQueueName",this.responseQueueName).
 					add("responseRoutingKey",this.responseRoutingKey).
 					toString();
 	}
@@ -184,7 +169,6 @@ public final class CuratorConfiguration {
 				DEFAULT_EXCHANGE_NAME,
 				DEFAULT_REQUEST_QUEUE_NAME,
 				DEFAULT_REQUEST_ROUTING_KEY,
-				DEFAULT_RESPONSE_QUEUE_NAME,
 				DEFAULT_RESPONSE_ROUTING_KEY);
 	}
 

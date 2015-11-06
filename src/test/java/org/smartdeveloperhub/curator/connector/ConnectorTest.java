@@ -204,7 +204,7 @@ public class ConnectorTest {
 		logHeader();
 		new MockUp<ClientCuratorController>() {
 			@Mock
-			void handleResponses(final MessageHandler handler) throws IOException {
+			void registerMessageHandler(final MessageHandler handler) throws IOException {
 				throw new IOException("failure",new IllegalStateException());
 			}
 		};
@@ -280,7 +280,7 @@ public class ConnectorTest {
 			void connect(final Agent agent) throws ControllerException {
 			}
 			@Mock
-			void handleResponses(final MessageHandler handler) throws IOException {
+			void registerMessageHandler(final MessageHandler handler) throws IOException {
 			}
 			@Mock
 			void publishRequest(final Message message) throws IOException {

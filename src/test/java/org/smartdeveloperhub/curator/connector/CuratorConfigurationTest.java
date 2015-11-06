@@ -54,16 +54,12 @@ public class CuratorConfigurationTest {
 		return defaultCuratorConfiguration().withExchangeName("anExchangeName");
 	}
 
-	private CuratorConfiguration withDifferentRequestQueueName() {
+	private CuratorConfiguration withDifferentQueueName() {
 		return defaultCuratorConfiguration().withRequestQueueName("anotherRequestQueueName");
 	}
 
 	private CuratorConfiguration withDifferentRequestRoutingKey() {
 		return defaultCuratorConfiguration().withRequestRoutingKey("anotherRequestRoutingKey");
-	}
-
-	private CuratorConfiguration withDifferentResponseQueueName() {
-		return defaultCuratorConfiguration().withResponseQueueName("anotherResponseQueueName");
 	}
 
 	private CuratorConfiguration withDifferentResponseRoutingKey() {
@@ -94,20 +90,14 @@ public class CuratorConfigurationTest {
 	}
 
 	@Test
-	public void testEquals$differentRequestQueueName() {
-		final CuratorConfiguration sut = withDifferentRequestQueueName();
+	public void testEquals$differentQueueName() {
+		final CuratorConfiguration sut = withDifferentQueueName();
 		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
 	}
 
 	@Test
 	public void testEquals$differentRequestRoutingKey() {
 		final CuratorConfiguration sut = withDifferentRequestRoutingKey();
-		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
-	}
-
-	@Test
-	public void testEquals$differentResponseQueueName() {
-		final CuratorConfiguration sut = withDifferentResponseQueueName();
 		assertThat(sut,not(equalTo(defaultCuratorConfiguration())));
 	}
 
@@ -136,20 +126,14 @@ public class CuratorConfigurationTest {
 	}
 
 	@Test
-	public void testHashCode$differentRequestQueueName() {
-		final CuratorConfiguration sut = withDifferentRequestQueueName();
+	public void testHashCode$differentQueueName() {
+		final CuratorConfiguration sut = withDifferentQueueName();
 		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
 	}
 
 	@Test
 	public void testHashCode$differentRequestRoutingKey() {
 		final CuratorConfiguration sut = withDifferentRequestRoutingKey();
-		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
-	}
-
-	@Test
-	public void testHashCode$differentResponseQueueName() {
-		final CuratorConfiguration sut = withDifferentResponseQueueName();
 		assertThat(sut.hashCode(),not(equalTo(defaultCuratorConfiguration().hashCode())));
 	}
 

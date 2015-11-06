@@ -92,9 +92,7 @@ abstract class ConnectorController {
 	}
 
 	private boolean connectorUsesSameQueueAsCurator(final String connectorQueueName) {
-		return
-			curatorConfiguration().requestQueueName().equals(connectorQueueName) ||
-			curatorConfiguration().responseQueueName().equals(connectorQueueName);
+		return curatorConfiguration().queueName().equals(connectorQueueName) ;
 	}
 
 	private String bindConnectorQueue(final String exchangeName, final String queueName) throws ControllerException {
