@@ -58,7 +58,8 @@ import com.rabbitmq.client.ConnectionFactory;
 @RunWith(JMockit.class)
 public class BrokerControllerTest {
 
-	@Mocked private Broker broker;
+	private final Broker broker=ProtocolFactory.newBroker().build();
+
 	@Mocked private Connection connection;
 	@Mocked private Channel channel;
 	@Mocked private ConversionContext context;
@@ -98,7 +99,7 @@ public class BrokerControllerTest {
 		try {
 			sut.connect();
 		} catch (final ControllerException e) {
-			assertThat(e.getMessage(),equalTo("Could not connect to broker"));
+			assertThat(e.getMessage(),equalTo("Could not connect to broker at localhost:5672 using virtual host /"));
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("Could not connect"));
 		}
@@ -128,7 +129,7 @@ public class BrokerControllerTest {
 		try {
 			sut.connect();
 		} catch (final ControllerException e) {
-			assertThat(e.getMessage(),equalTo("Could not connect to broker"));
+			assertThat(e.getMessage(),equalTo("Could not connect to broker at localhost:5672 using virtual host /"));
 			assertThat(e.getCause(),instanceOf(TimeoutException.class));
 			assertThat(e.getCause().getMessage(),equalTo("Could not connect"));
 		}

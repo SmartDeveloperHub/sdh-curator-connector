@@ -109,7 +109,8 @@ final class BrokerController {
 			createChannel();
 		} catch(IOException | TimeoutException e) {
 			this.connected=false;
-			throw new ControllerException("Could not connect to broker",e);
+			final String message = String.format("Could not connect to broker at %s:%s using virtual host %s",this.broker.host(),this.broker.port(),this.broker.virtualHost());
+			throw new ControllerException(message,e);
 		} finally {
 			this.write.unlock();
 		}
