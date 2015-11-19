@@ -216,8 +216,12 @@ final class BrokerController {
 					null,
 					message.getBytes());
 		} catch (final IOException e) {
-			LOGGER.warn("Could not publish message {} to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
+			LOGGER.warn("Could not publish message [{}] to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
 			throw e;
+		} catch (final Exception e) {
+			final String errorMessage = String.format("Unexpected failure while publishing message [%s] to exchange '%s' and routing key '%s' using broker %s:%s%s: %s",message,exchangeName,routingKey,this.broker.host(),this.broker.port(),this.broker.virtualHost(),e.getMessage());
+			LOGGER.error(errorMessage);
+			throw new IOException(errorMessage,e);
 		} finally {
 			this.read.unlock();
 		}

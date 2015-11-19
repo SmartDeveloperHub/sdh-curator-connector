@@ -49,11 +49,13 @@ import org.junit.runner.RunWith;
 import org.smartdeveloperhub.curator.connector.io.ConversionContext;
 import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
+import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.ShutdownSignalException;
 
 @RunWith(JMockit.class)
 public class BrokerControllerTest {
@@ -258,6 +260,48 @@ public class BrokerControllerTest {
 		}};
 		sut.connect();
 		sut.connect();
+	}
+
+
+	@Test
+	public void testPublishMessage$unexpectedFailure() throws Exception {
+		final BrokerController sut=newInstance();
+		final DeliveryChannel dc =
+			ProtocolFactory.
+				newDeliveryChannel().
+					withExchangeName("exchangeName").
+					withRoutingKey("routingKey").
+					build();
+		final String message = "message";
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
+			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), null, message.getBytes());this.result=new ShutdownSignalException(true,true,null,BrokerControllerTest.this.channel);
+		}};
+		sut.connect();
+		try {
+			sut.publishMessage(dc, message);
+		} catch (final IOException e) {
+			assertThat(e.getMessage(),equalTo("Unexpected failure while publishing message [message] to exchange 'exchangeName' and routing key 'routingKey' using broker localhost:5672/: clean connection shutdown"));
+			assertThat(e.getCause(),instanceOf(ShutdownSignalException.class));
+		}
 	}
 
 	@Test
