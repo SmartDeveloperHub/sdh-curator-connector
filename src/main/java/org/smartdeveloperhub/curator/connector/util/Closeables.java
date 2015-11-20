@@ -43,7 +43,7 @@ public final class Closeables {
 		}
 	}
 
-	private static void launder(final Exception e) {
+	private static void launder(final Exception e) { // NOSONAR
 		// Nothing to do, just skip
 	}
 
