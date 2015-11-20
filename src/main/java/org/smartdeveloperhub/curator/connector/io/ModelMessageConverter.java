@@ -32,7 +32,6 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RiotException;
@@ -40,6 +39,7 @@ import org.smartdeveloperhub.curator.connector.protocol.ValidationException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.rdf.Namespaces;
+import org.smartdeveloperhub.curator.connector.util.Closeables;
 import org.smartdeveloperhub.curator.protocol.Message;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
@@ -53,13 +53,13 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 
 	private static final RDFFormat FORMAT = RDFFormat.TURTLE;
 
-	private Resource getTargetResource(Model model) throws MessageConversionException {
-		ResIterator iterator=
+	private Resource getTargetResource(final Model model) throws MessageConversionException {
+		final ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
 					model.createProperty(RDF.TYPE),
 					model.createResource(messageType()));
-		List<Resource> resources = Lists.newArrayList(iterator);
+		final List<Resource> resources = Lists.newArrayList(iterator);
 		if(resources.isEmpty()) {
 			throw new NoDefinitionFoundException(messageType());
 		} else if(resources.size()>1) {
@@ -69,9 +69,9 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 	}
 
 	@Override
-	public final T fromString(ConversionContext context, String body) throws MessageConversionException {
+	public final T fromString(final ConversionContext context, final String body) throws MessageConversionException {
 		try {
-			Model model=ModelFactory.createDefaultModel();
+			final Model model=ModelFactory.createDefaultModel();
 			RDFDataMgr.
 				read(
 					model,
@@ -79,34 +79,34 @@ abstract class ModelMessageConverter<T extends Message> implements MessageConver
 					context.base().toString(),
 					FORMAT.getLang());
 			return parse(model,getTargetResource(model));
-		} catch (RiotException e) {
+		} catch (final RiotException e) {
 			throw new MessageConversionException("Could not parse body '"+body+"' as Turtle",e);
-		} catch (ValidationException e) {
+		} catch (final ValidationException e) {
 			throw new InvalidDefinitionFoundException(messageType(),e);
 		}
 	}
 
 	@Override
-	public final String toString(ConversionContext context, T message) throws MessageConversionException {
-		StringWriter out = new StringWriter();
+	public final String toString(final ConversionContext context, final T message) throws MessageConversionException {
+		final StringWriter out = new StringWriter();
 		try {
-			Model model=ModelFactory.createDefaultModel();
+			final Model model=ModelFactory.createDefaultModel();
 			setUpNamespaces(context, model);
-			ModelHelper helper=ModelUtil.createHelper(model);
+			final ModelHelper helper=ModelUtil.createHelper(model);
 			toString(message,helper);
 			RDFDataMgr.write(out,model,FORMAT);
 			out.close();
 			return out.toString();
-		} catch (IOException e) {
-			IOUtils.closeQuietly(out);
+		} catch (final IOException e) {
+			Closeables.closeQuietly(out);
 			throw new MessageConversionException("Could not serialize message",e);
 		}
 	}
 
-	private void setUpNamespaces(ConversionContext context, Model model) {
+	private void setUpNamespaces(final ConversionContext context, final Model model) {
 		Namespaces.setUpNamespacePrefixes(model);
 		int prefixCounter=0;
-		for(Entry<String,String> entry:context.namespacePrefixes().entrySet()) {
+		for(final Entry<String,String> entry:context.namespacePrefixes().entrySet()) {
 			final String namespace = entry.getKey();
 			if(model.getNsURIPrefix(namespace)==null) {
 				String prefix = entry.getValue();

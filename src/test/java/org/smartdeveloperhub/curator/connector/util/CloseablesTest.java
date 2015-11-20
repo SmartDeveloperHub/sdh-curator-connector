@@ -26,34 +26,46 @@
  */
 package org.smartdeveloperhub.curator.connector.util;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 
-import com.google.common.io.Resources;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
-public final class ResourceUtil {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ldp4j.commons.testing.Utils;
 
-	private ResourceUtil() {
+@RunWith(JMockit.class)
+public class CloseablesTest {
+
+	@Test
+	public void verifyIsValidUtilityClass() {
+		assertThat(Utils.isUtilityClass(Closeables.class),equalTo(true));
 	}
 
-	public static String loadResource(final String resourceName) {
-		return load(resourceName, Thread.currentThread().getContextClassLoader().getResource(resourceName));
+	@Test
+	public void testCloseQuietly$Launder(@Mocked final AutoCloseable closeable) throws Exception {
+		new Expectations() {{
+			closeable.close();this.result=new IOException("failure");
+		}};
+		Closeables.closeQuietly(closeable);
 	}
 
-	public static String loadResource(final Class<?> clazz, final String resourceName) {
-		return load(resourceName, clazz.getResource(resourceName));
+	@Test
+	public void testCloseQuietly$happyPath(@Mocked final AutoCloseable closeable) throws Exception {
+		new Expectations() {{
+			closeable.close();
+		}};
+		Closeables.closeQuietly(closeable);
 	}
 
-	private static String load(final String resourceName, final URL resource) throws AssertionError {
-		try {
-			if(resource==null) {
-				throw new AssertionError("Could not find resource '"+resourceName+"'");
-			}
-			return Resources.toString(resource, Charset.forName("UTF-8"));
-		} catch (final IOException e) {
-			throw new AssertionError("Could not load resource '"+resourceName+"'",e);
-		}
+	@Test
+	public void testCloseQuietly$null() throws Exception {
+		Closeables.closeQuietly(null);
 	}
 
 }

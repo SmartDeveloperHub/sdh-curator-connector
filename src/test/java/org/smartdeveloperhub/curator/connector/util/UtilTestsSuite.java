@@ -31,7 +31,10 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ResourceUtilTest.class })
+@SuiteClasses({
+	ResourceUtilTest.class,
+	CloseablesTest.class,
+})
 public class UtilTestsSuite {
 
 }

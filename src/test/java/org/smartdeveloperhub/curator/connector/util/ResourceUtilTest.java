@@ -27,21 +27,23 @@
 package org.smartdeveloperhub.curator.connector.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
 
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.integration.junit4.JMockit;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ldp4j.commons.testing.Utils;
+
+import com.google.common.io.Resources;
 
 @RunWith(JMockit.class)
 public class ResourceUtilTest {
@@ -56,23 +58,23 @@ public class ResourceUtilTest {
 		try {
 			ResourceUtil.loadResource("not found");
 			fail("Should not attempt loading a missing resource");
-		} catch (AssertionError e) {
+		} catch (final AssertionError e) {
 			assertThat(e.getMessage(),equalTo("Could not find resource 'not found'"));
 		}
 	}
 
 	@Test
 	public void testLoadResource$failure() {
-		new MockUp<IOUtils>() {
+		new MockUp<Resources>() {
 			@Mock
-			public String toString(InputStream input, Charset encoding) throws IOException {
+			String toString(final URL url, final Charset charset) throws IOException {
 				throw new IOException("failure");
 			}
 		};
 		try {
 			ResourceUtil.loadResource("data/validation.ttl");
 			fail("Should not attempt loading a missing resource");
-		} catch (AssertionError e) {
+		} catch (final AssertionError e) {
 			assertThat(e.getMessage(),equalTo("Could not load resource 'data/validation.ttl'"));
 			assertThat(e.getCause(),instanceOf(IOException.class));
 			assertThat(e.getCause().getMessage(),equalTo("failure"));

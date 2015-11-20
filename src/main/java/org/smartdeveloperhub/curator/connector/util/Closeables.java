@@ -26,34 +26,25 @@
  */
 package org.smartdeveloperhub.curator.connector.util;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
 
-import com.google.common.io.Resources;
+public final class Closeables {
 
-public final class ResourceUtil {
-
-	private ResourceUtil() {
+	private Closeables() {
 	}
 
-	public static String loadResource(final String resourceName) {
-		return load(resourceName, Thread.currentThread().getContextClassLoader().getResource(resourceName));
-	}
-
-	public static String loadResource(final Class<?> clazz, final String resourceName) {
-		return load(resourceName, clazz.getResource(resourceName));
-	}
-
-	private static String load(final String resourceName, final URL resource) throws AssertionError {
-		try {
-			if(resource==null) {
-				throw new AssertionError("Could not find resource '"+resourceName+"'");
-			}
-			return Resources.toString(resource, Charset.forName("UTF-8"));
-		} catch (final IOException e) {
-			throw new AssertionError("Could not load resource '"+resourceName+"'",e);
+	public static void closeQuietly(final AutoCloseable closeable) {
+		if(closeable==null) {
+			return;
 		}
+		try {
+			closeable.close();
+		} catch (final Exception e) {
+			launder(e);
+		}
+	}
+
+	private static void launder(final Exception e) {
+		// Nothing to do, just skip
 	}
 
 }

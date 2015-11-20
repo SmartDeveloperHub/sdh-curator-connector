@@ -26,14 +26,11 @@
  */
 package org.smartdeveloperhub.curator.connector.io;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
-import java.nio.charset.Charset;
 import java.util.Iterator;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
@@ -51,53 +48,41 @@ import com.hp.hpl.jena.rdf.model.Resource;
 
 public class QueryTester {
 
-	private String loadResource(String resourceName) {
-		try {
-			InputStream resourceAsStream = getClass().getResourceAsStream(resourceName);
-			if(resourceAsStream==null) {
-				throw new AssertionError("Could not find resource '"+resourceName+"'");
-			}
-			return IOUtils.toString(resourceAsStream, Charset.forName("UTF-8"));
-		} catch (IOException e) {
-			throw new AssertionError("Could not load resource '"+resourceName+"'");
-		}
-	}
-
-	private Model loadData(String data) {
-		Model model=ModelFactory.createDefaultModel();
-		StringReader in = new StringReader(loadResource(data));
+	private Model loadData(final String data) {
+		final Model model=ModelFactory.createDefaultModel();
+		final StringReader in = new StringReader(ResourceUtil.loadResource(data));
 		model.read(in, "urn:","TURTLE");
 		return model;
 	}
 
 	@Test
 	public void testQuery() {
-		Model model = loadData("/data/brokers.ttl");
-		Query query =
+		final Model model = loadData("/data/brokers.ttl");
+		final Query query =
 			QueryFactory.
 				create(
-					loadResource("broker.sparql"));
-		ResIterator iterator=
+					ResourceUtil.loadResource("broker.sparql"));
+		final ResIterator iterator=
 			model.
 				listSubjectsWithProperty(
 					model.createProperty(RDF.TYPE),
 					model.createResource(AMQP.BROKER_TYPE));
 		while(iterator.hasNext()) {
-			Resource resource = iterator.next();
-			QuerySolutionMap querySolutionMap = new QuerySolutionMap();
+			final Resource resource = iterator.next();
+			final QuerySolutionMap querySolutionMap = new QuerySolutionMap();
 			querySolutionMap.add("broker", resource);
 			QueryExecution queryExecution = null;
 			try {
 				System.out.println("Trying "+resource);
 				queryExecution = QueryExecutionFactory.create(query, model);
 				queryExecution.setInitialBinding(querySolutionMap);
-				ResultSet results = queryExecution.execSelect();
+				final ResultSet results = queryExecution.execSelect();
 				for(; results.hasNext();) {
 					System.out.println("Solution found: ");
-					QuerySolution solution = results.nextSolution();
-					Iterator<String> varNames = solution.varNames();
+					final QuerySolution solution = results.nextSolution();
+					final Iterator<String> varNames = solution.varNames();
 					while(varNames.hasNext()) {
-						String var=varNames.next();
+						final String var=varNames.next();
 						System.out.println(" - "+var+" : "+solution.get(var));
 					}
 				}

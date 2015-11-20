@@ -61,34 +61,13 @@
 	<!-- =================================================================== -->
 
 	<properties>
-		<sesame.version>2.7.9</sesame.version>
 		<jena.version>2.13.0</jena.version>
-		<ldp4j.version>0.2.0-SNAPSHOT</ldp4j.version>
 		<rabbitmq.version>3.5.5</rabbitmq.version>
+		<ldp4j.version>0.2.0-SNAPSHOT</ldp4j.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.openrdf.sesame</groupId>
-				<artifactId>sesame-repository-sail</artifactId>
-				<version>${sesame.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.openrdf.sesame</groupId>
-				<artifactId>sesame-sail-memory</artifactId>
-				<version>${sesame.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.openrdf.sesame</groupId>
-				<artifactId>sesame-rio-rdfxml</artifactId>
-				<version>${sesame.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.openrdf.sesame</groupId>
-				<artifactId>sesame-rio-turtle</artifactId>
-				<version>${sesame.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>org.apache.jena</groupId>
 				<artifactId>jena-core</artifactId>
@@ -99,55 +78,45 @@
 				<artifactId>jena-arq</artifactId>
 				<version>${jena.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.ldp4j.framework</groupId>
-				<artifactId>ldp4j-application-api</artifactId>
-				<version>${ldp4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.ldp4j.framework</groupId>
-				<artifactId>ldp4j-application-data</artifactId>
-				<version>${ldp4j.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
 
 		<dependency>
-			<groupId>com.rabbitmq</groupId>
-			<artifactId>amqp-client</artifactId>
-			<version>${rabbitmq.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.ldp4j.framework</groupId>
-			<artifactId>ldp4j-application-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.ldp4j.framework</groupId>
-			<artifactId>ldp4j-application-data</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
+		<!--
+			If partially shading Apache Jena, Xerces must be provided to prevent
+			linkage failures, as Xerces/XML Apis are usually endorsed by containers
+		-->
+		<!--
 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+			<scope>provided</scope>
+		</dependency>
+		 -->
+
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>${rabbitmq.version}</version>
+			<!-- optional>true</optional -->
 		</dependency>
 
 		<dependency>
@@ -159,6 +128,7 @@
 					<artifactId>log4j</artifactId>
 				</exclusion>
 			</exclusions>
+			<!-- optional>true</optional -->
 		</dependency>
 
 		<dependency>
@@ -173,7 +143,28 @@
 					<artifactId>httpclient</artifactId>
 					<groupId>org.apache.httpcomponents</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>httpclient-cache</artifactId>
+					<groupId>org.apache.httpcomponents</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jsonld-java</artifactId>
+					<groupId>com.github.jsonld-java</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-csv</artifactId>
+					<groupId>org.apache.commons</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>libthrift</artifactId>
+					<groupId>org.apache.thrift</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
 			</exclusions>
+			<!-- optional>true</optional -->
 		</dependency>
 
 		<!-- Default unit testing frameworks-->
@@ -200,22 +191,12 @@
 			<scope>test</scope>
 		</dependency>
 
-<!--
-		<dependency>
-			<groupId>com.jayway.awaitility</groupId>
-			<artifactId>awaitility</artifactId>
-			<version>1.6.5</version>
-			<scope>test</scope>
-		</dependency>
- -->
-
 		<dependency>
 			<groupId>org.ldp4j.commons</groupId>
 			<artifactId>ldp4j-commons-testing</artifactId>
 			<version>${ldp4j.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 
 		<!-- Other runtime dependencies required for testing -->
 		<dependency>
@@ -225,4 +206,78 @@
 		</dependency>
 
 	</dependencies>
+
+	<!--
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.2</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>true</minimizeJar>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<artifactSet>
+								<includes>
+									<include>com.rabbitmq:amqp-client:jar:</include>
+									<include>org.apache.jena:jena-core:jar:</include>
+									<include>org.apache.jena:jena-arq:jar:</include>
+									<include>org.apache.jena:jena-iri:jar:</include>
+									<include>org.apache.commons:commons-lang3:jar:</include>
+								</includes>
+							</artifactSet>
+							<relocations>
+								<relocation>
+									<pattern>com.rabbitmq</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.com.rabbitmq</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>com.hp.hpl.jena</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.com.hp.hpl.jena</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>jena</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.jena</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.jena</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.org.apache.jena</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>arq</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.arq</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>riotcmd</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.riotcmd</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>org.apache.commons.lang3</pattern>
+									<shadedPattern>org.smartdeveloperhub.curator.shaded.org.apache.commons.lang3</shadedPattern>
+								</relocation>
+							</relocations>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
+									<addHeader>false</addHeader>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	 -->
+
 </project>
