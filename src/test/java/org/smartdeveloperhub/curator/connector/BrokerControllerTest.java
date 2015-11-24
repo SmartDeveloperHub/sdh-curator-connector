@@ -42,6 +42,7 @@ import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
+import mockit.Verifications;
 import mockit.integration.junit4.JMockit;
 
 import org.junit.Test;
@@ -51,6 +52,7 @@ import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 import org.smartdeveloperhub.curator.protocol.Broker;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -293,7 +295,7 @@ public class BrokerControllerTest {
 		};
 		new Expectations() {{
 			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;
-			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), null, message.getBytes());this.result=new ShutdownSignalException(true,true,null,BrokerControllerTest.this.channel);
+			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), true, (BasicProperties)this.any, message.getBytes());this.result=new ShutdownSignalException(true,true,null,BrokerControllerTest.this.channel);
 		}};
 		sut.connect();
 		try {
@@ -302,6 +304,12 @@ public class BrokerControllerTest {
 			assertThat(e.getMessage(),equalTo("Unexpected failure while publishing message [message] to exchange 'exchangeName' and routing key 'routingKey' using broker localhost:5672/: clean connection shutdown"));
 			assertThat(e.getCause(),instanceOf(ShutdownSignalException.class));
 		}
+		new Verifications() {{
+			BasicProperties s;
+			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), true, s=withCapture(), message.getBytes());
+			assertThat(s.getDeliveryMode(),equalTo(2));
+			assertThat(s.getHeaders().get(BrokerController.BROKER_CONTROLLER_MESSAGE),instanceOf(Long.class));
+		}};
 	}
 
 	@Test

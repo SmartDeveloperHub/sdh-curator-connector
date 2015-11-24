@@ -28,23 +28,23 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.AMQP.BasicProperties;
 
 final class MessageHandlerConsumer extends DefaultConsumer {
 
 	private final MessageHandler handler;
 
-	MessageHandlerConsumer(Channel channel, MessageHandler handler) {
+	MessageHandlerConsumer(final Channel channel, final MessageHandler handler) {
 		super(channel);
 		this.handler = handler;
 	}
 
 	@Override
-	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body) throws IOException {
-		String payload=new String(body, "UTF-8");
+	public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties properties, final byte[] body) throws IOException {
+		final String payload=new String(body, "UTF-8");
 		this.handler.handlePayload(payload);
 	}
 }

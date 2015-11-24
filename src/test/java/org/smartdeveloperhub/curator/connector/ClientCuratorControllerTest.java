@@ -53,6 +53,7 @@ import org.smartdeveloperhub.curator.protocol.Agent;
 import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
 
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 
@@ -244,7 +245,7 @@ public class ClientCuratorControllerTest {
 			}
 		};
 		new Expectations() {{
-			ClientCuratorControllerTest.this.channel.basicPublish(ClientCuratorControllerTest.this.configuration.exchangeName(),requestRoutingKey(),null,"message".getBytes());this.result=new IOException("failure");
+			ClientCuratorControllerTest.this.channel.basicPublish(ClientCuratorControllerTest.this.configuration.exchangeName(),requestRoutingKey(),true,(BasicProperties)this.any,"message".getBytes());this.result=new IOException("failure");
 		}};
 		try {
 			this.sut.publishRequest(this.message);

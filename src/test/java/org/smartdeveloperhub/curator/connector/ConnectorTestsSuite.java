@@ -51,6 +51,7 @@ import org.junit.runners.Suite.SuiteClasses;
 	BrokerControllerUncaughtExceptionHandlerTest.class,
 	BrokerControllerExceptionHandlerTest.class,
 	BrokerControllerTest.class,
+	BrokerControllerUsageTest.class,
 	ClientCuratorControllerTest.class,
 	ClientConnectorControllerTest.class,
 	BrokerControllerUncaughtExceptionHandlerTest.class,

@@ -31,6 +31,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -48,11 +49,15 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.MessageProperties;
+import com.rabbitmq.client.ReturnListener;
 
 final class BrokerController {
 
@@ -62,9 +67,26 @@ final class BrokerController {
 
 	}
 
+	private final class LoggingReturnListener implements ReturnListener {
+
+		@Override
+		public void handleReturn(final int replyCode, final String replyText, final String exchange, final String routingKey, final BasicProperties properties, final byte[] body) throws IOException {
+			LOGGER.warn(
+				"Message {} publication in {}:{} failed ({}): {}",
+				properties.getHeaders().get(BROKER_CONTROLLER_MESSAGE),
+				exchange,
+				routingKey,
+				replyCode,
+				replyText);
+		}
+
+	}
+
 	private static final Logger LOGGER=LoggerFactory.getLogger(BrokerController.class);
 
-	private static final String EXCHANGE_TYPE="topic";
+	static final String EXCHANGE_TYPE="topic";
+
+	static final String BROKER_CONTROLLER_MESSAGE = "X-BrokerController-Message";
 
 	private final Broker broker;
 	private final ConversionContext context;
@@ -74,6 +96,8 @@ final class BrokerController {
 	private final Lock write;
 
 	private final Deque<Cleaner> cleaners;
+
+	private final AtomicLong messageCounter;
 
 	private Connection connection;
 	private Channel channel;
@@ -87,6 +111,7 @@ final class BrokerController {
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
 		this.cleaners=Lists.newLinkedList();
+		this.messageCounter=new AtomicLong();
 	}
 
 	Broker broker() {
@@ -209,11 +234,14 @@ final class BrokerController {
 		this.read.lock();
 		try {
 			LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
+			final Map<String, Object> headers=Maps.newLinkedHashMap();
+			headers.put(BROKER_CONTROLLER_MESSAGE,this.messageCounter.incrementAndGet());
 			channel().
 				basicPublish(
 					exchangeName,
 					routingKey,
-					null,
+					true,
+					MessageProperties.MINIMAL_PERSISTENT_BASIC.builder().headers(headers).build(),
 					message.getBytes());
 		} catch (final IOException e) {
 			LOGGER.warn("Could not publish message [{}] to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
@@ -274,6 +302,7 @@ final class BrokerController {
 			if(this.channel==null) {
 				throw new IllegalStateException("No channel available");
 			}
+			this.channel.addReturnListener(new LoggingReturnListener());
 			this.connected=true;
 		} catch (final Exception e) {
 			this.connected=false;
