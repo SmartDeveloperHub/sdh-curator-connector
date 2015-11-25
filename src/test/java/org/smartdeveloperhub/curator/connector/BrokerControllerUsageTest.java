@@ -34,6 +34,10 @@ import org.smartdeveloperhub.curator.connector.protocol.ProtocolFactory;
 
 public class BrokerControllerUsageTest {
 
+	private static final String QUEUE_NAME = "test";
+	private static final String ROUTING_KEY = "key";
+	private static final String EXCHANGE_NAME = "exchange";
+
 	@Test
 	public void failOnMessagePublicationFailure() throws Exception {
 		final BrokerController producer = createController("producer");
@@ -41,28 +45,29 @@ public class BrokerControllerUsageTest {
 		producer.connect();
 		consumer.connect();
 		try {
+			producer.declareExchange(EXCHANGE_NAME);
 			producer.
 				publishMessage(
 					ProtocolFactory.
 						newDeliveryChannel().
-							withExchangeName("sdh").
-							withRoutingKey("key").
+							withExchangeName(EXCHANGE_NAME).
+							withRoutingKey(ROUTING_KEY).
 							build(),
 					"message1");
 			TimeUnit.MILLISECONDS.sleep(500);
-			consumer.declareQueue("test");
-			consumer.bindQueue("sdh", "test", "key");
+			consumer.declareQueue(QUEUE_NAME);
+			consumer.bindQueue(EXCHANGE_NAME, QUEUE_NAME, ROUTING_KEY);
 			consumer.registerConsumer(new MessageHandler() {
 				@Override
 				public void handlePayload(final String payload) {
 					System.out.println("Received "+payload);
-				}}, "test");
+				}}, QUEUE_NAME);
 			producer.
 				publishMessage(
 					ProtocolFactory.
 						newDeliveryChannel().
-							withExchangeName("sdh").
-							withRoutingKey("key").
+							withExchangeName(EXCHANGE_NAME).
+							withRoutingKey(ROUTING_KEY).
 							build(),
 					"message2");
 			TimeUnit.MILLISECONDS.sleep(500);
