@@ -305,19 +305,19 @@ final class BrokerController {
 
 	private Channel createNewChannel() throws IOException {
 		Preconditions.checkState(this.connection!=null,"No connection available");
-		final Channel channel = this.connection.createChannel();
-		Preconditions.checkState(channel!=null,"No channel available");
-		channel.addReturnListener(new LoggingReturnListener());
-		return channel;
+		final Channel result = this.connection.createChannel();
+		Preconditions.checkState(result!=null,"No channel available");
+		result.addReturnListener(new LoggingReturnListener());
+		return result;
 	}
 
 	private void publishMessage(final String exchangeName, final String routingKey, final String message) throws IOException {
-		final Channel channel = currentChannel();
+		final Channel aChannel = currentChannel();
 		try {
 			LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
 			final Map<String, Object> headers=Maps.newLinkedHashMap();
 			headers.put(BROKER_CONTROLLER_MESSAGE,this.messageCounter.incrementAndGet());
-			channel.
+			aChannel.
 				basicPublish(
 					exchangeName,
 					routingKey,
@@ -325,11 +325,11 @@ final class BrokerController {
 					MessageProperties.MINIMAL_PERSISTENT_BASIC.builder().headers(headers).build(),
 					message.getBytes());
 		} catch (final IOException e) {
-			discardChannel(channel);
+			discardChannel(aChannel);
 			LOGGER.warn("Could not publish message [{}] to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
 			throw e;
 		} catch (final Exception e) {
-			discardChannel(channel);
+			discardChannel(aChannel);
 			final String errorMessage = String.format("Unexpected failure while publishing message [%s] to exchange '%s' and routing key '%s' using broker %s:%s%s: %s",message,exchangeName,routingKey,this.broker.host(),this.broker.port(),this.broker.virtualHost(),e.getMessage());
 			LOGGER.error(errorMessage);
 			throw new IOException(errorMessage,e);
@@ -346,15 +346,15 @@ final class BrokerController {
 
 	private Channel currentChannel() throws IOException {
 		final long threadId = Thread.currentThread().getId();
-		Channel channel=null;
+		Channel result=null;
 		synchronized(this.channels) {
-			channel=this.channels.get(threadId);
-			if(channel==null) {
-				channel=createNewChannel();
-				this.channels.put(threadId,channel);
+			result=this.channels.get(threadId);
+			if(result==null) {
+				result=createNewChannel();
+				this.channels.put(threadId,result);
 			}
 		}
-		return channel;
+		return result;
 	}
 
 	private void closeQuietly(final Channel channel) {
