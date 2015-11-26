@@ -28,6 +28,7 @@ package org.smartdeveloperhub.curator.connector;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
@@ -95,7 +96,10 @@ final class BrokerController {
 	private final Lock read;
 	private final Lock write;
 
+	private final Map<Long,Channel> channels;
+
 	private final Deque<Cleaner> cleaners;
+	private final List<MessageHandlerConsumer> callbacks;
 
 	private final AtomicLong messageCounter;
 
@@ -110,13 +114,16 @@ final class BrokerController {
 		final ReadWriteLock lock=new ReentrantReadWriteLock();
 		this.read=lock.readLock();
 		this.write=lock.writeLock();
+		this.channels=Maps.newLinkedHashMap();
 		this.cleaners=Lists.newLinkedList();
+		this.callbacks=Lists.newArrayList();
 		this.messageCounter=new AtomicLong();
 	}
 
 	Broker broker() {
 		return this.broker;
 	}
+
 
 	void connect() throws ControllerException {
 		this.write.lock();
@@ -148,8 +155,9 @@ final class BrokerController {
 				return;
 			}
 			cleanUp();
-			closeChannelQuietly();
+			closeChannelsQuietly();
 			closeConnectionQuietly();
+			this.callbacks.clear();
 			this.connected=false;
 		} finally {
 			this.write.unlock();
@@ -171,6 +179,10 @@ final class BrokerController {
 		}
 	}
 
+	/**
+	 * The declared queues are durable, shared and auto-delete, and expire if no
+	 * client uses them after 1 second.
+	 */
 	String declareQueue(final String queueName) throws ControllerException {
 		final String targetQueueName=Optional.fromNullable(queueName).or("");
 		this.read.lock();
@@ -229,27 +241,9 @@ final class BrokerController {
 	}
 
 	void publishMessage(final DeliveryChannel replyTo, final String message) throws IOException {
-		final String exchangeName = replyTo.exchangeName();
-		final String routingKey = replyTo.routingKey();
 		this.read.lock();
 		try {
-			LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
-			final Map<String, Object> headers=Maps.newLinkedHashMap();
-			headers.put(BROKER_CONTROLLER_MESSAGE,this.messageCounter.incrementAndGet());
-			channel().
-				basicPublish(
-					exchangeName,
-					routingKey,
-					true,
-					MessageProperties.MINIMAL_PERSISTENT_BASIC.builder().headers(headers).build(),
-					message.getBytes());
-		} catch (final IOException e) {
-			LOGGER.warn("Could not publish message [{}] to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
-			throw e;
-		} catch (final Exception e) {
-			final String errorMessage = String.format("Unexpected failure while publishing message [%s] to exchange '%s' and routing key '%s' using broker %s:%s%s: %s",message,exchangeName,routingKey,this.broker.host(),this.broker.port(),this.broker.virtualHost(),e.getMessage());
-			LOGGER.error(errorMessage);
-			throw new IOException(errorMessage,e);
+			publishMessage(replyTo.exchangeName(), replyTo.routingKey(), message);
 		} finally {
 			this.read.unlock();
 		}
@@ -258,12 +252,14 @@ final class BrokerController {
 	void registerConsumer(final MessageHandler handler, final String queueName) throws IOException {
 		this.read.lock();
 		try {
+			final MessageHandlerConsumer callback = new MessageHandlerConsumer(this.channel, handler);
 			channel().
 				basicConsume(
 					queueName,
 					true,
-					new MessageHandlerConsumer(this.channel, handler)
+					callback
 				);
+			this.callbacks.add(callback);
 		} finally {
 			this.read.unlock();
 		}
@@ -298,11 +294,7 @@ final class BrokerController {
 
 	private void createChannel() throws ControllerException {
 		try {
-			this.channel = this.connection.createChannel();
-			if(this.channel==null) {
-				throw new IllegalStateException("No channel available");
-			}
-			this.channel.addReturnListener(new LoggingReturnListener());
+			this.channel = createNewChannel();
 			this.connected=true;
 		} catch (final Exception e) {
 			this.connected=false;
@@ -311,14 +303,77 @@ final class BrokerController {
 		}
 	}
 
-	private void closeChannelQuietly() {
-		if(this.channel.isOpen()) {
+	private Channel createNewChannel() throws IOException {
+		Preconditions.checkState(this.connection!=null,"No connection available");
+		final Channel channel = this.connection.createChannel();
+		Preconditions.checkState(channel!=null,"No channel available");
+		channel.addReturnListener(new LoggingReturnListener());
+		return channel;
+	}
+
+	private void publishMessage(final String exchangeName, final String routingKey, final String message) throws IOException {
+		final Channel channel = currentChannel();
+		try {
+			LOGGER.debug("Publishing message to exchange '{}' and routing key '{}'. Payload: \n{}",exchangeName,routingKey,message);
+			final Map<String, Object> headers=Maps.newLinkedHashMap();
+			headers.put(BROKER_CONTROLLER_MESSAGE,this.messageCounter.incrementAndGet());
+			channel.
+				basicPublish(
+					exchangeName,
+					routingKey,
+					true,
+					MessageProperties.MINIMAL_PERSISTENT_BASIC.builder().headers(headers).build(),
+					message.getBytes());
+		} catch (final IOException e) {
+			discardChannel(channel);
+			LOGGER.warn("Could not publish message [{}] to exchange '{}' and routing key '{}': {}",message,exchangeName,routingKey,e.getMessage());
+			throw e;
+		} catch (final Exception e) {
+			discardChannel(channel);
+			final String errorMessage = String.format("Unexpected failure while publishing message [%s] to exchange '%s' and routing key '%s' using broker %s:%s%s: %s",message,exchangeName,routingKey,this.broker.host(),this.broker.port(),this.broker.virtualHost(),e.getMessage());
+			LOGGER.error(errorMessage);
+			throw new IOException(errorMessage,e);
+		}
+	}
+
+	private void discardChannel(final Channel channel) {
+		final long threadId = Thread.currentThread().getId();
+		closeQuietly(channel);
+		synchronized(this.channels) {
+			this.channels.remove(threadId);
+		}
+	}
+
+	private Channel currentChannel() throws IOException {
+		final long threadId = Thread.currentThread().getId();
+		Channel channel=null;
+		synchronized(this.channels) {
+			channel=this.channels.get(threadId);
+			if(channel==null) {
+				channel=createNewChannel();
+				this.channels.put(threadId,channel);
+			}
+		}
+		return channel;
+	}
+
+	private void closeQuietly(final Channel channel) {
+		if(channel.isOpen()) {
 			try {
-				this.channel.close();
+				channel.close();
 			} catch (final Exception e) {
 				LOGGER.trace("Could not close channel gracefully",e);
 			}
 		}
+	}
+
+	private void closeChannelsQuietly() {
+		closeQuietly(this.channel);
+		for(final Channel tmpChannel:this.channels.values()) {
+			closeQuietly(tmpChannel);
+		}
+		this.channels.clear();
+		this.channel=null;
 	}
 
 	private void closeConnectionQuietly() {
@@ -328,6 +383,7 @@ final class BrokerController {
 			} catch (final Exception e) {
 				LOGGER.trace("Could not close connection gracefully",e);
 			}
+			this.connection=null;
 		}
 	}
 

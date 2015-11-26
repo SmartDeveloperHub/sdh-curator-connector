@@ -198,7 +198,7 @@ public class BrokerControllerTest {
 			sut.connect();
 		} catch (final ControllerException e) {
 			assertThat(e.getMessage(),equalTo("Could not create channel for broker connection"));
-			assertThat(e.getCause(),instanceOf(NullPointerException.class));
+			assertThat(e.getCause(),instanceOf(IllegalStateException.class));
 		}
 	}
 
@@ -304,6 +304,49 @@ public class BrokerControllerTest {
 			assertThat(e.getMessage(),equalTo("Unexpected failure while publishing message [message] to exchange 'exchangeName' and routing key 'routingKey' using broker localhost:5672/: clean connection shutdown"));
 			assertThat(e.getCause(),instanceOf(ShutdownSignalException.class));
 		}
+		new Verifications() {{
+			BasicProperties s;
+			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), true, s=withCapture(), message.getBytes());
+			assertThat(s.getDeliveryMode(),equalTo(2));
+			assertThat(s.getHeaders().get(BrokerController.BROKER_CONTROLLER_MESSAGE),instanceOf(Long.class));
+		}};
+	}
+
+	@Test
+	public void testPublishMessage$shareChannelInThread() throws Exception {
+		final BrokerController sut=newInstance();
+		final DeliveryChannel dc =
+			ProtocolFactory.
+				newDeliveryChannel().
+					withExchangeName("exchangeName").
+					withRoutingKey("routingKey").
+					build();
+		final String message = "message";
+		new MockUp<ConnectionFactory>() {
+			@Mock
+			public void setHost(final String host) {
+			}
+			@Mock
+			public void setPort(final int port) {
+			}
+			@Mock
+			public void setVirtualHost(final String virtualHost) {
+			}
+			@Mock
+			public void setThreadFactory(final ThreadFactory threadFactory) {
+			}
+			@Mock
+			public Connection newConnection() throws IOException, TimeoutException {
+				return BrokerControllerTest.this.connection;
+			}
+		};
+		new Expectations() {{
+			BrokerControllerTest.this.connection.createChannel();this.result=BrokerControllerTest.this.channel;this.minTimes=2;this.maxTimes=2;
+			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), true, (BasicProperties)this.any, message.getBytes());this.minTimes=2;this.maxTimes=2;
+		}};
+		sut.connect();
+		sut.publishMessage(dc, message);
+		sut.publishMessage(dc, message);
 		new Verifications() {{
 			BasicProperties s;
 			BrokerControllerTest.this.channel.basicPublish(dc.exchangeName(), dc.routingKey(), true, s=withCapture(), message.getBytes());

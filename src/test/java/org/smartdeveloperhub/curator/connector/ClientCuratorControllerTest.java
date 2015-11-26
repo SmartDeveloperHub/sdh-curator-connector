@@ -234,7 +234,7 @@ public class ClientCuratorControllerTest {
 			void connect() {
 			}
 			@Mock
-			Channel channel() {
+			Channel createNewChannel() {
 				return ClientCuratorControllerTest.this.channel;
 			}
 		};
