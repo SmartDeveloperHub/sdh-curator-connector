@@ -30,6 +30,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -46,13 +47,13 @@ public final class Filters implements Iterable<Filter> {
 
 	private final ImmutableMap<URI,String> mappings;
 
-	private Filters(ImmutableMap<URI,String> filters) {
+	private Filters(final ImmutableMap<URI,String> filters) {
 		this.mappings = filters;
 	}
 
 	private ImmutableList<Filter> toList() {
-		Builder<Filter> builder = ImmutableList.<Filter>builder();
-		for(Entry<URI,String> entry:this.mappings.entrySet()) {
+		final Builder<Filter> builder = ImmutableList.<Filter>builder();
+		for(final Entry<URI,String> entry:this.mappings.entrySet()) {
 			builder.add(
 				ProtocolFactory.
 					newFilter().
@@ -63,12 +64,12 @@ public final class Filters implements Iterable<Filter> {
 		return builder.build();
 	}
 
-	public Filters withFilter(String property, String variableName) {
+	public Filters withFilter(final String property, final String variableName) {
 		checkNotNull("Filter property cannot be null");
 		return withFilter(URI.create(property),variableName);
 	}
 
-	public Filters withFilter(URI property, String variableName) {
+	public Filters withFilter(final URI property, final String variableName) {
 		checkNotNull("Filter property cannot be null");
 		checkNotNull("Filter variable name cannot be null");
 		if(variableName.equals(this.mappings.get(property))) {
@@ -97,10 +98,10 @@ public final class Filters implements Iterable<Filter> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		boolean result = false;
 		if(obj instanceof Filters) {
-			Filters that=(Filters)obj;
+			final Filters that=(Filters)obj;
 			result=Objects.equals(this.mappings,that.mappings);
 		}
 		return result;
@@ -128,6 +129,14 @@ public final class Filters implements Iterable<Filter> {
 
 	public static Filters newInstance() {
 		return new Filters(ImmutableMap.<URI,String>of());
+	}
+
+	public static Filters of(final Collection<Filter> filters) {
+		final ImmutableMap.Builder<URI, String> builder = ImmutableMap.<URI,String>builder();
+		for(final Filter filter:filters) {
+			builder.put(filter.property(),filter.variable().name());
+		}
+		return new Filters(builder.build());
 	}
 
 }

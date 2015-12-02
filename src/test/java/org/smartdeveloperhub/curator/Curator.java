@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdeveloperhub.curator.connector.CuratorConfiguration;
+import org.smartdeveloperhub.curator.connector.EnrichmentRequest;
 import org.smartdeveloperhub.curator.connector.EnrichmentResult;
 import org.smartdeveloperhub.curator.connector.Failure;
 import org.smartdeveloperhub.curator.connector.ResponseProvider;
@@ -115,9 +116,9 @@ public final class Curator {
 		}
 
 		@Override
-		public EnrichmentResult getResult(final UUID messageId) {
+		public EnrichmentResult getResult(final UUID messageId, final EnrichmentRequest request) {
 			final EnrichmentResult result = getNext(messageId, Curator.this.results, Curator.this.accepted);
-			LOGGER.info("Consuming result {} for message {}",result,messageId);
+			LOGGER.info("Consuming result {} for message {} ({})",result,messageId,request);
 			return result;
 		}
 

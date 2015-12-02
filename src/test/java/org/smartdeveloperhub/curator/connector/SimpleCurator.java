@@ -56,11 +56,11 @@ public final class SimpleCurator implements MessageHandler {
 	private final Notifier notifier;
 	private final ResponseProvider provider;
 	private final ConversionContext context;
+	private final CuratorConfiguration curatorConfiguration;
 
+	private Agent agent;
 	private ServerCuratorController curatorController;
 	private ServerConnectorController connectorController;
-
-	private final CuratorConfiguration curatorConfiguration;
 
 	public SimpleCurator(final DeliveryChannel connectorConfiguration, final CuratorConfiguration curatorConfiguration, final Notifier notifier, final ResponseProvider provider, final ConversionContext context) {
 		this.connectorConfiguration = connectorConfiguration;
@@ -71,6 +71,7 @@ public final class SimpleCurator implements MessageHandler {
 	}
 
 	public void connect(final Agent agent) throws IOException, ControllerException {
+		this.agent = agent;
 		this.curatorController=new ServerCuratorController(this.curatorConfiguration,"curator",this.context);
 		this.connectorController=new ServerConnectorController(this.connectorConfiguration, this.curatorController,this.context);
 		this.curatorController.connect(agent);
@@ -191,14 +192,14 @@ public final class SimpleCurator implements MessageHandler {
 			withSubmittedBy(
 				ProtocolFactory.
 					newAgent().
-						withAgentId(UUID.randomUUID())).
+						withAgentId(this.agent.agentId())).
 			withResponseTo(request.messageId()).
 			withResponseNumber(1).
 			build();
 	}
 
 	private ResponseMessage createEnrichmentResponse(final EnrichmentRequestMessage request) {
-		final EnrichmentResult result = this.provider.getResult(request.messageId());
+		final EnrichmentResult result = this.provider.getResult(request.messageId(),extract(request));
 		ResponseMessage response=null;
 		if(result!=null) {
 			final EnrichmentResponseMessageBuilder builder =
@@ -209,13 +210,22 @@ public final class SimpleCurator implements MessageHandler {
 						withSubmittedBy(
 							ProtocolFactory.
 								newAgent().
-									withAgentId(UUID.randomUUID())).
+									withAgentId(this.agent.agentId())).
 						withResponseTo(request.messageId()).
 						withResponseNumber(1);
 			populateResult(result, builder);
 			response=builder.build();
 		}
 		return response;
+	}
+
+	private EnrichmentRequest extract(final EnrichmentRequestMessage request) {
+		return
+			EnrichmentRequest.
+				newInstance().
+					withTargetResource(request.targetResource()).
+					withConstraints(Constraints.of(request.constraints())).
+					withFilters(Filters.of(request.filters()));
 	}
 
 	private void populateResult(final EnrichmentResult result, final EnrichmentResponseMessageBuilder builder) {

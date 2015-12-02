@@ -37,7 +37,7 @@ public interface ResponseProvider {
 
 	Failure getFailure(UUID messageId);
 
-	EnrichmentResult getResult(UUID messageId);
+	EnrichmentResult getResult(UUID messageId, EnrichmentRequest request);
 
 	long acknowledgeDelay(UUID messageId, TimeUnit unit);
 

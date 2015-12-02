@@ -51,16 +51,16 @@ public class Constraints implements Iterable<Constraint> {
 
 		private final NamedValue target;
 
-		private TargetedConstraints(Constraints constraints, NamedValue target) {
+		private TargetedConstraints(final Constraints constraints, final NamedValue target) {
 			super(constraints);
 			this.target = target;
 		}
 
-		public BindingValueBuilder withProperty(String property) {
+		public BindingValueBuilder withProperty(final String property) {
 			return withProperty(URI.create(property));
 		}
 
-		public BindingValueBuilder withProperty(URI property) {
+		public BindingValueBuilder withProperty(final URI property) {
 			return new BindingValueBuilder(this,this.target,property);
 		}
 
@@ -72,18 +72,18 @@ public class Constraints implements Iterable<Constraint> {
 		private final NamedValue target;
 		private final URI property;
 
-		private BindingValueBuilder(Constraints constraints, NamedValue target, URI property) {
+		private BindingValueBuilder(final Constraints constraints, final NamedValue target, final URI property) {
 			this.constraints = constraints;
 			this.target = target;
 			this.property = property;
 		}
 
-		private TargetedConstraints appendValue(Value value) {
+		private TargetedConstraints appendValue(final Value value) {
 			this.constraints.add(this.target,this.property,value);
 			return new TargetedConstraints(this.constraints,this.target);
 		}
 
-		private TargetedConstraints appendLiteralValue(Object value, URI datatype, String language) {
+		private TargetedConstraints appendLiteralValue(final Object value, final URI datatype, final String language) {
 			return
 				appendValue(
 					ProtocolFactory.
@@ -94,31 +94,31 @@ public class Constraints implements Iterable<Constraint> {
 							build());
 		}
 
-		public TargetedConstraints andVariable(String name) {
+		public TargetedConstraints andVariable(final String name) {
 			return appendValue(ProtocolFactory.newVariable(name));
 		}
 
-		public TargetedConstraints andResource(String name) {
+		public TargetedConstraints andResource(final String name) {
 			return andResource(URI.create(name));
 		}
 
-		public TargetedConstraints andResource(URI name) {
+		public TargetedConstraints andResource(final URI name) {
 			return appendValue(ProtocolFactory.newResource(name));
 		}
 
-		public TargetedConstraints andLiteral(Object value) {
+		public TargetedConstraints andLiteral(final Object value) {
 			return andLanguageLiteral(value.toString(),null);
 		}
 
-		public TargetedConstraints andTypedLiteral(Object value, String dataype) {
+		public TargetedConstraints andTypedLiteral(final Object value, final String dataype) {
 			return andTypedLiteral(value,URI.create(dataype));
 		}
 
-		public TargetedConstraints andTypedLiteral(Object value, URI datatype) {
+		public TargetedConstraints andTypedLiteral(final Object value, final URI datatype) {
 			return appendLiteralValue(value,datatype,null);
 		}
 
-		public TargetedConstraints andLanguageLiteral(String value, String language) {
+		public TargetedConstraints andLanguageLiteral(final String value, final String language) {
 			return appendLiteralValue(value,null,language);
 		}
 
@@ -129,16 +129,16 @@ public class Constraints implements Iterable<Constraint> {
 		protected final Constraints constraints;
 		protected final NamedValue target;
 
-		private BindingPropertyBuilder(Constraints constraints, NamedValue target) {
+		private BindingPropertyBuilder(final Constraints constraints, final NamedValue target) {
 			this.constraints = constraints;
 			this.target = target;
 		}
 
-		public BindingValueBuilder withProperty(String property) {
+		public BindingValueBuilder withProperty(final String property) {
 			return withProperty(URI.create(property));
 		}
 
-		public BindingValueBuilder withProperty(URI property) {
+		public BindingValueBuilder withProperty(final URI property) {
 			return new BindingValueBuilder(this.constraints,this.target,property);
 		}
 
@@ -146,7 +146,7 @@ public class Constraints implements Iterable<Constraint> {
 
 	private Multimap<NamedValue,Binding> bindings;
 
-	private Constraints(Constraints constraints) {
+	private Constraints(final Constraints constraints) {
 		this.bindings=constraints.bindings;
 	}
 
@@ -157,7 +157,7 @@ public class Constraints implements Iterable<Constraint> {
 	/**
 	 * Copy-on-write
 	 */
-	private void add(NamedValue target, URI property, Value value) {
+	private void add(final NamedValue target, final URI property, final Value value) {
 		this.bindings=LinkedHashMultimap.create(this.bindings);
 		this.bindings.put(
 			target,
@@ -169,13 +169,13 @@ public class Constraints implements Iterable<Constraint> {
 	}
 
 	private ImmutableList<Constraint> toList() {
-		Builder<Constraint> builder = ImmutableList.<Constraint>builder();
-		for(Entry<NamedValue, Collection<Binding>> constraint:this.bindings.asMap().entrySet()) {
-			ConstraintBuilder cb=
+		final Builder<Constraint> builder = ImmutableList.<Constraint>builder();
+		for(final Entry<NamedValue, Collection<Binding>> constraint:this.bindings.asMap().entrySet()) {
+			final ConstraintBuilder cb=
 				ProtocolFactory.
 					newConstraint().
 						withTarget(constraint.getKey());
-			for(Binding binding:constraint.getValue()) {
+			for(final Binding binding:constraint.getValue()) {
 				cb.withBinding(binding);
 			}
 			builder.add(cb.build());
@@ -183,15 +183,15 @@ public class Constraints implements Iterable<Constraint> {
 		return builder.build();
 	}
 
-	public BindingPropertyBuilder forVariable(String name) {
+	public BindingPropertyBuilder forVariable(final String name) {
 		return new BindingPropertyBuilder(this,ProtocolFactory.newVariable(name));
 	}
 
-	public BindingPropertyBuilder forResource(String name) {
+	public BindingPropertyBuilder forResource(final String name) {
 		return forResource(URI.create(name));
 	}
 
-	public BindingPropertyBuilder forResource(URI name) {
+	public BindingPropertyBuilder forResource(final URI name) {
 		return new BindingPropertyBuilder(this,ProtocolFactory.newResource(name));
 	}
 
@@ -207,10 +207,10 @@ public class Constraints implements Iterable<Constraint> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		boolean result = false;
 		if(obj instanceof Constraints) {
-			Constraints that=(Constraints)obj;
+			final Constraints that=(Constraints)obj;
 			result=Objects.equals(this.bindings,that.bindings);
 		}
 		return result;
@@ -238,6 +238,16 @@ public class Constraints implements Iterable<Constraint> {
 
 	public static Constraints newInstance() {
 		return new Constraints();
+	}
+
+	public static Constraints of(final Collection<Constraint> constraints) {
+		final Constraints result=newInstance();
+		for(final Constraint constraint:constraints) {
+			for(final Binding binding:constraint.bindings()) {
+				result.bindings.put(constraint.target(),binding);
+			}
+		}
+		return result;
 	}
 
 }
