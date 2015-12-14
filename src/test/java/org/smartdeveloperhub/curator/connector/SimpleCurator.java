@@ -236,7 +236,7 @@ public final class SimpleCurator implements MessageHandler {
 				withAddition(
 					createBinding(property, additions.value(property)));
 		}
-		final Bindings removals=result.additions();
+		final Bindings removals=result.removals();
 		for(final URI property:removals.properties()) {
 			builder.
 				withRemoval(
