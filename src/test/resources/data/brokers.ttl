@@ -1,0 +1,76 @@
+#
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   This file is part of the Smart Developer Hub Project:
+#     http://www.smartdeveloperhub.org/
+#
+#   Center for Open Middleware
+#     http://www.centeropenmiddleware.com/
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Copyright (C) 2015 Center for Open Middleware.
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#             http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
+#   Bundle      : sdh-curator-connector-0.1.0.jar
+# #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+#
+
+@prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
+
+_:fullBroker a amqp:Broker ;
+  amqp:host "127.0.0.1"^^types:Hostname ;
+  amqp:port "10000"^^types:Port ;
+  amqp:virtualHost  "/virtualHost"^^amqp:Path .
+
+_:justHost a amqp:Broker ;
+  amqp:host "127.0.0.2"^^types:Hostname .
+
+_:justPort a amqp:Broker ;
+  amqp:port "10001"^^types:Port .
+
+_:justVirtualHost a amqp:Broker ;
+  amqp:virtualHost "/virtualHost/path"^^amqp:Path .
+
+_:untypedBroker
+  amqp:host "127.0.0.3"^^types:Hostname ;
+  amqp:port "10003"^^types:Port ;
+  amqp:virtualHost  "/virtualHost/3"^^amqp:Path .
+
+_:badHostType a amqp:Broker ;
+  amqp:host "127.0.0.4" ;
+  amqp:port "10004"^^types:Port ;
+  amqp:virtualHost  "/virtualHost/4"^^amqp:Path .
+
+_:badPortType a amqp:Broker ;
+  amqp:host "127.0.0.5"^^types:Hostname ;
+  amqp:port "10005" ;
+  amqp:virtualHost  "/virtualHost/5"^^amqp:Path .
+
+_:badVirtualHostType a amqp:Broker ;
+  amqp:host "127.0.0.6"^^types:Hostname ;
+  amqp:port "10006"^^types:Port ;
+  amqp:virtualHost  "/virtualHost/6" .
+
+_:multipleBroker a amqp:Broker ;
+  amqp:host "127.0.0.7"^^types:Hostname ;
+  amqp:host "127.0.0.8"^^types:Hostname ;
+  amqp:port "10007"^^types:Port ;
+  amqp:port "10008"^^types:Port ;
+  amqp:virtualHost  "/virtualHost/7"^^amqp:Path ;
+  amqp:virtualHost  "/virtualHost/8"^^amqp:Path .
