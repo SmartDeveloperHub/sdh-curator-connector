@@ -280,4 +280,128 @@
 	</build>
 	 -->
 
+	<profiles>
+		<profile>
+			<id>clients</id>
+			<properties>
+				<skipTests>true</skipTests>
+				<maven.javadoc.skip>true</maven.javadoc.skip>
+				<testClassPath>no-classpath-available</testClassPath>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>prepare-dependencies</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<scope>test</scope>
+									<outputDirectory>${project.build.directory}${file.separator}dependencies${file.separator}</outputDirectory>
+									<overWriteReleases>false</overWriteReleases>
+									<overWriteSnapshots>false</overWriteSnapshots>
+									<overWriteIfNewer>true</overWriteIfNewer>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.gmaven</groupId>
+						<artifactId>groovy-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>prepare-classpath</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>execute</goal>
+								</goals>
+								<configuration>
+									<color>true</color>
+									<source>
+										def prop='testClassPath'
+										def jars=new ArrayList&lt;String&gt;()
+										jars.add(project.artifactId+'-'+project.version+'.jar')
+										jars.add(project.artifactId+'-'+project.version+'-tests.jar')
+										def rootDir = project.build.properties.get('directory')
+										def dir = new File(rootDir, 'dependencies')
+										dir.eachFileRecurse {
+											file->
+												if (file.isFile()) {
+													if (file.name.endsWith('jar')) {
+													jars.add('dependencies/'+file.name)
+													}
+												}
+										}
+										def testClassPath=''
+										jars.each {
+											file ->
+												testClassPath+=file+' '+System.lineSeparator+' '
+										}
+										project.properties.setProperty(prop,testClassPath)
+										println 'New test classpath ['+prop +']: ' + project.properties.getProperty(prop)
+									</source>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.7</version>
+						<executions>
+							<execution>
+								<id>copy-manifest</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.build.directory}${file.separator}tmp${file.separator}</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${basedir}${file.separator}src${file.separator}test${file.separator}dist${file.separator}</directory>
+											<filtering>true</filtering>
+											<includes>
+												<include>MANIFEST.mf</include>
+											</includes>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+								<configuration>
+									<classifier>clients</classifier>
+									<excludes>
+										<exclude>**/*</exclude>
+									</excludes>
+									<archive>
+										<manifestFile>${project.build.directory}${file.separator}tmp${file.separator}MANIFEST.mf</manifestFile>
+										<manifest>
+											<mainClass>org.smartdeveloperhub.curator.ExampleConnectorConsumer</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>

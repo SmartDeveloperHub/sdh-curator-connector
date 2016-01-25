@@ -82,7 +82,7 @@ public class ExampleConnectorConsumer {
 		final Broker broker =
 			ProtocolFactory.
 				newBroker().
-					withHost("localhost").
+					withHost(args[0]).
 					build();
 		final DeliveryChannel deliveryChannel =
 			ProtocolFactory.
