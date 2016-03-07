@@ -34,8 +34,8 @@ public class ForbiddenBindingException extends ConversionException {
 
 	private final URI offendingTerm;
 
-	public ForbiddenBindingException(URI offendingTerm, String namespace, String type) {
-		super("Binding "+type+""+offendingTerm+" belongs to protected namespace "+namespace);
+	public ForbiddenBindingException(final URI offendingTerm, final String type, final String namespace) {
+		super("Binding "+type+" "+offendingTerm+" belongs to protected namespace "+namespace);
 		this.offendingTerm = offendingTerm;
 	}
 
