@@ -27,7 +27,7 @@
 package org.smartdeveloperhub.curator.connector.rdf;
 
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
@@ -46,7 +46,7 @@ public final class Namespaces {
 		model.setNsPrefix(RDFS.PREFIX,RDFS.NAMESPACE);
 		model.setNsPrefix(XSD.PREFIX,XSD.NAMESPACE);
 		model.setNsPrefix(FOAF.PREFIX,FOAF.NAMESPACE);
-		model.setNsPrefix(CURATOR.PREFIX,CURATOR.NAMESPACE);
+		model.setNsPrefix(STOA.PREFIX,STOA.NAMESPACE);
 		model.setNsPrefix(AMQP.PREFIX,AMQP.NAMESPACE);
 		model.setNsPrefix(TYPES.PREFIX,TYPES.NAMESPACE);
 	}

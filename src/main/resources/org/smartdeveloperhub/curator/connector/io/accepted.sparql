@@ -25,9 +25,9 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 SELECT
   ?accepted
@@ -35,13 +35,13 @@ SELECT
   ?responseTo ?responseNumber
 WHERE {
   ?accepted
-    a curator:Accepted ;
-    curator:messageId ?messageId ;
-    curator:submittedOn ?submittedOn ;
-    curator:submittedBy ?submittedBy ;
-    curator:responseTo ?responseTo ;
-    curator:responseNumber ?responseNumber .
-  OPTIONAL { ?accepted curator:replyTo ?replyTo . }
+    a stoa:Accepted ;
+    stoa:messageId ?messageId ;
+    stoa:submittedOn ?submittedOn ;
+    stoa:submittedBy ?submittedBy ;
+    stoa:responseTo ?responseTo ;
+    stoa:responseNumber ?responseNumber .
+  OPTIONAL { ?accepted stoa:replyTo ?replyTo . }
   FILTER (
     (datatype(?messageId) = types:UUID) &&
     (datatype(?submittedOn) = xsd:dateTime) &&

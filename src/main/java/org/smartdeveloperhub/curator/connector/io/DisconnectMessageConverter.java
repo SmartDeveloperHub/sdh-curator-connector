@@ -28,7 +28,7 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.DisconnectMessage;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -42,16 +42,16 @@ final class DisconnectMessageConverter extends ModelMessageConverter<DisconnectM
 	protected void toString(DisconnectMessage message, ModelHelper helper) {
 		helper.
 			blankNode("response").
-				type(CURATOR.DISCONNECT_TYPE).
-				property(CURATOR.MESSAGE_ID).
+				type(STOA.DISCONNECT_TYPE).
+				property(STOA.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
+				property(STOA.SUBMITTED_BY).
 					withBlankNode("agent").
-				property(CURATOR.SUBMITTED_ON).
+				property(STOA.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
 			blankNode("agent").
 				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
+				property(STOA.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
 	}
 
@@ -62,7 +62,7 @@ final class DisconnectMessageConverter extends ModelMessageConverter<DisconnectM
 
 	@Override
 	protected String messageType() {
-		return CURATOR.DISCONNECT_TYPE;
+		return STOA.DISCONNECT_TYPE;
 	}
 
 }

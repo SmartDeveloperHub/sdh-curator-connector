@@ -38,7 +38,7 @@ import org.smartdeveloperhub.curator.protocol.Resource;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 
@@ -47,7 +47,7 @@ import com.google.common.collect.ImmutableList;
 final class BindingSerializer {
 
 	private static final ImmutableList<String>
-	PROTECTED_NAMESPACES=ImmutableList.of(CURATOR.NAMESPACE,AMQP.NAMESPACE,TYPES.NAMESPACE);
+	PROTECTED_NAMESPACES=ImmutableList.of(STOA.NAMESPACE,AMQP.NAMESPACE,TYPES.NAMESPACE);
 	private final ModelHelper helper;
 
 	private BindingSerializer(ModelHelper helper) {
@@ -64,7 +64,7 @@ final class BindingSerializer {
 		} else if(value instanceof Variable) {
 			final String name = ((Variable)value).name();
 			propertyHelper.withBlankNode(name);
-			this.helper.blankNode(name).type(CURATOR.VARIABLE_TYPE);
+			this.helper.blankNode(name).type(STOA.VARIABLE_TYPE);
 		} else { // MUST BE LITERAL
 			Literal literal=(Literal)value;
 			propertyHelper.
@@ -80,7 +80,7 @@ final class BindingSerializer {
 			resourceHelper=this.helper.resource(((Resource)target).name());
 		} else {
 			resourceHelper=this.helper.blankNode(((Variable)target).name());
-			resourceHelper.type(CURATOR.VARIABLE_TYPE);
+			resourceHelper.type(STOA.VARIABLE_TYPE);
 		}
 		return resourceHelper;
 	}

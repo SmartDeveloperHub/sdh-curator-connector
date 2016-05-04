@@ -34,7 +34,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.DeliveryChannel;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -43,7 +43,7 @@ public class DeliveryChannelParserTest {
 
 	@Test
 	public void testFromModel$happyPath() {
-		new ParserTester("data/deliveryChannel/full.ttl",CURATOR.DELIVERY_CHANNEL_TYPE) {
+		new ParserTester("data/deliveryChannel/full.ttl",STOA.DELIVERY_CHANNEL_TYPE) {
 			@Override
 			protected void exercise(final Model model, final Resource target) {
 				final DeliveryChannel result=DeliveryChannelParser.fromModel(model, target);
@@ -55,7 +55,7 @@ public class DeliveryChannelParserTest {
 
 	@Test
 	public void testFromModel$fail$noRoutingKey() {
-		new ParserTester("data/deliveryChannel/missing_routing_key.ttl",CURATOR.DELIVERY_CHANNEL_TYPE) {
+		new ParserTester("data/deliveryChannel/missing_routing_key.ttl",STOA.DELIVERY_CHANNEL_TYPE) {
 			@Override
 			protected void exercise(final Model model, final Resource target) {
 				try {

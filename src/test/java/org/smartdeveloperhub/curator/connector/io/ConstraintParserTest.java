@@ -46,7 +46,7 @@ import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -60,7 +60,7 @@ public class ConstraintParserTest {
 
 	@Test
 	public void testFromModel$literalTypes() throws Exception {
-		new ParserTester("data/constraints/literal_type.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
+		new ParserTester("data/constraints/literal_type.ttl",STOA.ENRICHMENT_REQUEST_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				Binding binding = getBinding(model, target);
@@ -76,7 +76,7 @@ public class ConstraintParserTest {
 
 	@Test
 	public void testFromModel$localTypes() throws Exception {
-		new ParserTester("data/constraints/local_type.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
+		new ParserTester("data/constraints/local_type.ttl",STOA.ENRICHMENT_REQUEST_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				Binding binding = getBinding(model, target);
@@ -95,7 +95,7 @@ public class ConstraintParserTest {
 			}
 
 		};
-		new ParserTester("data/constraints/local_type.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
+		new ParserTester("data/constraints/local_type.ttl",STOA.ENRICHMENT_REQUEST_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -123,7 +123,7 @@ public class ConstraintParserTest {
 			}
 
 		};
-		new ParserTester("data/constraints/bad_referral.ttl",CURATOR.ENRICHMENT_REQUEST_TYPE) {
+		new ParserTester("data/constraints/bad_referral.ttl",STOA.ENRICHMENT_REQUEST_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -157,7 +157,7 @@ public class ConstraintParserTest {
 	}
 
 	private Resource getTargetResource(Model model, Resource target) {
-		RDFNode targetResource = target.getProperty(model.createProperty(CURATOR.TARGET_RESOURCE)).getObject();
+		RDFNode targetResource = target.getProperty(model.createProperty(STOA.TARGET_RESOURCE)).getObject();
 		final Resource asResource = targetResource.asResource();
 		return asResource;
 	}

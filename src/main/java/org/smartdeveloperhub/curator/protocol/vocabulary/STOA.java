@@ -27,10 +27,10 @@
 package org.smartdeveloperhub.curator.protocol.vocabulary;
 
 
-public final class CURATOR {
+public final class STOA {
 
-	public static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/curator#";
-	public static final String PREFIX    = "curator";
+	public static final String NAMESPACE = "http://www.smartdeveloperhub.org/vocabulary/stoa#";
+	public static final String PREFIX    = "stoa";
 
 	public static final String DELIVERY_CHANNEL_TYPE = term("DeliveryChannel");
 	public static final String AGENT_ID = term("agentId");
@@ -55,10 +55,10 @@ public final class CURATOR {
 	public static final String DISCONNECT_TYPE = term("Disconnect");
 	public static final String VARIABLE_TYPE = term("Variable");
 
-	private CURATOR() {
+	private STOA() {
 	}
 
-	private static String term(String localName) {
+	private static String term(final String localName) {
 		return NAMESPACE+localName;
 	}
 

@@ -28,16 +28,16 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
 
-[ a                       curator:Message ;
-  curator:messageId       "20c45adf-79e6-4fe6-9dc9-f0962667ff9b"^^types:UUID ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "9d1ed9db-322d-4761-985e-08be11238a67"^^types:UUID
-                          ] ;
-  rdfs:isDefinedBy        "failure" ;    
+[ a                    stoa:Message ;
+  stoa:messageId       "20c45adf-79e6-4fe6-9dc9-f0962667ff9b"^^types:UUID ;
+  stoa:submittedBy     [ a             foaf:Agent ;
+                         stoa:agentId  "9d1ed9db-322d-4761-985e-08be11238a67"^^types:UUID
+                       ] ;
+  rdfs:isDefinedBy     "failure" ;    
 ] .

@@ -33,11 +33,11 @@ import org.junit.Test;
 import org.ldp4j.commons.testing.Utils;
 
 
-public class CURATORTest {
+public class STOATest {
 
 	@Test
 	public void verifyIsValidUtilityClass() {
-		assertThat(Utils.isUtilityClass(CURATOR.class),equalTo(true));
+		assertThat(Utils.isUtilityClass(STOA.class),equalTo(true));
 	}
 
 }

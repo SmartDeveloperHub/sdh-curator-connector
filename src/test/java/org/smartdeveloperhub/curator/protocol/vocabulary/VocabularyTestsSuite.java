@@ -33,7 +33,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	AMQPTest.class,
-	CURATORTest.class,
+	STOATest.class,
 	FOAFTest.class,
 	TYPESTest.class,
 	XSDTest.class,

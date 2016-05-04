@@ -41,7 +41,7 @@ import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -60,9 +60,9 @@ public class BindingSerializerTest {
 		ModelHelper helper = ModelUtil.createHelper(model);
 		BindingSerializer sut = BindingSerializer.newInstance(helper);
 		try {
-			sut.serialize(target, ProtocolFactory.newBinding().withProperty(CURATOR.ADDITION_TARGET).withValue(target).build());
+			sut.serialize(target, ProtocolFactory.newBinding().withProperty(STOA.ADDITION_TARGET).withValue(target).build());
 		} catch (ForbiddenBindingException e) {
-			assertThat(e.offendingTerm(),equalTo(URI.create(CURATOR.ADDITION_TARGET)));
+			assertThat(e.offendingTerm(),equalTo(URI.create(STOA.ADDITION_TARGET)));
 		}
 	}
 
@@ -72,9 +72,9 @@ public class BindingSerializerTest {
 		ModelHelper helper = ModelUtil.createHelper(model);
 		BindingSerializer sut = BindingSerializer.newInstance(helper);
 		try {
-			sut.serialize(target, ProtocolFactory.newBinding().withProperty(RDF.TYPE).withValue(ProtocolFactory.newResource(CURATOR.ENRICHMENT_REQUEST_TYPE)).build());
+			sut.serialize(target, ProtocolFactory.newBinding().withProperty(RDF.TYPE).withValue(ProtocolFactory.newResource(STOA.ENRICHMENT_REQUEST_TYPE)).build());
 		} catch (ForbiddenBindingException e) {
-			assertThat(e.offendingTerm(),equalTo(URI.create(CURATOR.ENRICHMENT_REQUEST_TYPE)));
+			assertThat(e.offendingTerm(),equalTo(URI.create(STOA.ENRICHMENT_REQUEST_TYPE)));
 		}
 	}
 

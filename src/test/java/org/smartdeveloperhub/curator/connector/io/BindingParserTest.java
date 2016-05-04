@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
@@ -48,7 +48,7 @@ public class BindingParserTest {
 
 	@Test
 	public void testFromModel$literalBindings() throws Exception {
-		new ParserTester("data/bindings/with_literals.ttl",CURATOR.VARIABLE_TYPE) {
+		new ParserTester("data/bindings/with_literals.ttl",STOA.VARIABLE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				List<Binding> bindings=BindingParser.fromModel(model, target);
@@ -69,7 +69,7 @@ public class BindingParserTest {
 
 	@Test
 	public void testFromModel$variableBindings() throws Exception {
-		new ParserTester("data/bindings/with_variables.ttl",CURATOR.VARIABLE_TYPE) {
+		new ParserTester("data/bindings/with_variables.ttl",STOA.VARIABLE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				List<Binding> bindings=BindingParser.fromModel(model, target);

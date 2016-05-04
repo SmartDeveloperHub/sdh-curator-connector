@@ -25,9 +25,9 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-@prefix ex: <http://www.w3.org/2012/12/rdf-val/SOTA-ex#> .
+@prefix ex:   <http://www.w3.org/2012/12/rdf-val/SOTA-ex#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 <issue7> a ex:Issue , ex:SecurityIssue ;
     ex:state ex:unassigned ;

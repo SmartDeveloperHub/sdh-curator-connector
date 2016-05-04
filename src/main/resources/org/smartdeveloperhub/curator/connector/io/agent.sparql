@@ -25,14 +25,14 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
 
 SELECT ?agent ?agentId
 WHERE {
   ?agent a foaf:Agent ;
-    curator:agentId ?agentId .
+    stoa:agentId ?agentId .
   FILTER (
     datatype(?agentId) = types:UUID
   )

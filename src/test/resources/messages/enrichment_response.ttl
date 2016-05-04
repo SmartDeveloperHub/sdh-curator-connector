@@ -27,23 +27,23 @@
 
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
 
-[ a                       curator:EnrichmentResponse ;
-  curator:additionTarget  <urn:add> ;
-  curator:messageId       "d2244b7b-c677-40b5-bab2-9b46fd299537"^^types:UUID ;
-  curator:removalTarget   <urn:remove> ;
-  curator:responseNumber  "2"^^xsd:unsignedLong ;
-  curator:responseTo      "f9bfd4d6-7249-4845-b042-7436a44af198"^^types:UUID ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "f998008c-5829-4f03-a3e2-fe61f5b043e7"^^types:UUID
-                          ] ;
-  curator:submittedOn     "2015-10-01T19:34:11.470+02:00"^^xsd:dateTime ;
-  curator:targetResource  <urn:example>
+[ a                    stoa:EnrichmentResponse ;
+  stoa:additionTarget  <urn:add> ;
+  stoa:messageId       "d2244b7b-c677-40b5-bab2-9b46fd299537"^^types:UUID ;
+  stoa:removalTarget   <urn:remove> ;
+  stoa:responseNumber  "2"^^xsd:unsignedLong ;
+  stoa:responseTo      "f9bfd4d6-7249-4845-b042-7436a44af198"^^types:UUID ;
+  stoa:submittedBy     [ a                foaf:Agent ;
+                         stoa:agentId  "f998008c-5829-4f03-a3e2-fe61f5b043e7"^^types:UUID
+                       ] ;
+  stoa:submittedOn     "2015-10-01T19:34:11.470+02:00"^^xsd:dateTime ;
+  stoa:targetResource  <urn:example>
 ] .
 
 

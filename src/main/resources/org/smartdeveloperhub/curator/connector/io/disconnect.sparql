@@ -25,20 +25,20 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 SELECT
   ?disconnect
   ?messageId ?submittedOn ?submittedBy ?replyTo
 WHERE {
   ?disconnect
-    a curator:Disconnect ;
-    curator:messageId ?messageId ;
-    curator:submittedOn ?submittedOn ;
-    curator:submittedBy ?submittedBy .
-  OPTIONAL { ?disconnect curator:replyTo ?replyTo . }
+    a stoa:Disconnect ;
+    stoa:messageId ?messageId ;
+    stoa:submittedOn ?submittedOn ;
+    stoa:submittedBy ?submittedBy .
+  OPTIONAL { ?disconnect stoa:replyTo ?replyTo . }
   FILTER (
     (datatype(?messageId) = types:UUID) &&
     (datatype(?submittedOn) = xsd:dateTime) &&

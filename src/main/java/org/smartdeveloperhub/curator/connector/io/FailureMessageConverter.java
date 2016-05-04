@@ -28,7 +28,7 @@ package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.FailureMessage;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -46,34 +46,34 @@ final class FailureMessageConverter extends ModelMessageConverter<FailureMessage
 		helper.
 			blankNode(RESPONSE_BNODE).
 				type(messageType()).
-				property(CURATOR.MESSAGE_ID).
+				property(STOA.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
+				property(STOA.SUBMITTED_BY).
 					withBlankNode(AGENT_BNODE).
-				property(CURATOR.SUBMITTED_ON).
+				property(STOA.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-				property(CURATOR.RESPONSE_TO).
+				property(STOA.RESPONSE_TO).
 					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
-				property(CURATOR.RESPONSE_NUMBER).
+				property(STOA.RESPONSE_NUMBER).
 					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG_TYPE).
-				property(CURATOR.CODE).
+				property(STOA.CODE).
 					withTypedLiteral(message.code(), XSD.UNSIGNED_LONG_TYPE).
-				property(CURATOR.REASON).
+				property(STOA.REASON).
 					withTypedLiteral(message.reason(), XSD.STRING_TYPE).
 			blankNode(AGENT_BNODE).
 				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
+				property(STOA.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
 		if(message.subcode().isPresent()) {
 			helper.
 				blankNode(RESPONSE_BNODE).
-					property(CURATOR.SUBCODE).
+					property(STOA.SUBCODE).
 						withTypedLiteral(message.subcode().get(), XSD.UNSIGNED_LONG_TYPE);
 		}
 		if(message.detail()!=null) {
 			helper.
 				blankNode(RESPONSE_BNODE).
-					property(CURATOR.DETAIL).
+					property(STOA.DETAIL).
 						withTypedLiteral(message.detail(), XSD.STRING_TYPE);
 		}
 	}
@@ -85,7 +85,7 @@ final class FailureMessageConverter extends ModelMessageConverter<FailureMessage
 
 	@Override
 	protected String messageType() {
-		return CURATOR.FAILURE_TYPE;
+		return STOA.FAILURE_TYPE;
 	}
 
 }

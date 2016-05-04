@@ -56,7 +56,7 @@ import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -115,7 +115,7 @@ public class ProtocolFactoryTest {
 			fail("Should not create a request with no delivery channel");
 		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No enrichment request reply delivery channel specified"));
-			assertThat(e.getType(),equalTo(CURATOR.DELIVERY_CHANNEL_TYPE));
+			assertThat(e.getType(),equalTo(STOA.DELIVERY_CHANNEL_TYPE));
 			assertThat(e.getValue(),nullValue());
 		}
 	}

@@ -25,18 +25,18 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT
   ?bindingProperty ?bindingValue
 WHERE {
   ?target
-    a curator:Variable ;
+    a stoa:Variable ;
     ?bindingProperty ?bindingValue .
   FILTER (
-    !(?bindingProperty = rdf:type && ?bindingValue = curator:Variable)
+    !(?bindingProperty = rdf:type && ?bindingValue = stoa:Variable)
   )
 }

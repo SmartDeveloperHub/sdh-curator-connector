@@ -27,7 +27,7 @@
 
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -38,17 +38,17 @@
 @prefix doap:    <http://usefulinc.com/ns/doap#> .
 @prefix foaf:    <http://xmlns.com/foaf/0.1/> .
 
-_:request a curator:EnrichmentRequest ;
-  curator:messageId "00000000-0000-0000-0000-000000000001"^^types:UUID ;
-  curator:submittedBy _:connector ;
-  curator:submittedOn "2015-09-29T09:30:10+01:00"^^xsd:dateTime ;
-  curator:replyTo _:deliveryChannel ;
-  curator:targetResource <http://localhost:8080/harvester/service/builds/1/> .
+_:request a stoa:EnrichmentRequest ;
+  stoa:messageId "00000000-0000-0000-0000-000000000001"^^types:UUID ;
+  stoa:submittedBy _:connector ;
+  stoa:submittedOn "2015-09-29T09:30:10+01:00"^^xsd:dateTime ;
+  stoa:replyTo _:deliveryChannel ;
+  stoa:targetResource <http://localhost:8080/harvester/service/builds/1/> .
   
 _:connector a foaf:Agent ;
-  curator:agentId "00000000-0000-0000-0001-000000000001"^^types:UUID .
+  stoa:agentId "00000000-0000-0000-0001-000000000001"^^types:UUID .
   
-_:deliveryChannel a curator:DeliveryChannel ;
+_:deliveryChannel a stoa:DeliveryChannel ;
   amqp:broker _:broker ;
   amqp:exchangeName "ci.responses"^^amqp:Name ;
   amqp:queueName "builds"^^amqp:Name ;
@@ -63,16 +63,16 @@ _:broker a amqp:Broker ;
   ci:forBranch  _:branch ;
   ci:forCommit  _:commit .
 
-_:repository a curator:Variable ; 
+_:repository a stoa:Variable ; 
   rdf:type       scm:Repository ;
   scm:hasBranch  _:branch ;
   scm:location   "git://github.com/ldp4j/ldp4j.git"^^xsd:anyURI .
 
-_:branch a curator:Variable ;
+_:branch a stoa:Variable ;
   rdf:type       scm:Branch ;
   doap:name      "develop"^^xsd:string ;
   scm:hasCommit  _:commit .
 
-_:commit a curator:Variable ;
+_:commit a stoa:Variable ;
   rdf:type scm:Commit ;
   scm:commitId  "f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44"^^xsd:string .

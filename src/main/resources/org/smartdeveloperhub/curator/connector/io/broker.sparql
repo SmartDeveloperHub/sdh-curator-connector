@@ -25,7 +25,7 @@
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX amqp: <http://www.smartdeveloperhub.org/vocabulary/amqp#>
+PREFIX amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
 
 SELECT ?broker ?host ?port ?virtualHost

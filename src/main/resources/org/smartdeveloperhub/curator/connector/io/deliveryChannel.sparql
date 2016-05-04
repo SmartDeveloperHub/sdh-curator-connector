@@ -26,11 +26,11 @@
 #
 
 PREFIX amqp: <http://www.smartdeveloperhub.org/vocabulary/amqp#>
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa: <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 
 SELECT ?deliveryChannel ?broker ?exchangeName ?queueName ?routingKey
 WHERE {
-  ?deliveryChannel a curator:DeliveryChannel .
+  ?deliveryChannel a stoa:DeliveryChannel .
   OPTIONAL { ?deliveryChannel amqp:broker ?broker . }
   OPTIONAL { ?deliveryChannel amqp:exchangeName ?exchangeName . }
   OPTIONAL { ?deliveryChannel amqp:queueName ?queueName . }

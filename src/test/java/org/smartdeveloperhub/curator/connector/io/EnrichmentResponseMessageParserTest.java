@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -40,7 +40,7 @@ public class EnrichmentResponseMessageParserTest {
 
 	@Test
 	public void testFromModel$happyPath() {
-		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
+		new ParserTester("messages/enrichment_response.ttl",STOA.ENRICHMENT_RESPONSE_TYPE) {
 			@Override
 			protected void exercise(final Model model, final Resource target) {
 				final EnrichmentResponseMessage result=EnrichmentResponseMessageParser.fromModel(model, target);

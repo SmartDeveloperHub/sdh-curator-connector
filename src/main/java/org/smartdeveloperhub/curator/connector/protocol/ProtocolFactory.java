@@ -53,7 +53,7 @@ import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
@@ -329,7 +329,7 @@ public final class ProtocolFactory {
 					id(),
 					submissionDate(),
 					agent(),
-					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"No enrichment request reply delivery channel specified"),
+					ValidationUtil.checkNotNull(deliveryChannel(),STOA.DELIVERY_CHANNEL_TYPE,"No enrichment request reply delivery channel specified"),
 					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"No enrichment request target resource specified"),
 					this.filters,
 					this.constraints);
@@ -742,7 +742,7 @@ public final class ProtocolFactory {
 	}
 
 	public static Variable newVariable(final String name) {
-		ValidationUtil.checkNotNull(name, CURATOR.VARIABLE_TYPE,"Variable name cannot be null");
+		ValidationUtil.checkNotNull(name, STOA.VARIABLE_TYPE,"Variable name cannot be null");
 		return new ImmutableVariable(name);
 	}
 

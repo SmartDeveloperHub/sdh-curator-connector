@@ -40,7 +40,7 @@ import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.google.common.collect.Lists;
@@ -141,7 +141,7 @@ final class ConstraintParser {
 			return false;
 		}
 		org.smartdeveloperhub.curator.protocol.Resource value=(org.smartdeveloperhub.curator.protocol.Resource)rawValue;
-		return value.name().toString().equals(CURATOR.VARIABLE_TYPE);
+		return value.name().toString().equals(STOA.VARIABLE_TYPE);
 	}
 
 	private void enqueueReferrals(Resource resource) {

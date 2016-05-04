@@ -27,7 +27,7 @@
 
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix pr1:   <http://www.smartdeveloperhub.org/vocabulary/organization#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -38,5 +38,5 @@
 @prefix scm:   <http://www.smartdeveloperhub.org/vocabulary/scm#> .
 
 
-_:b1    a             scm:Commit , curator:Variable ;
+_:b1    a             scm:Commit , stoa:Variable ;
         scm:commitId  "f1efd1d8d8ceebef1d85eb66c69a44b0d713ed44"^^xsd:string .
