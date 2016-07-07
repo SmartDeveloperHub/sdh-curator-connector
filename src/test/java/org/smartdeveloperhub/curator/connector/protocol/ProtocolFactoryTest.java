@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.protocol;
@@ -56,7 +56,7 @@ import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.Literal;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -115,7 +115,7 @@ public class ProtocolFactoryTest {
 			fail("Should not create a request with no delivery channel");
 		} catch (final ValidationException e) {
 			assertThat(e.getDescription(),equalTo("No enrichment request reply delivery channel specified"));
-			assertThat(e.getType(),equalTo(CURATOR.DELIVERY_CHANNEL_TYPE));
+			assertThat(e.getType(),equalTo(STOA.DELIVERY_CHANNEL_TYPE));
 			assertThat(e.getValue(),nullValue());
 		}
 	}

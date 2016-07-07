@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -34,8 +34,8 @@ public class ForbiddenBindingException extends ConversionException {
 
 	private final URI offendingTerm;
 
-	public ForbiddenBindingException(URI offendingTerm, String namespace, String type) {
-		super("Binding "+type+""+offendingTerm+" belongs to protected namespace "+namespace);
+	public ForbiddenBindingException(final URI offendingTerm, final String type, final String namespace) {
+		super("Binding "+type+" "+offendingTerm+" belongs to protected namespace "+namespace);
 		this.offendingTerm = offendingTerm;
 	}
 

@@ -6,7 +6,7 @@
 #   Center for Open Middleware
 #     http://www.centeropenmiddleware.com/
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Copyright (C) 2015 Center for Open Middleware.
+#   Copyright (C) 2015-2016 Center for Open Middleware.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
-#   Bundle      : sdh-curator-connector-0.1.0.jar
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+#   Bundle      : sdh-curator-connector-0.2.0.jar
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
 SELECT
   ?enrichmentResponse
@@ -36,22 +36,22 @@ SELECT
   ?targetResource ?additionTarget ?removalTarget
 WHERE {
   ?enrichmentResponse
-    a curator:EnrichmentResponse ;
-    curator:messageId ?messageId ;
-    curator:submittedOn ?submittedOn ;
-    curator:submittedBy ?submittedBy ;
-    curator:responseTo ?responseTo ;
-    curator:responseNumber ?responseNumber ;
-    curator:targetResource ?targetResource .
+    a stoa:EnrichmentResponse ;
+    stoa:messageId ?messageId ;
+    stoa:submittedOn ?submittedOn ;
+    stoa:submittedBy ?submittedBy ;
+    stoa:responseTo ?responseTo ;
+    stoa:responseNumber ?responseNumber ;
+    stoa:targetResource ?targetResource .
   OPTIONAL {
-    ?enrichmentResponse curator:additionTarget ?additionTarget .
-    ?additionTarget a curator:Variable .
+    ?enrichmentResponse stoa:additionTarget ?additionTarget .
+    ?additionTarget a stoa:Variable .
    }
   OPTIONAL {
-    ?enrichmentResponse curator:removalTarget ?removalTarget .
-    ?removalTarget a curator:Variable .
+    ?enrichmentResponse stoa:removalTarget ?removalTarget .
+    ?removalTarget a stoa:Variable .
   }
-  OPTIONAL { ?enrichmentResponse curator:replyTo ?replyTo . }
+  OPTIONAL { ?enrichmentResponse stoa:replyTo ?replyTo . }
   FILTER (
     (datatype(?messageId) = types:UUID) &&
     (datatype(?submittedOn) = xsd:dateTime) &&

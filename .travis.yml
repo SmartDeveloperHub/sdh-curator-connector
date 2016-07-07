@@ -1,51 +1,35 @@
 sudo: false
+language: java
+jdk:
+- oraclejdk7
+
+notifications:
+  slack: sdhub:ti8lMh7ERZIqLzWF4dHkcgwt
+
+services:
+  - rabbitmq
+
 cache:
   directories:
   - $HOME/.m2/repository
   - $HOME/.sonar
-notifications:
-  slack: sdhub:ti8lMh7ERZIqLzWF4dHkcgwt
-language: java
-jdk:
-- oraclejdk7
-services:
-- rabbitmq
+
+before_cache:
+  - source ./.travis/utils.sh backup-maven-repo
+
 before_install:
-- if [[ -a .git/shallow ]]; 
-  then 
-    git fetch --unshallow --verbose; 
-    error=$?; 
-    if [[ $error -ne 0 ]]; 
-    then 
-      echo "Unshallowing failed with $error status code";
-      git --version; 
-      false;
-    fi 
-  fi
+  - source ./.travis/utils.sh prepare-repo
+
 before_script:
-- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in target/config/ci/secring.gpg.enc -out local.secring.gpg -d
-- openssl aes-256-cbc -pass pass:$ENCRYPTION_PASSWORD -in target/config/ci/pubring.gpg.enc -out local.pubring.gpg -d
+  - source ./.travis/utils.sh prepare-keys $ENCRYPTION_PASSWORD
+
 script:
-- if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-  then
-    if [ "${TRAVIS_BRANCH}" = "master" ] || [ "${TRAVIS_BRANCH}" = "develop" ];
-    then mvn clean deploy -B -Dcodebase.directory=`pwd` -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;
-    else mvn clean install -B -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;
-    fi
-  else
-    echo mvn clean install -B -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;
-  fi
-- if [ "${TRAVIS_PULL_REQUEST}" = "false" ];
-  then
-    case "${TRAVIS_BRANCH}" in
-      master)   mvn sonar:sonar -B -Dsonar.branch=$TRAVIS_BRANCH -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;;
-      develop)  mvn sonar:sonar -B -Dsonar.branch=$TRAVIS_BRANCH -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;;
-      feature*) mvn sonar:sonar -B -Dsonar.branch=$TRAVIS_BRANCH -Dcoverage.reports.dir=`pwd`/target/all --settings target/config/ci/settings.xml;;
-      *)        echo "Skip SonarQube analysis (${TRAVIS_BRANCH})";;
-    esac
-  fi
-- mkdir /tmp/cache-trick
-- mv $HOME/.m2/repository/org/smartdeveloperhub /tmp/cache-trick/
+  - source ./.travis/build.sh
+
+after_success:
+  - source ./.travis/utils.sh restore-maven-repo
+  - source ./.travis/qa.sh
+
 env:
   global:
   - secure: qCTUzfCCLopHa7UnpI5/QI1rNk1leHwfqPcri+dkoCafWcLz66cp1jAfzAL11dOli02/hG9w98xppagP3i3FD7KnILrOsoKCEKEezwr9J1B5KImKjViZJUPY3aEYnrnZyzjYpuKa3U1iBXxpcM/zeutGBaN4GU8OJJS4gqJTiD+sqjxiPWUj+w7PmRIzUrTi4raNzL+r9xzzfpeorb4hLr7JykI8NIuZdZUY1NvDg/YW2QGkf1wmTT4IAV/UB89xIcW4P+CWfTOIaBsJJCoCOuKOr5QlUMsaXA2jURilLh/a1ngeZagTsX0lYn9FazcCD0XPVhs+LJNKRZ1ev44xEkgUb+1D5Pz/6PJUtSkaUw4TJq9wo6+9G9GfE+9KDGwjS0Rnlwfp1gUW2aQ+Ma8I9j4E3vIhexpK1VJjvrkhdgxo5oh2ru2Ov1+Hp3Ln9eUDaxFHbpTOl2pP3y59lHqjiNPn8kwnBxi0illheLEohIXuKCcbNBZIUsLx2IBwfcroJN0cGUiK5Mjz4dsSVTNofd4G/s0z4kFK00tb1lCozLUBKvItjYOFp7KdogRd/Ri48AmKXkkVa0bUiuBpWVBojYBGuxJuTU0ZQWPLNPGYLRw1eVyjrGabnN2GIZBISTtQ2Rb49JzFfhR2O0coN5rOU5UHeRQj4OWaT3BWv5SXlRw=

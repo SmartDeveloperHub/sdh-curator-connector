@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
 
 import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.AcceptedMessage;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -46,19 +46,19 @@ final class AcceptedMessageConverter extends ModelMessageConverter<AcceptedMessa
 		helper.
 			blankNode(RESPONSE_BNODE).
 				type(messageType()).
-				property(CURATOR.MESSAGE_ID).
+				property(STOA.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
+				property(STOA.SUBMITTED_BY).
 					withBlankNode(AGENT_BNODE).
-				property(CURATOR.SUBMITTED_ON).
+				property(STOA.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-				property(CURATOR.RESPONSE_TO).
+				property(STOA.RESPONSE_TO).
 					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
-				property(CURATOR.RESPONSE_NUMBER).
+				property(STOA.RESPONSE_NUMBER).
 					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG_TYPE).
 			blankNode(AGENT_BNODE).
 				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
+				property(STOA.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
 	}
 
@@ -69,7 +69,7 @@ final class AcceptedMessageConverter extends ModelMessageConverter<AcceptedMessa
 
 	@Override
 	protected String messageType() {
-		return CURATOR.ACCEPTED_TYPE;
+		return STOA.ACCEPTED_TYPE;
 	}
 
 }

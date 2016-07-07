@@ -6,7 +6,7 @@
 #   Center for Open Middleware
 #     http://www.centeropenmiddleware.com/
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Copyright (C) 2015 Center for Open Middleware.
+#   Copyright (C) 2015-2016 Center for Open Middleware.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
-#   Bundle      : sdh-curator-connector-0.1.0.jar
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+#   Bundle      : sdh-curator-connector-0.2.0.jar
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix types: <http://www.smartdeveloperhub.org/vocabulary/types#> .
 
 _:agent a foaf:Agent ;
-  curator:agentId  "NOT A UUID"^^types:UUID .
+  stoa:agentId  "NOT A UUID"^^types:UUID .

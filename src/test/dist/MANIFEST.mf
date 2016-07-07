@@ -1,0 +1,3 @@
+Built-By: ${user.name}
+Build-Jdk: ${java.version}
+Class-Path: ${testClassPath}

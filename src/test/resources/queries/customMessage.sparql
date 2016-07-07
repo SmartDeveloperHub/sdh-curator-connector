@@ -6,7 +6,7 @@
 #   Center for Open Middleware
 #     http://www.centeropenmiddleware.com/
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Copyright (C) 2015 Center for Open Middleware.
+#   Copyright (C) 2015-2016 Center for Open Middleware.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
-#   Bundle      : sdh-curator-connector-0.1.0.jar
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+#   Bundle      : sdh-curator-connector-0.2.0.jar
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
-PREFIX curator: <http://www.smartdeveloperhub.org/vocabulary/curator#>
+PREFIX stoa: <http://www.smartdeveloperhub.org/vocabulary/stoa#>
 PREFIX types: <http://www.smartdeveloperhub.org/vocabulary/types#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -36,10 +36,10 @@ SELECT
   ?optionalLiteral ?optionalResource ?optionalNode
   ?providerFailure
 WHERE {
-  ?message a curator:Message .
-  OPTIONAL { ?message curator:messageId ?mandatoryLiteral . }
-  OPTIONAL { ?message curator:submittedBy ?mandatoryResource . }
-  OPTIONAL { ?message curator:replyTo ?optionalResource . }
+  ?message a stoa:Message .
+  OPTIONAL { ?message stoa:messageId ?mandatoryLiteral . }
+  OPTIONAL { ?message stoa:submittedBy ?mandatoryResource . }
+  OPTIONAL { ?message stoa:replyTo ?optionalResource . }
   OPTIONAL { ?message rdfs:label ?optionalLiteral . }
   OPTIONAL { ?message rdfs:isDefinedBy ?optionalNode . }
   OPTIONAL { ?message rdfs:comment ?providerFailure . }

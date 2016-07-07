@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -71,8 +71,8 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 import org.smartdeveloperhub.curator.protocol.FailureMessage;
 import org.smartdeveloperhub.curator.protocol.Message;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
 
 @RunWith(JMockit.class)
@@ -306,7 +306,7 @@ public class MessageUtilTest {
 					withNamespacePrefix(SCM,"scm").
 					withNamespacePrefix(DOAP,"doap").
 					withNamespacePrefix(ORG, "ci"). // DUPLICATED PREFIX
-					withNamespacePrefix(CURATOR.NAMESPACE, "ci"); // DUPLICATED NAMESPACE
+					withNamespacePrefix(STOA.NAMESPACE, "ci"); // DUPLICATED NAMESPACE
 	}
 
 	@Test
@@ -353,8 +353,8 @@ public class MessageUtilTest {
 			MessageUtil.newInstance().fromString("",AcceptedMessage.class);
 			fail("Should not parse input with no definition");
 		} catch (final NoDefinitionFoundException e) {
-			assertThat(e.getMessage(),equalTo("No <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found"));
-			assertThat(e.getMissingDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+			assertThat(e.getMessage(),equalTo("No <"+STOA.ACCEPTED_TYPE+"> definition found"));
+			assertThat(e.getMissingDefinitionType(),equalTo(STOA.ACCEPTED_TYPE));
 		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
 		}
@@ -366,8 +366,8 @@ public class MessageUtilTest {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/multiple_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
 		} catch (final TooManyDefinitionsFoundException e) {
-			assertThat(e.getMessage(),equalTo("Too many <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definitions found (2)"));
-			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+			assertThat(e.getMessage(),equalTo("Too many <"+STOA.ACCEPTED_TYPE+"> definitions found (2)"));
+			assertThat(e.getDefinitionType(),equalTo(STOA.ACCEPTED_TYPE));
 			assertThat(e.getDefinitionsFound(),equalTo(2));
 		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
@@ -380,8 +380,8 @@ public class MessageUtilTest {
 			MessageUtil.newInstance().fromString(ResourceUtil.loadResource("messages/bad_accepted.ttl"),AcceptedMessage.class);
 			fail("Should not parse input with multiple definitions");
 		} catch (final InvalidDefinitionFoundException e) {
-			assertThat(e.getMessage(),equalTo("Invalid <http://www.smartdeveloperhub.org/vocabulary/curator#Accepted> definition found: Value '-1' is not a valid http://www.w3.org/2001/XMLSchema#unsignedLong: Response number must be greater than 0 (-1)"));
-			assertThat(e.getDefinitionType(),equalTo(CURATOR.ACCEPTED_TYPE));
+			assertThat(e.getMessage(),equalTo("Invalid <"+STOA.ACCEPTED_TYPE+"> definition found: Value '-1' is not a valid http://www.w3.org/2001/XMLSchema#unsignedLong: Response number must be greater than 0 (-1)"));
+			assertThat(e.getDefinitionType(),equalTo(STOA.ACCEPTED_TYPE));
 		} catch(final MessageConversionException e) {
 			fail("Unexpected failure "+e.getMessage());
 		}

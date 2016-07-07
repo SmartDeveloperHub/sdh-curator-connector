@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Resource;
@@ -40,7 +40,7 @@ public class EnrichmentResponseMessageParserTest {
 
 	@Test
 	public void testFromModel$happyPath() {
-		new ParserTester("messages/enrichment_response.ttl",CURATOR.ENRICHMENT_RESPONSE_TYPE) {
+		new ParserTester("messages/enrichment_response.ttl",STOA.ENRICHMENT_RESPONSE_TYPE) {
 			@Override
 			protected void exercise(final Model model, final Resource target) {
 				final EnrichmentResponseMessage result=EnrichmentResponseMessageParser.fromModel(model, target);

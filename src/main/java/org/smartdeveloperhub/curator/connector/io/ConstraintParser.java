@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -40,7 +40,7 @@ import org.smartdeveloperhub.curator.protocol.Constraint;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDF;
 
 import com.google.common.collect.Lists;
@@ -141,7 +141,7 @@ final class ConstraintParser {
 			return false;
 		}
 		org.smartdeveloperhub.curator.protocol.Resource value=(org.smartdeveloperhub.curator.protocol.Resource)rawValue;
-		return value.name().toString().equals(CURATOR.VARIABLE_TYPE);
+		return value.name().toString().equals(STOA.VARIABLE_TYPE);
 	}
 
 	private void enqueueReferrals(Resource resource) {

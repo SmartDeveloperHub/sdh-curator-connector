@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -39,7 +39,7 @@ import org.smartdeveloperhub.curator.protocol.EnrichmentRequestMessage;
 import org.smartdeveloperhub.curator.protocol.Filter;
 import org.smartdeveloperhub.curator.protocol.NamedValue;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -64,23 +64,23 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 						build();
 		helper.
 			blankNode(util.blankNode(REQUEST_BNODE)).
-				type(CURATOR.ENRICHMENT_REQUEST_TYPE).
-				property(CURATOR.MESSAGE_ID).
+				type(STOA.ENRICHMENT_REQUEST_TYPE).
+				property(STOA.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
+				property(STOA.SUBMITTED_BY).
 					withBlankNode(util.blankNode(AGENT_BNODE)).
-				property(CURATOR.SUBMITTED_ON).
+				property(STOA.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-				property(CURATOR.REPLY_TO).
+				property(STOA.REPLY_TO).
 					withBlankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
-				property(CURATOR.TARGET_RESOURCE).
+				property(STOA.TARGET_RESOURCE).
 					withResource(message.targetResource()).
 			blankNode(util.blankNode(AGENT_BNODE)).
 				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
+				property(STOA.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE).
 			blankNode(util.blankNode(DELIVERY_CHANNEL_BNODE)).
-				type(CURATOR.DELIVERY_CHANNEL_TYPE);
+				type(STOA.DELIVERY_CHANNEL_TYPE);
 
 		serializeReplyTo(util,helper, message.replyTo());
 		serializeFilters(helper,message.targetResource(),message.filters());
@@ -94,7 +94,7 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 
 	@Override
 	protected String messageType() {
-		return CURATOR.ENRICHMENT_REQUEST_TYPE;
+		return STOA.ENRICHMENT_REQUEST_TYPE;
 	}
 
 	private void serializeConstraints(final ModelHelper helper, final List<Constraint> constraints) {
@@ -114,7 +114,7 @@ final class EnrichmentRequestMessageConverter extends ModelMessageConverter<Enri
 				property(filter.property()).
 					withBlankNode(filter.variable().name()).
 				blankNode(filter.variable().name()).
-					type(CURATOR.VARIABLE_TYPE);
+					type(STOA.VARIABLE_TYPE);
 		}
 	}
 

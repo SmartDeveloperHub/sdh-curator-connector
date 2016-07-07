@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.protocol;
@@ -53,7 +53,7 @@ import org.smartdeveloperhub.curator.protocol.ResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Value;
 import org.smartdeveloperhub.curator.protocol.Variable;
 import org.smartdeveloperhub.curator.protocol.vocabulary.AMQP;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.RDFS;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
@@ -329,7 +329,7 @@ public final class ProtocolFactory {
 					id(),
 					submissionDate(),
 					agent(),
-					ValidationUtil.checkNotNull(deliveryChannel(),CURATOR.DELIVERY_CHANNEL_TYPE,"No enrichment request reply delivery channel specified"),
+					ValidationUtil.checkNotNull(deliveryChannel(),STOA.DELIVERY_CHANNEL_TYPE,"No enrichment request reply delivery channel specified"),
 					ValidationUtil.checkNotNull(this.targetResource,RDFS.RESOURCE_TYPE,"No enrichment request target resource specified"),
 					this.filters,
 					this.constraints);
@@ -742,7 +742,7 @@ public final class ProtocolFactory {
 	}
 
 	public static Variable newVariable(final String name) {
-		ValidationUtil.checkNotNull(name, CURATOR.VARIABLE_TYPE,"Variable name cannot be null");
+		ValidationUtil.checkNotNull(name, STOA.VARIABLE_TYPE,"Variable name cannot be null");
 		return new ImmutableVariable(name);
 	}
 

@@ -6,7 +6,7 @@
 #   Center for Open Middleware
 #     http://www.centeropenmiddleware.com/
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Copyright (C) 2015 Center for Open Middleware.
+#   Copyright (C) 2015-2016 Center for Open Middleware.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
-#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
-#   Bundle      : sdh-curator-connector-0.1.0.jar
+#   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+#   Bundle      : sdh-curator-connector-0.2.0.jar
 # #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 #
 
 @prefix amqp:  <http://www.smartdeveloperhub.org/vocabulary/amqp#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix curator: <http://www.smartdeveloperhub.org/vocabulary/curator#> .
+@prefix stoa:  <http://www.smartdeveloperhub.org/vocabulary/stoa#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix pr1:   <http://www.smartdeveloperhub.org/vocabulary/organization#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
@@ -37,28 +37,28 @@
 @prefix doap:  <http://usefulinc.com/ns/doap#> .
 @prefix scm:   <http://www.smartdeveloperhub.org/vocabulary/scm#> .
 
-[ a                       curator:EnrichmentRequest ;
-  curator:messageId       "9251a79c-eb92-4af4-a81b-6b7731e822b6"^^types:UUID ;
-  curator:replyTo         [ a                  curator:DeliveryChannel ;
-                            amqp:broker        [ a                 amqp:Broker ;
-                                                 amqp:host         "127.0.0.1"^^types:Hostname ;
-                                                 amqp:port         "12345"^^types:Port ;
-                                                 amqp:virtualHost  "/virtualHost"^^amqp:Path
-                                               ] ;
-                            amqp:exchangeName  "exchange.name"^^amqp:Name ;
-                            amqp:queueName     "queue.name"^^amqp:Name ;
-                            amqp:routingKey    "routing.key"^^amqp:Path
-                          ] ;
-  curator:submittedBy     [ a                foaf:Agent ;
-                            curator:agentId  "86c8ed66-336b-4939-9b23-a52f56de2e50"^^types:UUID
-                          ] ;
-  curator:submittedOn     "2015-10-08T12:38:52.921+02:00"^^xsd:dateTime ;
-  curator:targetResource  <execution>
+[ a                    stoa:EnrichmentRequest ;
+  stoa:messageId       "9251a79c-eb92-4af4-a81b-6b7731e822b6"^^types:UUID ;
+  stoa:replyTo         [ a                  stoa:DeliveryChannel ;
+                         amqp:broker        [ a                 amqp:Broker ;
+                                              amqp:host         "127.0.0.1"^^types:Hostname ;
+                                              amqp:port         "12345"^^types:Port ;
+                                              amqp:virtualHost  "/virtualHost"^^amqp:Path
+                                            ] ;
+                         amqp:exchangeName  "exchange.name"^^amqp:Name ;
+                         amqp:queueName     "queue.name"^^amqp:Name ;
+                         amqp:routingKey    "routing.key"^^amqp:Path
+                       ] ;
+  stoa:submittedBy     [ a             foaf:Agent ;
+                         stoa:agentId  "86c8ed66-336b-4939-9b23-a52f56de2e50"^^types:UUID
+                       ] ;
+  stoa:submittedOn     "2015-10-08T12:38:52.921+02:00"^^xsd:dateTime ;
+  stoa:targetResource  <execution>
 ] .
 
 <execution> 
   <urn:filter>  _:b0 .
 
-_:b0    a "data"^^xsd:string, curator:Variable .
+_:b0    a "data"^^xsd:string, stoa:Variable .
 
 <referral> <urn:property> _:b0 .

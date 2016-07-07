@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -33,7 +33,7 @@ import org.smartdeveloperhub.curator.connector.rdf.ModelHelper;
 import org.smartdeveloperhub.curator.protocol.Binding;
 import org.smartdeveloperhub.curator.protocol.EnrichmentResponseMessage;
 import org.smartdeveloperhub.curator.protocol.Variable;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 import org.smartdeveloperhub.curator.protocol.vocabulary.FOAF;
 import org.smartdeveloperhub.curator.protocol.vocabulary.TYPES;
 import org.smartdeveloperhub.curator.protocol.vocabulary.XSD;
@@ -58,25 +58,25 @@ final class EnrichmentResponseMessageConverter extends ModelMessageConverter<Enr
 					build();
 		helper.
 			blankNode(util.blankNode(RESPONSE_BNODE)).
-				type(CURATOR.ENRICHMENT_RESPONSE_TYPE).
-				property(CURATOR.MESSAGE_ID).
+				type(STOA.ENRICHMENT_RESPONSE_TYPE).
+				property(STOA.MESSAGE_ID).
 					withTypedLiteral(message.messageId(), TYPES.UUID_TYPE).
-				property(CURATOR.SUBMITTED_BY).
+				property(STOA.SUBMITTED_BY).
 					withBlankNode(util.blankNode(AGENT_BNODE)).
-				property(CURATOR.SUBMITTED_ON).
+				property(STOA.SUBMITTED_ON).
 					withTypedLiteral(message.submittedOn(), XSD.DATE_TIME_TYPE).
-				property(CURATOR.RESPONSE_TO).
+				property(STOA.RESPONSE_TO).
 					withTypedLiteral(message.responseTo(), TYPES.UUID_TYPE).
-				property(CURATOR.RESPONSE_NUMBER).
+				property(STOA.RESPONSE_NUMBER).
 					withTypedLiteral(message.responseNumber(), XSD.UNSIGNED_LONG_TYPE).
-				property(CURATOR.TARGET_RESOURCE).
+				property(STOA.TARGET_RESOURCE).
 					withResource(message.targetResource()).
 			blankNode(util.blankNode(AGENT_BNODE)).
 				type(FOAF.AGENT_TYPE).
-				property(CURATOR.AGENT_ID).
+				property(STOA.AGENT_ID).
 					withTypedLiteral(message.submittedBy().agentId(), TYPES.UUID_TYPE);
-		serializeBindings(util,helper,CURATOR.ADDITION_TARGET,ADDITION_BNODE,message.additions());
-		serializeBindings(util,helper,CURATOR.REMOVAL_TARGET,REMOVAL_BNODE,message.removals());
+		serializeBindings(util,helper,STOA.ADDITION_TARGET,ADDITION_BNODE,message.additions());
+		serializeBindings(util,helper,STOA.REMOVAL_TARGET,REMOVAL_BNODE,message.removals());
 	}
 
 	private void serializeBindings(EnrichmentUtil util, ModelHelper helper, String property, String bnode, List<Binding> bindings) {
@@ -98,7 +98,7 @@ final class EnrichmentResponseMessageConverter extends ModelMessageConverter<Enr
 
 	@Override
 	protected String messageType() {
-		return CURATOR.ENRICHMENT_RESPONSE_TYPE;
+		return STOA.ENRICHMENT_RESPONSE_TYPE;
 	}
 
 }

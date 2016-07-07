@@ -6,7 +6,7 @@
  *   Center for Open Middleware
  *     http://www.centeropenmiddleware.com/
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Copyright (C) 2015 Center for Open Middleware.
+ *   Copyright (C) 2015-2016 Center for Open Middleware.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
- *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.1.0
- *   Bundle      : sdh-curator-connector-0.1.0.jar
+ *   Artifact    : org.smartdeveloperhub.curator:sdh-curator-connector:0.2.0
+ *   Bundle      : sdh-curator-connector-0.2.0.jar
  * #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
  */
 package org.smartdeveloperhub.curator.connector.io;
@@ -42,7 +42,7 @@ import org.smartdeveloperhub.curator.connector.protocol.ValidationException;
 import org.smartdeveloperhub.curator.connector.rdf.ModelUtil;
 import org.smartdeveloperhub.curator.connector.util.Builder;
 import org.smartdeveloperhub.curator.connector.util.ResourceUtil;
-import org.smartdeveloperhub.curator.protocol.vocabulary.CURATOR;
+import org.smartdeveloperhub.curator.protocol.vocabulary.STOA;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
@@ -73,7 +73,7 @@ public class ParserTest {
 					ResourceUtil.loadResource("queries/customMessage.sparql"));
 
 		private CustomParser(Model model, Resource resource) {
-			super(model, resource, CURATOR.MESSAGE_TYPE, "message", QUERY);
+			super(model, resource, STOA.MESSAGE_TYPE, "message", QUERY);
 		}
 
 		static Custom fromModel(Model model, Resource resource) {
@@ -144,7 +144,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$happyPath() {
-		new ParserTester("data/custom/only_mandatory.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/only_mandatory.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				Custom agent=CustomParser.fromModel(model, target);
@@ -155,7 +155,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$missingLiteral() {
-		new ParserTester("data/custom/missing_mandatory_literal.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/missing_mandatory_literal.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -173,7 +173,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$missingResource() {
-		new ParserTester("data/custom/missing_mandatory_resource.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/missing_mandatory_resource.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -191,7 +191,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$badLiteral() {
-		new ParserTester("data/custom/bad_literal.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/bad_literal.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -206,7 +206,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$badResource() {
-		new ParserTester("data/custom/bad_resource.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/bad_resource.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -221,7 +221,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$badNode() {
-		new ParserTester("data/custom/bad_node.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/bad_node.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -236,7 +236,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$providerFailure() {
-		new ParserTester("data/custom/provider_failure.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/provider_failure.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
@@ -251,7 +251,7 @@ public class ParserTest {
 
 	@Test
 	public void testFromModel$failure$cannotBindLiteral() {
-		new ParserTester("data/custom/cannot_bind_literal.ttl",CURATOR.MESSAGE_TYPE) {
+		new ParserTester("data/custom/cannot_bind_literal.ttl",STOA.MESSAGE_TYPE) {
 			@Override
 			protected void exercise(Model model, Resource target) {
 				try {
